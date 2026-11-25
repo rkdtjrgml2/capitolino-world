@@ -1719,5 +1719,117 @@ $("helpBtn").addEventListener("contextmenu",e=>{e.preventDefault();openSys("keys
  const st=document.createElement("style");st.textContent="#menuBtn{top:calc(env(safe-area-inset-top,0px) + 220px);left:calc(env(safe-area-inset-left,0px) + 12px)}@media (max-width:520px){#hud #menuBtn{top:calc(env(safe-area-inset-top,0px) + 202px)}}";document.head.appendChild(st)}
 window.__soc={NPCS,UI,MY,openTarget,startX,openSys,openMyShopPanel,closeMyShop,nearNPC};
 
+/* ===== Land: frontier plots to buy, clear, build a domus, hang your own sign ===== */
+const LAND_T={
+ ko:{forSale:"매물",mine:"내 땅",plot:"개척지",size:"크기",view:"전망",price:"값",buy:"땅 사기",bought:"땅을 샀습니다",sell:"땅 팔기",sold:"땅을 팔았습니다",
+  clear:"개간",clearHint:"도끼를 들고 땅 안의 나무를 베면 개간됩니다",cleared:"개간 완료",house:"집 짓기 (도무스)",houseBuilt:"집을 지었습니다",need:"필요",
+  sign:"내 간판 달기",signEdit:"간판 고치기",signTitle:"간판 글",signUrl:"연결할 주소 (https)",signSave:"걸기",signBad:"주소는 https:// 로 시작해야 합니다",open:"사이트 열기",
+  onlyMine:"내 땅에서만 개간할 수 있습니다",needAxe:"개간하려면 도끼를 드세요",noRes:"재료나 데나리우스가 모자랍니다",look:"땅 보기",signLook:"간판 보기",
+  rule:"땅을 사야 건물을 지을 수 있습니다. 공유 자원 지대(숲, 사냥터, 강, 광맥)는 살 수 없습니다",saved:"땅 정보는 이 브라우저에 저장됩니다. 회원 로그인이 열리면 계정에 옮겨집니다",refund:"돌려받는 값"},
+ en:{forSale:"For sale",mine:"My land",plot:"Frontier plot",size:"Size",view:"View",price:"Price",buy:"Buy land",bought:"Land purchased",sell:"Sell land",sold:"Land sold",
+  clear:"Clearing",clearHint:"Hold an axe and chop the trees on the plot to clear it",cleared:"Cleared",house:"Build a house (domus)",houseBuilt:"House built",need:"Needs",
+  sign:"Hang my sign",signEdit:"Edit sign",signTitle:"Sign text",signUrl:"Link (https)",signSave:"Hang",signBad:"The link must start with https://",open:"Open site",
+  onlyMine:"You can only clear your own land",needAxe:"Hold an axe to clear",noRes:"Not enough materials or denarii",look:"View plot",signLook:"View sign",
+  rule:"Buy land before you build. Shared resource zones (forests, hunting grounds, rivers, veins) cannot be bought",saved:"Land is saved in this browser. It moves to your account once sign in opens",refund:"Refund"},
+ ja:{forSale:"売地",mine:"自分の土地",plot:"開拓地",size:"広さ",view:"眺め",price:"価格",buy:"土地を買う",bought:"土地を買いました",sell:"土地を売る",sold:"土地を売りました",
+  clear:"開墾",clearHint:"斧を持って土地の木を切ると開墾できます",cleared:"開墾済み",house:"家を建てる（ドムス）",houseBuilt:"家を建てました",need:"必要",
+  sign:"看板を掛ける",signEdit:"看板を直す",signTitle:"看板の文字",signUrl:"リンク（https）",signSave:"掛ける",signBad:"リンクは https:// で始めてください",open:"サイトを開く",
+  onlyMine:"自分の土地だけ開墾できます",needAxe:"開墾には斧を持ってください",noRes:"材料かデナリウスが足りません",look:"土地を見る",signLook:"看板を見る",
+  rule:"建物は土地を買ってから。共有資源地（森、狩場、川、鉱脈）は買えません",saved:"土地はこのブラウザに保存されます。ログイン開始後にアカウントへ移ります",refund:"返金額"}};
+const LT=()=>LAND_T[lang]||LAND_T.en;
+const HOUSE_COST={wood:12,stone:6,denarius:20};
+const PLOTS=[];
+{const S0=6,cand=[];
+ for(let mz=-120;mz<=150;mz+=9)for(let mx=-60;mx<=160;mx+=9){
+  const d=Math.hypot(mx-22,mz-24);if(d<30||d>125)continue;
+  if(zoneAtM(mx,mz)||riverDistM(mx,mz)<12||inForum(mx,mz,10))continue;const rd=roadDistM(mx,mz);if(rd<3.2||rd>13)continue;
+  const X=mx*G,Z=mz*G,hw=S0*G/2;if(blockedAt(X,Z,hw+6))continue;if(SIGNS.some(s=>Math.hypot(s.at[0]-X,s.at[1]-Z)<hw+10))continue;
+  const hs=[heightAt(X,Z),heightAt(X-hw,Z-hw),heightAt(X+hw,Z-hw),heightAt(X-hw,Z+hw),heightAt(X+hw,Z+hw)];const lo=Math.min(...hs),hi=Math.max(...hs);
+  if(lo<1.6||hi-lo>3.2)continue;cand.push({mx,mz,X,Z,h:hs[0],slope:hi-lo,rd,d})}
+ cand.sort((a,b)=>a.d-b.d);
+ for(const c of cand){if(PLOTS.length>=24)break;if(PLOTS.some(p=>Math.hypot(p.x-c.X,p.z-c.Z)<S0*G+5))continue;
+  const view=Math.max(1,Math.min(3,Math.round(c.h/7)));const price=30+Math.round(c.h*2.2)+(c.rd<6?10:0)+view*10;
+  PLOTS.push({id:PLOTS.length+1,x:c.X,z:c.Z,w:S0*G,h:c.h,view,price,own:false,cl:[false,false,false],house:false,sign:null,objs:{}})}}
+const LANDKEY="cap3d.land."+server.id;
+function saveLand(){const o={};for(const p of PLOTS)if(p.own)o[p.id]={cl:p.cl,house:p.house,sign:p.sign};try{localStorage.setItem(LANDKEY,JSON.stringify(o))}catch(e){}}
+{let o={};try{o=JSON.parse(localStorage.getItem(LANDKEY)||"{}")}catch(e){}for(const p of PLOTS){const s=o[p.id];if(s){p.own=true;p.cl=s.cl||p.cl;p.house=!!s.house;p.sign=s.sign||null}}}
+const stakeMat=phong(0xe7c987),stakeMine=phong(0x2f78cf),ropeMat=new THREE.LineBasicMaterial({color:0xe7c987,transparent:true,opacity:.8}),ropeMine=new THREE.LineBasicMaterial({color:0x6fa8ff});
+function buildPlot(p){const g=new THREE.Group();const hw=p.w/2;const pts=[];
+ for(const [sx,sz] of [[-1,-1],[1,-1],[1,1],[-1,1]]){const x=p.x+sx*hw,z=p.z+sz*hw,y=heightAt(x,z);const s=box(.18,1.3,.18,p.own?stakeMine:stakeMat);s.position.set(x,y+.65,z);g.add(s);pts.push(new THREE.Vector3(x,y+1.15,z))}
+ pts.push(pts[0].clone());g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),p.own?ropeMine:ropeMat));
+ const gx0=Math.floor((p.x-hw)/20),gx1=Math.floor((p.x+hw)/20),gz0=Math.floor((p.z-hw)/20),gz1=Math.floor((p.z+hw)/20);
+ for(let i=gx0;i<=gx1;i++)for(let j=gz0;j<=gz1;j++){const L=TREEGRID[i+","+j];if(!L)continue;for(const t of L)if(Math.abs(t.x-p.x)<hw+1&&Math.abs(t.z-p.z)<hw+1){t.down=1;t.plot=1;setTree(t,false)}}
+ p.trees=[];for(let k=0;k<3;k++){const a=k*2.1+p.id,r=hw*.45;const tx=p.x+Math.cos(a)*r,tz=p.z+Math.sin(a)*r,ty=heightAt(tx,tz);
+  const tg=new THREE.Group();const tr=new THREE.Mesh(TREES.oak.trunk,phong(0x6e5038));const lf=new THREE.Mesh(TREES.oak.leaf,phong(0x58a032));tg.add(tr,lf);tg.scale.setScalar(.55);tg.position.set(tx,ty,tz);
+  tr.castShadow=lf.castShadow=true;g.add(tg);p.trees.push({g:tg,x:tx,z:tz,hp:3,idx:k});if(p.cl[k])tg.visible=false}
+ const tag=textSprite(p.own?LT().mine:`${LT().forSale} · ${p.price}◎`,p.own?{bg:"rgba(47,120,207,.9)"}:{bg:"rgba(201,162,90,.92)",fg:"#1c1712"});tag.position.set(p.x,p.h+2.4,p.z);tag.scale.multiplyScalar(1.4);g.add(tag);
+ if(p.objs.g)scene.remove(p.objs.g);p.objs={g,tag};scene.add(g);if(p.house)buildHouse(p);if(p.sign)buildPlotSign(p)}
+function buildHouse(p){if(p.objs.house)p.objs.g.remove(p.objs.house);const g=new THREE.Group(),y=heightAt(p.x,p.z);
+ const base=box(9,1.4,7,phong(0xcfc6b0));base.position.y=.2;g.add(base);
+ const wall=phong(0xe9dcc0),roof=phong(0xb4523a),wood=phong(0x6b4a30);
+ const body=box(8,3.6,6,wall);body.position.y=2.7;g.add(body);
+ const rf=new THREE.Mesh(prismGeo(8.8,2.2,6.8),roof);rf.position.y=4.5;rf.castShadow=true;g.add(rf);
+ const door=box(1.3,2.3,.15,wood);door.position.set(0,2.05,3.05);g.add(door);
+ for(const sx of [-2.6,2.6]){const w=box(1,1,.15,phong(0x2a2018));w.position.set(sx,3,3.05);g.add(w)}
+ for(const sx of [-3.6,3.6]){const c=new THREE.Mesh(new THREE.CylinderGeometry(.22,.26,3.6,8),phong(0xf1ead8));c.position.set(sx,2.7,3.4);g.add(c)}
+ g.position.set(p.x,y-.4,p.z);p.objs.g.add(g);p.objs.house=g;if(!p.block){p.block={b:{k:"domus"},x0:p.x-4.5,x1:p.x+4.5,z0:p.z-3.5,z1:p.z+3.5,top:99};BLOCKS.push(p.block)}if(p.objs.tag)p.objs.tag.position.y=p.h+7.2}
+function buildPlotSign(p){if(p.objs.sign)p.objs.g.remove(p.objs.sign);const c=document.createElement("canvas");c.width=512;c.height=288;const x=c.getContext("2d");
+ x.fillStyle="#f1e3c2";x.fillRect(0,0,512,288);x.strokeStyle="#8a5a32";x.lineWidth=14;x.strokeRect(7,7,498,274);x.strokeStyle="#c9a25a";x.lineWidth=4;x.strokeRect(24,24,464,240);
+ x.fillStyle="#2a1f16";x.textAlign="center";x.textBaseline="middle";x.font='700 44px "Noto Sans KR",sans-serif';const t=p.sign.t.slice(0,20);x.fillText(t,256,126,440);
+ let host="";try{host=new URL(p.sign.u).host}catch(e){}x.font='500 24px "Noto Sans KR",sans-serif';x.fillStyle="#7a5a3a";x.fillText(host,256,196,440);
+ const g=new THREE.Group();const board=new THREE.Mesh(new THREE.PlaneGeometry(3.2,1.8),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),side:THREE.DoubleSide}));board.position.y=2.6;
+ const back=box(3.4,2,.12,phong(0x6b4a30));back.position.set(0,2.6,-.08);g.add(back,board);for(const sx of [-1.5,1.5]){const post=box(.16,3.6,.16,phong(0x5a3f28));post.position.set(sx,1.8,-.1);g.add(post)}
+ const sx=p.x,sz=p.z+p.w/2-1.2;g.position.set(sx,heightAt(sx,sz),sz);board.userData.plotSign=p;p.objs.g.add(g);p.objs.sign=g;p.signAt=[sx,sz]}
+for(const L of ["ko","en","ja"])if(T[L]&&T[L].civic)T[L].civic.domus={ko:"도무스",en:"Domus",ja:"ドムス"}[L];
+PLOTS.forEach(buildPlot);
+function plotAt(x,z,pad){pad=pad||0;for(const p of PLOTS)if(Math.abs(x-p.x)<p.w/2+pad&&Math.abs(z-p.z)<p.w/2+pad)return p;return null}
+function nearPlotTree(){const p=plotAt(P.x,P.z,2);if(!p||!p.own)return null;let best=null,bd=3.2;for(const t of p.trees){if(p.cl[t.idx])continue;const d=Math.hypot(t.x-P.x,t.z-P.z);if(d<bd){bd=d;best=t}}return best?{p,t:best}:null}
+function nearPlotSign(){for(const p of PLOTS)if(p.sign&&p.signAt&&Math.hypot(P.x-p.signAt[0],P.z-p.signAt[1])<5)return p;return null}
+{const st=document.createElement("style");st.textContent="#land{position:fixed;z-index:20;left:50%;top:50%;transform:translate(-50%,-50%);width:min(340px,calc(100vw - 24px));color:var(--travertine)}#land[hidden]{display:none}#land .cost{font-size:12px;color:var(--stone);margin:4px 0}#land .stars{color:var(--gold-hi)}#land input{width:100%;box-sizing:border-box;padding:7px;border-radius:5px;border:1px solid rgba(201,162,90,.4);background:rgba(0,0,0,.25);color:inherit;font:inherit;margin:3px 0 8px}";document.head.appendChild(st);
+ const d=document.createElement("div");d.id="land";d.hidden=true;d.innerHTML='<div class="sbox"></div>';$("hud").appendChild(d);SOC_PANELS.push("land")}
+function costTxt(){const R=T[lang].res;return Object.entries(HOUSE_COST).map(([k,v])=>`${R[k]} ${v}`).join(", ")}
+function openLand(p,view){const t=LT(),b=sbx("land");closeSocial();let h=`<h3>${t.plot} ${p.id}${xBtn}</h3><div class="sub">${t.size} ${Math.round(p.w)}×${Math.round(p.w)} · ${t.view} <span class="stars">${"★".repeat(p.view)}${"☆".repeat(3-p.view)}</span></div>`;
+ if(view==="sign"){h+=`<div style="font-size:12px;color:var(--stone)">${t.signTitle}</div><input id="lsT" maxlength="20" value="${p.sign?p.sign.t.replace(/"/g,"&quot;"):""}"><div style="font-size:12px;color:var(--stone)">${t.signUrl}</div><input id="lsU" maxlength="200" placeholder="https://" value="${p.sign?p.sign.u.replace(/"/g,"&quot;"):""}">
+  <div class="xfoot"><button class="sbtn" data-back>${t.look}</button><button class="sbtn gold" data-save>${t.signSave}</button></div>`}
+ else if(!p.own){h+=`<div class="mrow"><span>${t.price}</span><b>${p.price} ◎</b></div><div class="cost" style="margin-top:8px">${t.rule}</div><div class="xfoot" style="margin-top:8px"><button class="sbtn gold" data-buy ${RES.denarius>=p.price?"":"disabled"}>${t.buy}</button></div>`}
+ else{const n=p.cl.filter(Boolean).length,done=n===3;
+  h+=`<div class="mrow"><span>${t.clear}</span><b>${done?t.cleared:n+" / 3"}</b></div>${done?"":`<div class="cost">${t.clearHint}</div>`}
+  ${p.house?`<div class="mrow"><span>${t.house}</span><b>✓</b></div>`:`<div class="cost">${t.house} · ${t.need} ${costTxt()}</div>`}
+  <div class="cost">${t.saved}</div>
+  <div style="display:grid;gap:6px;margin-top:8px">${p.house?"":`<button class="sbtn gold" data-house ${done?"":"disabled"}>${t.house}</button>`}<button class="sbtn" data-sign ${done?"":"disabled"}>${p.sign?t.signEdit:t.sign}</button><button class="sbtn" data-sell>${t.sell} · ${t.refund} ${Math.floor(p.price*.7)} ◎</button></div>`}
+ b.innerHTML=h;$("land").hidden=false;wireClose("land");UI.plot=p;
+ const q=s=>b.querySelector(s);
+ if(q("[data-buy]"))q("[data-buy]").onclick=()=>{if(RES.denarius<p.price){toast(T[lang].noMoney||t.noRes);return}RES.denarius-=p.price;p.own=true;saveLand();buildPlot(p);updateStats();toast(t.bought);openLand(p)};
+ if(q("[data-house]"))q("[data-house]").onclick=()=>{if(Object.entries(HOUSE_COST).some(([k,v])=>RES[k]<v)){toast(t.noRes);return}for(const [k,v] of Object.entries(HOUSE_COST))RES[k]-=v;p.house=true;buildHouse(p);saveLand();updateStats();toast(t.houseBuilt);openLand(p)};
+ if(q("[data-sign]"))q("[data-sign]").onclick=()=>openLand(p,"sign");
+ if(q("[data-sell]"))q("[data-sell]").onclick=()=>{RES.denarius+=Math.floor(p.price*.7);p.own=false;p.house=false;p.sign=null;if(p.block){BLOCKS.splice(BLOCKS.indexOf(p.block),1);p.block=null}p.cl=[false,false,false];p.signAt=null;saveLand();buildPlot(p);updateStats();toast(t.sold);$("land").hidden=true};
+ if(q("[data-back]"))q("[data-back]").onclick=()=>openLand(p);
+ if(q("[data-save]"))q("[data-save]").onclick=()=>{const tt=$("lsT").value.trim(),u=$("lsU").value.trim();let ok=false;try{ok=new URL(u).protocol==="https:"}catch(e){}
+  if(!tt||!ok){toast(t.signBad);return}p.sign={t:tt,u};buildPlotSign(p);saveLand();openLand(p)}}
+function openPlotSign(p){const t=LT();closeSocial();let host="";try{host=new URL(p.sign.u).host}catch(e){}
+ sbx("land").innerHTML=`<h3>${p.sign.t.replace(/</g,"&lt;")}${xBtn}</h3><div class="sub">${host}</div><div class="xfoot"><button class="sbtn gold" data-go>${t.open}</button></div>`;$("land").hidden=false;wireClose("land");
+ sbx("land").querySelector("[data-go]").onclick=()=>window.open(p.sign.u,"_blank","noopener")}
+{const _g=gather;gather=function(){const hit=nearPlotTree();if(hit&&P.kind==="human"&&!P.dead&&P.cd<=0){const {p,t}=hit;
+   if(!p.own)return _g();if(curHand()!=="axe"){toast(LT().needAxe);return true}
+   P.cd=.6;P.swing=1;P.face=Math.atan2(t.x-P.x,t.z-P.z);t.hp-=1;RES.wood+=1;toast(`+1 ${T[lang].res.wood}`);updateStats();
+   if(t.hp<=0){p.cl[t.idx]=true;t.g.visible=false;saveLand();if(p.cl.every(Boolean))toast(LT().cleared)}return true}
+  return _g()}}
+{const _near=updateNear;updateNear=function(){_near();if(P.kind!=="human"||P.dead)return;
+  const nb=$("nearBtn");if(!nb.hidden)return;const ps=nearPlotSign();if(ps){nb.hidden=false;nb.lastElementChild.innerHTML=`${LT().signLook}${isTouch?"":" <kbd>F</kbd>"}`;UI.nearPlot={sign:ps};return}
+  const p=plotAt(P.x,P.z,1);if(p&&!nearPlotTree()){nb.hidden=false;nb.lastElementChild.innerHTML=`${p.own?LT().mine:LT().forSale+" · "+p.price+"◎"}${isTouch?"":" <kbd>F</kbd>"}`;UI.nearPlot={plot:p};return}
+  UI.nearPlot=null;
+  if(UI.plot&&!$("land").hidden&&Math.hypot(P.x-UI.plot.x,P.z-UI.plot.z)>UI.plot.w+10)$("land").hidden=true;
+  for(const q of PLOTS){const d=Math.hypot(P.x-q.x,P.z-q.z);q.objs.tag.visible=d<120}}}
+function landAction(){const np=UI.nearPlot;if(!np)return false;if(np.sign){openPlotSign(np.sign);return true}if(np.plot){openLand(np.plot);return true}return false}
+addEventListener("keydown",e=>{if(mode!=="play"||e.repeat||e.code!=="KeyF")return;if(e.target&&(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA"))return;if(nearestItem()||nearNPC()||nearPlotTree())return;if(landAction()){e.stopImmediatePropagation()}},{capture:true});
+{const _nb=$("nearBtn").onclick;$("nearBtn").onclick=e=>{if(!nearSign&&!nearNPC()&&landAction())return;_nb&&_nb(e)}}
+$("atkBtn").addEventListener("pointerdown",e=>{if(nearNPC()||nearPlotTree())return;if(UI.nearPlot&&!nearStall()){e.stopImmediatePropagation();e.preventDefault();landAction()}},{capture:true});
+{const _tap=tapAt;tapAt=function(cx,cy){ndc.set(cx/innerWidth*2-1,-(cy/innerHeight)*2+1);ray.setFromCamera(ndc,camera);
+  const objs=[];for(const p of PLOTS)if(p.objs.sign)objs.push(p.objs.sign);const hit=objs.length?ray.intersectObjects(objs,true)[0]:null;
+  if(hit&&hit.distance<60){let o=hit.object;const p=PLOTS.find(p=>{let q=o;while(q){if(q===p.objs.sign)return true;q=q.parent}return false});if(p&&p.sign){openPlotSign(p);return true}}
+  return _tap(cx,cy)}}
+/* plots on the minimap: small squares drawn after the map */
+window.__land={PLOTS,openLand,plotAt,nearPlotTree};
+
 })();
 </script>
