@@ -85,7 +85,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--gold-hi);outline-of
 #bobber{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);font:900 56px/1 var(--display),serif;color:#ffd24a;text-shadow:0 3px 0 #7a3a10,0 0 18px rgba(255,210,74,.7);z-index:5;pointer-events:none;animation:bob .3s infinite alternate}
 @keyframes bob{to{transform:translate(-50%,-62%) scale(1.08)}}
 #trade{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:8;width:min(360px,calc(100vw - 24px))}
-#trade .ibox{background:var(--ink-soft);border:1px solid rgba(201,162,90,.6);border-radius:6px;padding:12px;display:grid;gap:8px;color:var(--travertine);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);max-height:80vh;overflow:auto}
+#trade .ibox{box-sizing:border-box;background:var(--ink-soft);border:1px solid rgba(201,162,90,.6);border-radius:6px;padding:12px;display:grid;gap:8px;color:var(--travertine);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);max-height:80vh;overflow:auto}
 #trade .ihead{display:flex;align-items:center;gap:10px;font-size:14px}#trade .ihead .money{margin-left:auto;font-size:12.5px;color:var(--stone)}#trade .ihead .money b{color:var(--gold-hi)}
 #trade .ihead button{width:30px;height:30px;display:grid;place-items:center;color:var(--stone)}#trade .ihead svg{width:16px;height:16px}
 #trade .ilabel{font-size:11px;color:var(--stone);letter-spacing:.06em}
@@ -99,17 +99,17 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--gold-hi);outline-of
 #trade .shop svg{width:24px;height:24px}#trade .shop em{font-style:normal;color:var(--gold-hi);font-size:11px}
 #trade .itip{font-size:10.5px;color:var(--stone)}
 #inv{position:fixed;left:calc(env(safe-area-inset-left,0px) + 64px);top:calc(env(safe-area-inset-top,0px) + 12px);z-index:7}
-#inv .ibox{width:min(300px,calc(100vw - 80px));background:var(--ink-soft);border:1px solid rgba(201,162,90,.5);border-radius:6px;padding:12px;display:grid;gap:10px;color:var(--travertine);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#inv .ibox{box-sizing:border-box;max-height:calc(100dvh - 24px);overflow:auto;width:min(300px,calc(100vw - 80px));background:var(--ink-soft);border:1px solid rgba(201,162,90,.5);border-radius:6px;padding:12px;display:grid;gap:10px;color:var(--travertine);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 #inv .ihead{display:flex;justify-content:space-between;align-items:center;font-size:14px}
 #inv .ihead button{width:30px;height:30px;display:grid;place-items:center;color:var(--stone)}#inv .ihead svg{width:16px;height:16px}
-#inv .eq{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-#inv .bag{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-#inv .cell{aspect-ratio:1;border:1px solid rgba(239,231,214,.18);border-radius:6px;display:grid;place-items:center;align-content:center;gap:2px;font-size:10px;color:var(--stone);background:rgba(239,231,214,.04)}
+#inv .eq{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+#inv .bag{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+#inv .cell{box-sizing:border-box;min-width:0;width:100%;padding:0;overflow:hidden;aspect-ratio:1;border:1px solid rgba(239,231,214,.18);border-radius:6px;display:grid;place-items:center;align-content:center;gap:2px;font-size:10px;color:var(--stone);background:rgba(239,231,214,.04)}
 #inv .cell svg{width:26px;height:26px}
 #inv .cell.on{border-color:var(--gold);background:rgba(201,162,90,.14);color:var(--travertine)}
 #inv button.cell:hover{border-color:var(--gold-hi)}
 #inv .ilabel{font-size:11px;color:var(--stone);letter-spacing:.06em}
-#inv .dropb{margin-left:auto;padding:3px 8px;border:1px solid rgba(224,115,79,.6);border-radius:4px;color:#f0a58a;font-size:11.5px}
+#inv .dropb{margin-left:auto;max-width:100%;white-space:nowrap;padding:3px 8px;border:1px solid rgba(224,115,79,.6);border-radius:4px;color:#f0a58a;font-size:11.5px}
 #inv .ires{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12.5px;border-top:1px solid rgba(239,231,214,.12);padding-top:8px}#inv .ires b{color:var(--gold-hi)}
 #inv .itip{font-size:10.5px;color:var(--stone)}
 #mapWrap{position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);right:calc(env(safe-area-inset-right,0px) + 12px);
@@ -128,7 +128,13 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--gold-hi);outline-of
 #hpBar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#c94a35,#e0734f);transition:width .2s}
 #slot{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--gold);display:grid;place-items:center;background:rgba(201,162,90,.12)}
 #slot svg{width:20px;height:20px}
-@media (max-width:520px){#stats{top:calc(env(safe-area-inset-top,0px) + 176px);left:12px;transform:none;gap:8px;padding:5px 10px}#hpBar{width:56px}}
+@media (max-width:520px){#stats{top:calc(env(safe-area-inset-top,0px) + 10px);left:calc(env(safe-area-inset-left,0px) + 60px);right:auto;transform:none;gap:6px;padding:5px 8px;max-width:calc(100vw - 196px);flex-wrap:wrap;border-radius:12px}#hpBar{width:48px}#resBar{max-width:none}#stats #slot{display:none}
+ .hbtn{width:40px;height:40px}#homeBtn{top:calc(env(safe-area-inset-top,0px) + 10px)}#bagBtn{top:calc(env(safe-area-inset-top,0px) + 58px)}#helpBtn{top:calc(env(safe-area-inset-top,0px) + 106px)}#hud #fbBtn{top:calc(env(safe-area-inset-top,0px) + 154px)}
+ #mapWrap{width:112px;height:112px}#place{top:calc(env(safe-area-inset-top,0px) + 128px);width:112px;font-size:10px;letter-spacing:.1em}
+ #inv{left:50%;top:50%;transform:translate(-50%,-50%)}#inv .ibox{width:min(320px,calc(100vw - 24px))}
+ #annBar#annBar{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 130px);max-width:calc(100vw - 24px)}}
+@media (pointer:coarse){#hotbar{top:calc(env(safe-area-inset-top,0px) + 160px)}#hotbar button{width:34px;height:34px}#hotbar button svg{width:22px;height:22px}}
+@media (pointer:coarse) and (max-height:500px){#hotbar{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);right:auto;left:50%;transform:translateX(-50%);flex-direction:row}#mapWrap{width:96px;height:96px}#place{top:112px;width:96px}}
 #hint{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 14px);
   font-size:12px;color:var(--travertine);background:var(--ink-soft);padding:6px 12px;border-radius:999px;white-space:nowrap;transition:opacity .6s;max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis}
 .pill{position:fixed;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:10px 16px 10px 12px;border-radius:999px;background:var(--gold);color:var(--ink);font-weight:700;font-size:14px;
@@ -179,6 +185,25 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--gold-hi);outline-of
 @media (max-width:640px){#card.peek{left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 150px)}#card.peek .box{max-width:230px;width:230px}#card.peek p{display:none}}
 #loading{position:fixed;inset:0;display:grid;place-items:center;font-family:var(--display);letter-spacing:.3em;color:var(--travertine);background:#8fc3e6}
 @media (prefers-reduced-motion: reduce){#hint,#toast{transition:none}}
+#fbBtn{top:calc(env(safe-area-inset-top,0px) + 168px);left:calc(env(safe-area-inset-left,0px) + 12px)}
+#fbBtn .bdg{position:absolute;top:-3px;right:-3px;width:12px;height:12px;border-radius:50%;background:#e0734f;border:2px solid var(--ink)}
+#fb{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(10,8,6,.55)}
+#fb[hidden],#annBar[hidden],#maint[hidden]{display:none}
+#fb .ibox{width:min(420px,calc(100vw - 32px));max-height:calc(100dvh - 48px);overflow:auto;background:var(--ink-soft);border:1px solid rgba(201,162,90,.5);border-radius:10px;padding:16px;color:#f3ead8}
+#fb .kinds{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+#fb .kinds button{flex:1;padding:8px 6px;border-radius:6px;border:1px solid rgba(201,162,90,.45);background:transparent;color:inherit;font:inherit;cursor:pointer}
+#fb .kinds button.on{background:var(--gold);color:var(--ink)}
+#fb textarea{width:100%;box-sizing:border-box;min-height:96px;border-radius:6px;border:1px solid rgba(201,162,90,.45);background:rgba(0,0,0,.25);color:inherit;font:inherit;padding:8px;resize:vertical}
+#fb .send{margin-top:10px;width:100%;padding:11px;border-radius:6px;border:0;background:var(--gold);color:var(--ink);font:inherit;font-weight:700;cursor:pointer}
+#fb .mine{margin-top:14px;border-top:1px solid rgba(201,162,90,.3);padding-top:10px;font-size:13px}
+#fb .mine .row{padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+#fb .mine .st{font-size:11px;opacity:.75}
+#fb .mine .rp{margin-top:4px;padding:6px 8px;border-left:3px solid var(--gold);background:rgba(201,162,90,.1)}
+#annBar{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:50%;transform:translateX(-50%);z-index:55;max-width:min(560px,calc(100vw - 140px));display:flex;gap:10px;align-items:flex-start;padding:9px 12px;border-radius:8px;background:rgba(28,22,16,.92);border:1px solid rgba(201,162,90,.6);color:#f3ead8;font-size:13px}
+#annBar.event{border-color:#7fbf6a}#annBar.maintenance{border-color:#e0b24f}#annBar.urgent{border-color:#e0734f;background:rgba(70,22,14,.94)}
+#annBar button{background:none;border:0;color:inherit;font-size:18px;line-height:1;cursor:pointer;padding:0 2px}
+#maint{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:rgba(14,11,8,.94);color:#f3ead8;text-align:center;padding:24px}
+#maint b{font-size:22px;color:var(--gold)}
 </style>
 
 <div id="stage"></div>
@@ -248,6 +273,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--gold-hi);outline-of
    <div class="eq" id="invEq"></div><div class="ilabel" id="invBagL"></div><div class="bag" id="invBag"></div><div class="ires" id="invRes"></div><div class="itip" id="invTip"></div></div></div>
   <button class="hbtn" id="helpBtn" aria-label="Help"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"/><circle cx="12" cy="17.3" r=".6" fill="currentColor"/></svg></button>
   <div id="help" hidden></div>
+  <button class="hbtn" id="fbBtn" aria-label="Feedback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg><i class="bdg" hidden></i></button>
   <div id="stats">
     <div class="it" title="HP"><svg viewBox="0 0 24 24" fill="#e0734f"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z"/></svg><div id="hpBar"><i></i></div></div>
     <div id="resBar"></div>
@@ -286,6 +312,116 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--gold-hi);outline-of
   </div>
 </div>
 
+<div id="fb" hidden><div class="ibox"><div class="ihead" style="display:flex;justify-content:space-between;align-items:center"><b id="fbTitle"></b><button id="fbClose" aria-label="Close" style="background:none;border:0;color:inherit;font-size:20px;cursor:pointer">&times;</button></div>
+<div class="kinds" id="fbKinds"></div><textarea id="fbText" maxlength="2000"></textarea><button class="send" id="fbSend"></button><div class="mine" id="fbMine"></div></div></div>
+<div id="annBar" hidden><span id="annText"></span><button id="annClose" aria-label="Close">&times;</button></div>
+<div id="maint" hidden><b id="maintT"></b><span id="maintS"></span></div>
+<script>
+/* Capitolino operator hooks for the game client.
+ * Paste into index.html (inside the main <script>, or as its own <script> after it).
+ * No library needed: talks to Supabase REST with the public publishable key.
+ *
+ *   CapOps.start({ server: 'kr', ver: '0.2', getState: () => ({ nickname, form, zone }) })
+ *   CapOps.sendFeedback('bug' | 'idea' | 'question' | 'other', text)  -> Promise<id>
+ *   CapOps.myFeedback()      -> Promise<[{id, kind, message, status, reply, fixed_version, ...}]>
+ *   CapOps.onlineCounts()    -> Promise<{kr: 12, us: 0, ...}>   (for the server select map)
+ *   CapOps.servers()         -> Promise<[{code, name, lang, status, capacity}]>
+ *   CapOps.on('announcements', list => ...)   active notices, refreshed every 60 s
+ *   CapOps.on('settings', obj => ...)         {maintenance_mode, motd, feedback_enabled, ...}
+ *   CapOps.on('replies', list => ...)         operator replies the player has not seen yet
+ */
+(function () {
+  const URL = 'https://cjlzuojkuzsqgvvymxaq.supabase.co';
+  const KEY = 'sb_publishable_ZRpU6JpWT93AfNG_L9aqZA_wsnY1Wph';
+  const H = { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' };
+
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+  };
+  let session = store.get('cap_session');
+  if (!session) {
+    session = (crypto.randomUUID && crypto.randomUUID()) ||
+      'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16);
+      });
+    store.set('cap_session', session);
+  }
+
+  const listeners = {};
+  const emit = (ev, data) => (listeners[ev] || []).forEach(fn => { try { fn(data); } catch (e) { console.warn(e); } });
+
+  async function rpc(name, body) {
+    const r = await fetch(URL + '/rest/v1/rpc/' + name, { method: 'POST', headers: H, body: JSON.stringify(body || {}) });
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).message || r.statusText);
+    const t = await r.text(); return t ? JSON.parse(t) : null;
+  }
+  async function get(path) {
+    const r = await fetch(URL + '/rest/v1/' + path, { headers: H });
+    if (!r.ok) throw new Error(r.statusText);
+    return r.json();
+  }
+
+  let opts = { server: 'kr', ver: '0.0', getState: () => ({}) };
+  let interval = 30, beatTimer = null, pollTimer = null;
+
+  async function beat() {
+    const s = opts.getState() || {};
+    try { await rpc('heartbeat', { p_session: session, p_server: opts.server, p_nickname: s.nickname || null, p_form: s.form || null, p_zone: s.zone || null, p_ver: opts.ver }); }
+    catch (e) { /* offline is fine */ }
+  }
+  async function poll() {
+    try {
+      const rows = await get('settings?select=key,value');
+      const settings = Object.fromEntries(rows.map(r => [r.key, r.value]));
+      const iv = Number(settings.presence_interval) || 30;
+      if (iv !== interval) { interval = iv; clearInterval(beatTimer); beatTimer = setInterval(beat, interval * 1000); }
+      emit('settings', settings);
+    } catch (e) {}
+    try {
+      const now = new Date().toISOString();
+      const list = await get('announcements?select=id,server,level,title,body,starts_at,ends_at&order=created_at.desc&server=in.(all,' + opts.server + ')');
+      emit('announcements', list);
+    } catch (e) {}
+    try {
+      const mine = await CapOps.myFeedback();
+      const seen = Number(store.get('cap_seen_reply') || 0);
+      const fresh = mine.filter(f => f.reply && new Date(f.replied_at).getTime() > seen);
+      if (fresh.length) emit('replies', fresh);
+    } catch (e) {}
+  }
+
+  const CapOps = {
+    session,
+    start(o) {
+      opts = Object.assign(opts, o || {});
+      beat(); poll();
+      beatTimer = setInterval(beat, interval * 1000);
+      pollTimer = setInterval(poll, 60000);
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) beat(); });
+      window.addEventListener('pagehide', () => {
+        try { fetch(URL + '/rest/v1/rpc/leave', { method: 'POST', headers: H, body: JSON.stringify({ p_session: session }), keepalive: true }); } catch (e) {}
+      });
+    },
+    setServer(code) { opts.server = code; beat(); },
+    on(ev, fn) { (listeners[ev] = listeners[ev] || []).push(fn); },
+    sendFeedback(kind, message) {
+      const s = opts.getState() || {};
+      return rpc('send_feedback', {
+        p_session: session, p_server: opts.server, p_kind: kind, p_message: String(message).slice(0, 2000),
+        p_nickname: s.nickname || null,
+        p_context: { ver: opts.ver, zone: s.zone || null, form: s.form || null, ua: navigator.userAgent.slice(0, 120), screen: innerWidth + 'x' + innerHeight },
+      });
+    },
+    myFeedback() { return rpc('my_feedback', { p_session: session }); },
+    markRepliesSeen() { store.set('cap_seen_reply', String(Date.now())); },
+    async onlineCounts() { const rows = await rpc('online_counts'); return Object.fromEntries((rows || []).map(r => [r.server, Number(r.online)])); },
+    servers() { return get('servers?select=code,name,lang,status,capacity&order=sort'); },
+  };
+  window.CapOps = CapOps;
+})();
+
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(){
@@ -1162,7 +1298,7 @@ function setHint(){const t=T[lang];$("hint").textContent=isTouch?(P.kind==="crow
  for(let lat=A0;lat>A1;lat-=3.2)for(let lon=L0;lon<L1;lon+=3.2){const land=LAND.some(p=>inPoly(lon,lat,p));
   x.beginPath();x.arc(px(lon),py(lat),land?2.6:1,0,7);x.fillStyle=land?"rgba(201,162,90,.55)":"rgba(239,231,214,.08)";x.fill()}
  const box2=$("srvMap");
- for(const sv of SERVERS){const b=document.createElement("button");b.className="pin "+(sv.open?"open":"locked");b.style.left=(px(sv.lon)/W*100)+"%";b.style.top=(py(sv.lat)/H*100)+"%";
+ for(const sv of SERVERS){const b=document.createElement("button");b.dataset.srv=sv.id;b.className="pin "+(sv.open?"open":"locked");b.style.left=(px(sv.lon)/W*100)+"%";b.style.top=(py(sv.lat)/H*100)+"%";
   b.innerHTML=sv.open?`<i></i><span class="${sv.lab}">${sv.name}</span>`:`<i></i>`;b.title=`${sv.name} · ${T[lang].soon}`;b.setAttribute("aria-label",sv.en);
   if(sv===server)b.classList.add("cur");
   b.onclick=()=>{if(sv.open){if(sv===server)return;try{localStorage.setItem("cap3d.server",sv.id)}catch(e){}location.reload()}else $("srvNote").textContent=`${sv.name} ${T[lang].srvSoonNote}`};
@@ -1292,5 +1428,49 @@ function boot(){SIGNS.forEach(buildSign);buildMapBase();applyLang();applyWho();$
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('700 40px Cinzel'),document.fonts.load('700 40px "Noto Sans KR"','카피톨리노')]):Promise.resolve();
 Promise.race([fontsReady,new Promise(r=>setTimeout(r,1800))]).catch(()=>{}).then(boot);
 window.__cap={P,cam,heightAt,SIGNS,items,fauna,openCard,spawn,attack,tryPick,RES,NODES,STALLS,FISH,gather,get mode(){return mode}};
+
+/* ===== Operator hooks (CapOps from 06_운영/client-ops.js) ===== */
+const CLIENT_VER="0.3";
+const OPS_T={
+ ko:{title:"건의 보내기",kinds:{bug:"버그",idea:"건의",question:"질문",other:"기타"},ph:"무엇이든 적어 주세요. 운영자가 읽고 답합니다.",send:"보내기",sent:"보냈습니다. 고맙습니다",fail:"지금은 보낼 수 없습니다. 잠시 뒤 다시 시도해 주세요",empty:"내용을 적어 주세요",mine:"내 건의",none:"아직 보낸 건의가 없습니다",st:{new:"접수",open:"확인 중",in_progress:"처리 중",done:"완료",fixed:"고침",closed:"닫힘",rejected:"보류"},reply:"운영자 답변",newReply:"운영자 답변이 도착했습니다",maintT:"점검 중",maintS:"더 나은 로마를 위해 점검하고 있습니다. 잠시 뒤 다시 찾아 주세요",update:"새 버전이 있습니다. 새로고침해 주세요",online:"명 접속"},
+ en:{title:"Send feedback",kinds:{bug:"Bug",idea:"Idea",question:"Question",other:"Other"},ph:"Tell us anything. The operator reads and replies.",send:"Send",sent:"Sent. Thank you",fail:"Could not send right now. Please try again soon",empty:"Please write something",mine:"My feedback",none:"Nothing sent yet",st:{new:"Received",open:"Reviewing",in_progress:"In progress",done:"Done",fixed:"Fixed",closed:"Closed",rejected:"On hold"},reply:"Operator reply",newReply:"You have a reply from the operator",maintT:"Maintenance",maintS:"We are improving Rome. Please come back shortly",update:"A new version is out. Please refresh",online:"online"},
+ ja:{title:"ご意見を送る",kinds:{bug:"バグ",idea:"提案",question:"質問",other:"その他"},ph:"なんでも書いてください。運営が読んで返信します。",send:"送信",sent:"送信しました。ありがとうございます",fail:"今は送信できません。少し後でお試しください",empty:"内容を書いてください",mine:"送ったご意見",none:"まだありません",st:{new:"受付",open:"確認中",in_progress:"対応中",done:"完了",fixed:"修正済み",closed:"終了",rejected:"保留"},reply:"運営からの返信",newReply:"運営から返信が届きました",maintT:"メンテナンス中",maintS:"ローマを改善しています。しばらくしてから再度お越しください",update:"新しいバージョンがあります。再読み込みしてください",online:"人"}};
+(function(){
+ if(!window.CapOps)return;
+ const ot=()=>OPS_T[lang]||OPS_T.en;
+ let fbKind="bug",opsSettings={},motdShown=false,annDismissed=(()=>{try{return JSON.parse(localStorage.getItem("cap_ann_x")||"[]")}catch(e){return[]}})();
+ const esc=x=>String(x==null?"":x).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+ function renderKinds(){const t=ot();$("fbKinds").innerHTML=Object.keys(t.kinds).map(k=>`<button data-k="${k}" class="${k===fbKind?"on":""}">${t.kinds[k]}</button>`).join("");
+  $("fbKinds").querySelectorAll("button").forEach(b=>b.onclick=()=>{fbKind=b.dataset.k;renderKinds()})}
+ async function renderMine(){const t=ot();$("fbMine").innerHTML=`<b>${t.mine}</b>`;
+  try{const list=await CapOps.myFeedback();if(!list||!list.length){$("fbMine").innerHTML+=`<div class="row st">${t.none}</div>`;return}
+   $("fbMine").innerHTML+=list.slice(0,20).map(f=>`<div class="row"><div class="st">${esc(t.kinds[f.kind]||f.kind)} · ${esc(t.st[f.status]||f.status||"")}${f.fixed_version?" · v"+esc(f.fixed_version):""}</div><div>${esc(f.message)}</div>${f.reply?`<div class="rp"><span class="st">${t.reply}</span><br>${esc(f.reply)}</div>`:""}</div>`).join("")}
+  catch(e){$("fbMine").innerHTML+=`<div class="row st">${t.none}</div>`}}
+ function openFb(){const t=ot();$("fbTitle").textContent=t.title;$("fbText").placeholder=t.ph;$("fbSend").textContent=t.send;renderKinds();$("fb").hidden=false;
+  $("fbBtn").querySelector(".bdg").hidden=true;CapOps.markRepliesSeen();renderMine();setTimeout(()=>$("fbText").focus(),30)}
+ $("fbBtn").onclick=openFb;$("fbClose").onclick=()=>{$("fb").hidden=true};
+ $("fb").addEventListener("pointerdown",e=>{if(e.target.id==="fb")$("fb").hidden=true});
+ ["keydown","keyup"].forEach(ev=>$("fb").addEventListener(ev,e=>{if(e.key==="Escape")$("fb").hidden=true;e.stopPropagation()}));
+ $("fbSend").onclick=async()=>{const t=ot(),txt=$("fbText").value.trim();if(!txt){toast(t.empty);return}$("fbSend").disabled=true;
+  try{await CapOps.sendFeedback(fbKind,txt);$("fbText").value="";toast(t.sent);renderMine()}catch(e){toast(t.fail)}$("fbSend").disabled=false};
+ CapOps.on("replies",list=>{if(!list.length)return;$("fbBtn").querySelector(".bdg").hidden=false;if(mode==="play")toast(ot().newReply)});
+ let curAnn=null;
+ CapOps.on("announcements",list=>{const now=Date.now();const act=(list||[]).filter(a=>!annDismissed.includes(a.id)&&(!a.starts_at||Date.parse(a.starts_at)<=now)&&(!a.ends_at||Date.parse(a.ends_at)>now));
+  const rank={urgent:0,maintenance:1,event:2,info:3};act.sort((a,b)=>(rank[a.level]??9)-(rank[b.level]??9));curAnn=act[0]||null;
+  if(!curAnn){$("annBar").hidden=true;return}$("annBar").className=curAnn.level||"info";$("annText").innerHTML=`<b>${esc(curAnn.title)}</b>${curAnn.body?" "+esc(curAnn.body):""}`;$("annBar").hidden=false});
+ $("annClose").onclick=()=>{if(curAnn){annDismissed.push(curAnn.id);try{localStorage.setItem("cap_ann_x",JSON.stringify(annDismissed.slice(-50)))}catch(e){}}$("annBar").hidden=true};
+ const verNum=v=>String(v||"0").split(".").map(n=>parseInt(n)||0);
+ const newer=(a,b)=>{const x=verNum(a),y=verNum(b);for(let i=0;i<Math.max(x.length,y.length);i++){if((x[i]||0)>(y[i]||0))return true;if((x[i]||0)<(y[i]||0))return false}return false};
+ function showMotd(){const m=opsSettings.motd;if(!m||motdShown||mode!=="play")return;motdShown=true;setTimeout(()=>toast(String(m)),900)}
+ CapOps.on("settings",st=>{opsSettings=st||{};const t=ot();
+  $("fbBtn").hidden=opsSettings.feedback_enabled===false||opsSettings.feedback_enabled==="false";
+  const mm=opsSettings.maintenance_mode===true||opsSettings.maintenance_mode==="true";$("maintT").textContent=t.maintT;$("maintS").textContent=t.maintS;$("maint").hidden=!mm;
+  if(opsSettings.min_client_version&&newer(opsSettings.min_client_version,CLIENT_VER)){$("maintT").textContent=t.update;$("maintS").innerHTML=`<button onclick="location.reload()" style="padding:10px 18px;border-radius:6px;border:0;background:var(--gold);color:var(--ink);font:inherit;font-weight:700;cursor:pointer">↻</button>`;$("maint").hidden=false}
+  showMotd()});
+ CapOps.start({server:server.id,ver:CLIENT_VER,getState:()=>({nickname:null,form:mode==="play"?P.kind:who,zone:mode==="play"?lastPlace:"entry"})});
+ const go=$("enterBtn").onclick;$("enterBtn").onclick=e=>{go&&go(e);CapOps.setServer(server.id);showMotd()};
+ CapOps.onlineCounts().then(c=>{for(const b of document.querySelectorAll(".srv [data-srv]")){const n=c[b.dataset.srv];if(n)b.title=`${n} ${ot().online}`}}).catch(()=>{});
+})();
+
 })();
 </script>
