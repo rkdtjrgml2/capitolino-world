@@ -204,6 +204,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--gold-hi);outline-of
 #annBar button{background:none;border:0;color:inherit;font-size:18px;line-height:1;cursor:pointer;padding:0 2px}
 #maint{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:rgba(14,11,8,.94);color:#f3ead8;text-align:center;padding:24px}
 #maint b{font-size:22px;color:var(--gold)}
+@media (pointer:fine){#nearBtn{bottom:calc(env(safe-area-inset-bottom,0px) + 112px)}#pickBtn{bottom:calc(env(safe-area-inset-bottom,0px) + 162px)}}
 </style>
 
 <div id="stage"></div>
@@ -1432,9 +1433,9 @@ window.__cap={P,cam,heightAt,SIGNS,items,fauna,openCard,spawn,attack,tryPick,RES
 /* ===== Operator hooks (CapOps from 06_운영/client-ops.js) ===== */
 const CLIENT_VER="0.3";
 const OPS_T={
- ko:{title:"건의 보내기",kinds:{bug:"버그",idea:"건의",question:"질문",other:"기타"},ph:"무엇이든 적어 주세요. 운영자가 읽고 답합니다.",send:"보내기",sent:"보냈습니다. 고맙습니다",fail:"지금은 보낼 수 없습니다. 잠시 뒤 다시 시도해 주세요",empty:"내용을 적어 주세요",mine:"내 건의",none:"아직 보낸 건의가 없습니다",st:{new:"접수",open:"확인 중",in_progress:"처리 중",done:"완료",fixed:"고침",closed:"닫힘",rejected:"보류"},reply:"운영자 답변",newReply:"운영자 답변이 도착했습니다",maintT:"점검 중",maintS:"더 나은 로마를 위해 점검하고 있습니다. 잠시 뒤 다시 찾아 주세요",update:"새 버전이 있습니다. 새로고침해 주세요",online:"명 접속"},
- en:{title:"Send feedback",kinds:{bug:"Bug",idea:"Idea",question:"Question",other:"Other"},ph:"Tell us anything. The operator reads and replies.",send:"Send",sent:"Sent. Thank you",fail:"Could not send right now. Please try again soon",empty:"Please write something",mine:"My feedback",none:"Nothing sent yet",st:{new:"Received",open:"Reviewing",in_progress:"In progress",done:"Done",fixed:"Fixed",closed:"Closed",rejected:"On hold"},reply:"Operator reply",newReply:"You have a reply from the operator",maintT:"Maintenance",maintS:"We are improving Rome. Please come back shortly",update:"A new version is out. Please refresh",online:"online"},
- ja:{title:"ご意見を送る",kinds:{bug:"バグ",idea:"提案",question:"質問",other:"その他"},ph:"なんでも書いてください。運営が読んで返信します。",send:"送信",sent:"送信しました。ありがとうございます",fail:"今は送信できません。少し後でお試しください",empty:"内容を書いてください",mine:"送ったご意見",none:"まだありません",st:{new:"受付",open:"確認中",in_progress:"対応中",done:"完了",fixed:"修正済み",closed:"終了",rejected:"保留"},reply:"運営からの返信",newReply:"運営から返信が届きました",maintT:"メンテナンス中",maintS:"ローマを改善しています。しばらくしてから再度お越しください",update:"新しいバージョンがあります。再読み込みしてください",online:"人"}};
+ ko:{title:"건의 보내기",kinds:{bug:"버그",idea:"건의",question:"질문",other:"기타"},ph:"무엇이든 적어 주세요. 운영자가 읽고 답합니다.",send:"보내기",sent:"보냈습니다. 고맙습니다",fail:"지금은 보낼 수 없습니다. 잠시 뒤 다시 시도해 주세요",empty:"내용을 적어 주세요",mine:"내 건의",none:"아직 보낸 건의가 없습니다",st:{new:"접수됨",reviewing:"확인 중",fixed:"고침",wontfix:"반영 안 함",done:"답변 완료"},reply:"운영자 답변",newReply:"운영자 답변이 도착했습니다",maintT:"점검 중",maintS:"더 나은 로마를 위해 점검하고 있습니다. 잠시 뒤 다시 찾아 주세요",update:"새 버전이 있습니다. 새로고침해 주세요",online:"명 접속"},
+ en:{title:"Send feedback",kinds:{bug:"Bug",idea:"Idea",question:"Question",other:"Other"},ph:"Tell us anything. The operator reads and replies.",send:"Send",sent:"Sent. Thank you",fail:"Could not send right now. Please try again soon",empty:"Please write something",mine:"My feedback",none:"Nothing sent yet",st:{new:"Received",reviewing:"Reviewing",fixed:"Fixed",wontfix:"Not planned",done:"Answered"},reply:"Operator reply",newReply:"You have a reply from the operator",maintT:"Maintenance",maintS:"We are improving Rome. Please come back shortly",update:"A new version is out. Please refresh",online:"online"},
+ ja:{title:"ご意見を送る",kinds:{bug:"バグ",idea:"提案",question:"質問",other:"その他"},ph:"なんでも書いてください。運営が読んで返信します。",send:"送信",sent:"送信しました。ありがとうございます",fail:"今は送信できません。少し後でお試しください",empty:"内容を書いてください",mine:"送ったご意見",none:"まだありません",st:{new:"受付",reviewing:"確認中",fixed:"修正済み",wontfix:"見送り",done:"回答済み"},reply:"運営からの返信",newReply:"運営から返信が届きました",maintT:"メンテナンス中",maintS:"ローマを改善しています。しばらくしてから再度お越しください",update:"新しいバージョンがあります。再読み込みしてください",online:"人"}};
 (function(){
  if(!window.CapOps)return;
  const ot=()=>OPS_T[lang]||OPS_T.en;
@@ -1471,6 +1472,252 @@ const OPS_T={
  const go=$("enterBtn").onclick;$("enterBtn").onclick=e=>{go&&go(e);CapOps.setServer(server.id);showMotd()};
  CapOps.onlineCounts().then(c=>{for(const b of document.querySelectorAll(".srv [data-srv]")){const n=c[b.dataset.srv];if(n)b.title=`${n} ${ot().online}`}}).catch(()=>{});
 })();
+
+/* ===== Social: citizens, target menu, talk, player trade, personal shops, system menu ===== */
+const SOC_T={
+ ko:{talk:"대화",trade:"거래 신청",info:"정보",shop:"상점 보기",close:"닫기",wanderer:"나그네",shopOpen:"개인 상점 열림",accepted:"님이 거래를 수락했습니다",
+  xTitle:"거래",me:"나",them:"상대",give:"내가 줄 것",get:"받을 것",theirStock:"상대 소지품 (눌러서 요청)",lock:"확인",locked:"확인됨",swap:"교환",cancel:"취소",
+  fair:"좋습니다. 이대로 하죠",unfair:"조금 더 주시면 좋겠습니다",empty:"주고받을 것을 올려 주세요",done:"교환했습니다",bagFull:"단축 칸이 가득 찼습니다",
+  value:"가치",myShop:"내 상점 열기",shopName:"상점 이름",shopDefault:"나그네의 가게",price:"값",qty:"수량",list:"올리기",openShop:"상점 열기",closeShop:"상점 닫기",
+  shopHint:"상점을 여는 동안은 움직일 수 없습니다. 지나가는 시민이 사 갈 수 있습니다",shopNothing:"올린 물건이 없습니다",sold:"님이 샀습니다",buy:"사기",noMoney:"데나리우스가 모자랍니다",
+  soldOut:"다 팔렸습니다",
+  sys:"메뉴",resume:"계속하기",settings:"설정",keys:"단축키",feedback:"건의 보내기",home:"처음 화면으로",quality:"그래픽 품질",high:"높음",mid:"보통",low:"낮음",tags:"이름표 표시",on:"켜기",off:"끄기",
+  me2:"내 정보",form:"모습",hp:"체력",worth:"재산 가치",held:"손에 든 것",none:"없음",
+  keyRows:[["WASD, 방향키","이동"],["Shift","달리기"],["Space","점프, 까마귀는 날기"],["Q E, 마우스 끌기","시점 회전"],["휠","시점 거리"],["F, 클릭","상호작용 (줍기, 대화, 채집, 공격)"],["1~8","단축 칸 선택"],["I, Tab","소지품"],["G","들고 있는 것 버리기"],["B","내 상점"],["C","내 정보"],["M","지도"],["H","도움말"],["Esc","창 닫기, 메뉴"]],
+  roles:{marcus:"벌목꾼",julia:"사냥꾼",lucius:"광부",claudia:"상인",gaius:"어부",flavia:"순례자"},
+  lines:["어서 오세요, 나그네님. 포룸은 늘 붐비지요","북쪽 숲에서 나무를 베면 상인이 값을 쳐 줍니다","좋은 광맥일수록 멀고 늑대가 많답니다","유피테르 신전은 언덕 꼭대기에 있어요. 경치가 좋지요","티베리스 강가에서 낚시를 해 보세요. 찌가 흔들리면 바로 당기세요","거래하고 싶으면 거래 신청을 눌러 주세요","땅을 살 수 있게 되면 언덕 위 자리가 비쌀 겁니다"]},
+ en:{talk:"Talk",trade:"Request trade",info:"Info",shop:"View shop",close:"Close",wanderer:"Visitor",shopOpen:"Shop open",accepted:" accepted the trade",
+  xTitle:"Trade",me:"You",them:"Them",give:"You give",get:"You get",theirStock:"Their items (tap to ask)",lock:"Confirm",locked:"Confirmed",swap:"Trade",cancel:"Cancel",
+  fair:"Fair enough. Deal",unfair:"A little more, please",empty:"Add something to trade",done:"Trade complete",bagFull:"Your hotbar is full",
+  value:"value",myShop:"Open my shop",shopName:"Shop name",shopDefault:"Visitor's stall",price:"Price",qty:"Qty",list:"List",openShop:"Open shop",closeShop:"Close shop",
+  shopHint:"You cannot move while your shop is open. Passing citizens may buy",shopNothing:"Nothing listed",sold:" bought",buy:"Buy",noMoney:"Not enough denarii",soldOut:"Sold out",
+  sys:"Menu",resume:"Resume",settings:"Settings",keys:"Controls",feedback:"Send feedback",home:"Back to start",quality:"Graphics",high:"High",mid:"Medium",low:"Low",tags:"Name tags",on:"On",off:"Off",
+  me2:"Character",form:"Form",hp:"HP",worth:"Net worth",held:"Holding",none:"Nothing",
+  keyRows:[["WASD, arrows","Move"],["Shift","Run"],["Space","Jump, crows fly"],["Q E, drag","Turn view"],["Wheel","Zoom"],["F, click","Interact (pick up, talk, gather, attack)"],["1 to 8","Hotbar slot"],["I, Tab","Inventory"],["G","Drop held item"],["B","My shop"],["C","Character"],["M","Map"],["H","Help"],["Esc","Close, menu"]],
+  roles:{marcus:"Woodcutter",julia:"Hunter",lucius:"Miner",claudia:"Merchant",gaius:"Fisher",flavia:"Pilgrim"},
+  lines:["Welcome, traveler. The Forum is always busy","Chop wood in the northern forest and the merchants will pay","The richer the vein, the farther away and the more wolves","Jupiter's temple sits on the hilltop. Lovely view","Try fishing on the Tiber. Pull as soon as the float bobs","Want to trade? Press Request trade","When land goes on sale, hilltop plots will cost the most"]},
+ ja:{talk:"話す",trade:"取引を申し込む",info:"情報",shop:"店を見る",close:"閉じる",wanderer:"旅人",shopOpen:"個人商店 営業中",accepted:"が取引を受けました",
+  xTitle:"取引",me:"自分",them:"相手",give:"渡すもの",get:"受け取るもの",theirStock:"相手の持ち物（押して要求）",lock:"確認",locked:"確認済み",swap:"交換",cancel:"取消",
+  fair:"いいでしょう。これで",unfair:"もう少しいただけますか",empty:"取引するものを置いてください",done:"交換しました",bagFull:"ショートカットがいっぱいです",
+  value:"価値",myShop:"自分の店を開く",shopName:"店の名前",shopDefault:"旅人の店",price:"値段",qty:"数",list:"出品",openShop:"開店",closeShop:"閉店",
+  shopHint:"開店中は動けません。通りがかりの市民が買うことがあります",shopNothing:"出品がありません",sold:"が買いました",buy:"買う",noMoney:"デナリウスが足りません",soldOut:"売り切れ",
+  sys:"メニュー",resume:"続ける",settings:"設定",keys:"操作",feedback:"ご意見",home:"最初の画面へ",quality:"画質",high:"高",mid:"中",low:"低",tags:"名前表示",on:"オン",off:"オフ",
+  me2:"自分の情報",form:"姿",hp:"体力",worth:"財産価値",held:"手に持つもの",none:"なし",
+  keyRows:[["WASD、矢印","移動"],["Shift","走る"],["Space","ジャンプ、カラスは飛ぶ"],["Q E、ドラッグ","視点回転"],["ホイール","距離"],["F、クリック","操作（拾う、話す、採集、攻撃）"],["1〜8","ショートカット"],["I、Tab","持ち物"],["G","持ち物を捨てる"],["B","自分の店"],["C","自分の情報"],["M","地図"],["H","ヘルプ"],["Esc","閉じる、メニュー"]],
+  roles:{marcus:"木こり",julia:"狩人",lucius:"鉱夫",claudia:"商人",gaius:"漁師",flavia:"巡礼者"},
+  lines:["ようこそ旅人さん。フォルムはいつもにぎやかです","北の森で木を切れば商人が買ってくれます","良い鉱脈ほど遠くて狼が多いですよ","ユピテル神殿は丘の上。眺めがいいです","テヴェレ川で釣りをどうぞ。浮きが動いたらすぐ引いて","取引したいときは取引を申し込むを押してください","土地が売りに出たら丘の上が一番高くなるでしょう"]}};
+const ST=()=>SOC_T[lang]||SOC_T.en;
+const NPC_NAMES={marcus:{ko:"마르쿠스",en:"Marcus",ja:"マルクス"},julia:{ko:"율리아",en:"Julia",ja:"ユリア"},lucius:{ko:"루키우스",en:"Lucius",ja:"ルキウス"},
+ claudia:{ko:"클라우디아",en:"Claudia",ja:"クラウディア"},gaius:{ko:"가이우스",en:"Gaius",ja:"ガイウス"},flavia:{ko:"플라비아",en:"Flavia",ja:"フラウィア"}};
+const npcName=n=>(NPC_NAMES[n.id]||{})[lang]||n.id;
+const ITEM_VAL=k=>{const s=SHOP.find(x=>x[0]===k);return s?Math.round(s[1]*.6):5};
+const resVal=(k,n)=>k==="denarius"?n:(PRICE[k]||1)*n;
+const FCX=22*G,FCZ=24*G;
+const SET={quality:"high",tags:true};try{Object.assign(SET,JSON.parse(localStorage.getItem("cap3d.set")||"{}"))}catch(e){}
+function saveSet(){try{localStorage.setItem("cap3d.set",JSON.stringify(SET))}catch(e){}}
+function textSprite(txt,opt){opt=opt||{};const c=document.createElement("canvas"),x=c.getContext("2d"),fs=opt.fs||34;x.font=`700 ${fs}px "Noto Sans KR",sans-serif`;
+ const w=Math.ceil(x.measureText(txt).width)+fs;c.width=w;c.height=fs*1.7;x.font=`700 ${fs}px "Noto Sans KR",sans-serif`;
+ x.fillStyle=opt.bg||"rgba(22,19,15,.72)";const r=c.height/2;x.beginPath();x.moveTo(r,0);x.lineTo(w-r,0);x.arc(w-r,r,r,-Math.PI/2,Math.PI/2);x.lineTo(r,c.height);x.arc(r,r,r,Math.PI/2,Math.PI*1.5);x.fill();
+ if(opt.border){x.strokeStyle=opt.border;x.lineWidth=3;x.stroke()}
+ x.fillStyle=opt.fg||"#efe7d6";x.textAlign="center";x.textBaseline="middle";x.fillText(txt,w/2,c.height/2+2);
+ const tex=new THREE.CanvasTexture(c);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,depthTest:false,transparent:true}));
+ const sc=(opt.h||.42);sp.scale.set(sc*w/c.height,sc,1);sp.renderOrder=9;return sp}
+/* citizens: stand-ins for other players until the multiplayer stage */
+const NPCS=[];
+const NPC_DEF=[["marcus",0x3f6fb0,{wood:14,food:4,denarius:40},[]],["julia",0x3f8a2c,{hide:6,food:9,denarius:35},["spear"]],["lucius",0x6b5a4a,{iron:5,stone:8,silver:1,denarius:60},["pick"]],
+ ["claudia",0x8a4fb0,{denarius:120,food:6,iron:5,hide:4},[],true],["gaius",0x2f8c8c,{food:7,denarius:25},["rod"]],["flavia",0xe7c987,{denarius:80,silver:2},["dagger"]]];
+function tintHuman(c,col){c.g.traverse(o=>{if(o.isMesh&&o.material&&o.material.color&&o.material.color.getHex()===0xb83a26){o.material=o.material.clone();o.material.color.setHex(col)}})}
+for(const [id,col,inv,items0,shopkeeper] of NPC_DEF){const c=makeHuman();tintHuman(c,col);scene.add(c.g);
+ const a=Math.random()*6.28,r=4+Math.random()*10;const n={id,c,x:FCX+Math.cos(a)*r,z:FCZ+Math.sin(a)*r,tx:0,tz:0,wait:Math.random()*3,rot:0,phase:0,inv:{},items:items0.slice(),busy:0,shop:null};
+ RES_KEYS.forEach(k=>n.inv[k]=inv[k]||0);n.tx=n.x;n.tz=n.z;
+ if(shopkeeper){n.x=FCX+3;n.z=FCZ-3;n.fixed=true;n.items=["dagger","axe","rod"];n.shop={list:[{k:"iron",n:5,p:8},{k:"hide",n:4,p:6},{k:"food",n:6,p:3},{k:"dagger",item:1,n:1,p:10},{k:"axe",item:1,n:1,p:16}]}}
+ n.tag=textSprite(" ");c.g.add(n.tag);n.tag.position.y=2.75;NPCS.push(n)}
+function refreshTags(){for(const n of NPCS){c0:{const old=n.tag;n.c.g.remove(old);old.material.map.dispose();old.material.dispose()}
+ const label=n.shop?`${npcName(n)} · ${ST().shopOpen}`:npcName(n);n.tag=textSprite(label,n.shop?{bg:"rgba(201,162,90,.92)",fg:"#1c1712"}:{});n.tag.position.y=2.75;n.tag.visible=SET.tags;n.c.g.add(n.tag)}}
+refreshTags();
+function updateNPCs(dt){const playing=mode==="play"&&P.c;
+ for(const n of NPCS){let mv=0;
+  const pd=playing?Math.hypot(P.x-n.x,P.z-n.z):1e9;
+  if(n.busy>0||n.fixed||(UI.target===n)){if(pd<6)n.rot=lerpAngle(n.rot,Math.atan2(P.x-n.x,P.z-n.z),dt*5);n.busy=Math.max(0,n.busy-dt)}
+  else{const dx=n.tx-n.x,dz=n.tz-n.z,d=Math.hypot(dx,dz);
+   if(n.wait>0)n.wait-=dt;
+   else if(d<.6){n.wait=2+Math.random()*6;let k=0;do{const a=Math.random()*6.28,r=3+Math.random()*16;n.tx=FCX+Math.cos(a)*r;n.tz=FCZ+Math.sin(a)*r;k++}while((blockedAt(n.tx,n.tz,1)||heightAt(n.tx,n.tz)<1)&&k<10)}
+   else{const sp=1.6,nx=n.x+dx/d*sp*dt,nz=n.z+dz/d*sp*dt;if(!blockedAt(nx,nz,.5)&&!(playing&&Math.hypot(P.x-nx,P.z-nz)<1.1)){n.x=nx;n.z=nz;mv=.5}else n.wait=1.5;n.rot=lerpAngle(n.rot,Math.atan2(dx,dz),dt*5)}}
+  n.phase+=dt*(mv?1.6:0);n.c.g.position.set(n.x,groundAt(n.x,n.z),n.z);n.c.g.rotation.y=n.rot;n.c.anim(n.phase,mv)}}
+function nearNPC(r){if(P.kind!=="human"||P.dead)return null;let best=null,bd=r||3.6;for(const n of NPCS){const d=Math.hypot(P.x-n.x,P.z-n.z);if(d<bd){bd=d;best=n}}return best}
+/* ---------- UI panels ---------- */
+const UI={target:null,x:null,shopOpen:false};
+const panelCss=`
+#tgt,#talk,#xtr,#nshop,#mshop,#sys,#me{position:fixed;z-index:20;color:var(--travertine)}
+#tgt[hidden],#talk[hidden],#xtr[hidden],#nshop[hidden],#mshop[hidden],#sys[hidden],#me[hidden]{display:none}
+.sbox{box-sizing:border-box;background:var(--ink-soft);border:1px solid rgba(201,162,90,.6);border-radius:8px;padding:12px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);max-height:calc(100dvh - 24px);overflow:auto}
+.sbox h3{margin:0 0 2px;font-size:15px;display:flex;align-items:center;gap:8px}.sbox h3 .x{margin-left:auto;background:none;border:0;color:var(--stone);font-size:20px;cursor:pointer;line-height:1}
+.sbox .sub{font-size:11.5px;color:var(--stone);margin-bottom:8px}
+.sbtns{display:grid;grid-template-columns:1fr 1fr;gap:6px}.sbtns button,.sbtn{padding:9px 8px;border-radius:6px;border:1px solid rgba(201,162,90,.5);background:rgba(239,231,214,.05);color:inherit;font:inherit;font-size:13px;cursor:pointer}
+.sbtns button:hover,.sbtn:hover{border-color:var(--gold-hi)}.sbtn.gold{background:var(--gold);color:var(--ink);font-weight:700;border-color:var(--gold)}.sbtn[disabled]{opacity:.4;cursor:default}
+#tgt{left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 112px);transform:translateX(-50%);width:min(300px,calc(100vw - 24px))}
+#talk{left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 112px);transform:translateX(-50%);width:min(420px,calc(100vw - 24px))}
+#talk p{margin:4px 0 10px;font-size:14px;line-height:1.55}
+#xtr,#nshop,#mshop,#sys,#me{left:50%;top:50%;transform:translate(-50%,-50%)}
+#xtr{width:min(560px,calc(100vw - 16px))}#nshop,#mshop{width:min(380px,calc(100vw - 16px))}#sys{width:min(320px,calc(100vw - 24px))}#me{width:min(300px,calc(100vw - 24px))}
+.xcols{display:grid;grid-template-columns:1fr 1fr;gap:10px}.xcol{border:1px solid rgba(239,231,214,.14);border-radius:6px;padding:8px;min-width:0}
+.xcol.ok{border-color:#7fbf6a;box-shadow:0 0 0 1px #7fbf6a inset}
+.xcol b.h{display:block;font-size:12px;color:var(--stone);margin-bottom:6px}
+.xrow{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:4px;align-items:center;font-size:12px;padding:2px 0}
+.xrow i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px}
+.xrow button{width:24px;height:24px;border-radius:4px;border:1px solid rgba(201,162,90,.45);background:none;color:inherit;cursor:pointer;padding:0}
+.xrow em{font-style:normal;color:var(--gold-hi);min-width:22px;text-align:center}
+.xoff{min-height:24px;font-size:12px;color:var(--gold-hi);margin:6px 0;padding-top:6px;border-top:1px dashed rgba(239,231,214,.15)}
+.xsay{font-size:12.5px;margin:8px 0;min-height:18px}.xfoot{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.lrow{display:grid;grid-template-columns:minmax(0,1fr) 64px 64px;gap:6px;align-items:center;font-size:12.5px;padding:3px 0}
+.lrow input{width:100%;box-sizing:border-box;padding:5px;border-radius:4px;border:1px solid rgba(201,162,90,.4);background:rgba(0,0,0,.25);color:inherit;font:inherit;font-size:12.5px}
+.srow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;font-size:13px;padding:5px 0;border-bottom:1px solid rgba(239,231,214,.07)}
+.srow em{font-style:normal;color:var(--gold-hi)}
+.kt{width:100%;border-collapse:collapse;font-size:12.5px}.kt td{padding:4px 6px;border-bottom:1px solid rgba(239,231,214,.08)}.kt td:first-child{color:var(--gold-hi);white-space:nowrap}
+.seg{display:flex;gap:4px}.seg button{flex:1;padding:6px;border-radius:5px;border:1px solid rgba(201,162,90,.4);background:none;color:inherit;font:inherit;font-size:12.5px;cursor:pointer}.seg button.on{background:var(--gold);color:var(--ink)}
+.setrow{display:grid;gap:6px;margin:8px 0}
+.mrow{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid rgba(239,231,214,.07)}.mrow b{color:var(--gold-hi)}
+@media (max-width:520px){.xcols{grid-template-columns:1fr}}`;
+{const st=document.createElement("style");st.textContent=panelCss;document.head.appendChild(st);
+ const hud=$("hud");for(const id of ["tgt","talk","xtr","nshop","mshop","me"]){const d=document.createElement("div");d.id=id;d.hidden=true;d.innerHTML='<div class="sbox"></div>';hud.appendChild(d)}
+ const s=document.createElement("div");s.id="sys";s.hidden=true;s.innerHTML='<div class="sbox"></div>';document.body.appendChild(s)}
+const sbx=id=>$(id).firstElementChild;
+const xBtn=`<button class="x" data-close aria-label="Close">&times;</button>`;
+function wireClose(id,fn){sbx(id).querySelectorAll("[data-close]").forEach(b=>b.onclick=fn||(()=>{$(id).hidden=true}))}
+function closeSocial(){for(const id of ["tgt","talk","nshop","mshop","me"])$(id).hidden=true;if(!$("xtr").hidden)cancelX();UI.target=null}
+/* target menu */
+function openTarget(n){const t=ST();UI.target=n;n.busy=6;$("talk").hidden=true;
+ sbx("tgt").innerHTML=`<h3>${npcName(n)}${xBtn}</h3><div class="sub">${t.wanderer} · ${t.roles[n.id]}${n.shop?" · "+t.shopOpen:""}</div>
+ <div class="sbtns"><button data-a="talk">${t.talk}</button><button data-a="trade">${t.trade}</button>${n.shop?`<button data-a="shop">${t.shop}</button>`:""}<button data-a="info">${t.info}</button></div>`;
+ $("tgt").hidden=false;wireClose("tgt",()=>{$("tgt").hidden=true;UI.target=null});
+ sbx("tgt").querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>{const a=b.dataset.a;if(a==="talk")openTalk(n);else if(a==="trade")startX(n);else if(a==="shop")openNShop(n);else openTalk(n,true)})}
+function openTalk(n,info){const t=ST();n.busy=8;$("tgt").hidden=true;
+ const body=info?`${t.wanderer} · ${t.roles[n.id]}<br>${RES_KEYS.filter(k=>n.inv[k]>0).map(k=>`${T[lang].res[k]} ${n.inv[k]}`).join(", ")}${n.items.length?"<br>"+n.items.map(k=>T[lang].weapons[k]).join(", "):""}`:t.lines[Math.floor(Math.random()*t.lines.length)];
+ sbx("talk").innerHTML=`<h3>${npcName(n)}${xBtn}</h3><p>${body}</p><div class="xfoot"><button class="sbtn" data-more>${info?t.talk:"…"}</button><button class="sbtn" data-back>${t.close}</button></div>`;
+ $("talk").hidden=false;wireClose("talk");sbx("talk").querySelector("[data-back]").onclick=()=>{$("talk").hidden=true;UI.target=null};sbx("talk").querySelector("[data-more]").onclick=()=>openTalk(n,false)}
+/* player to player trade (citizens answer as an AI stand-in) */
+function startX(n){const t=ST();$("tgt").hidden=true;$("talk").hidden=true;n.busy=60;toast(npcName(n)+t.accepted);
+ UI.x={n,give:{},get:{},giveItems:[],getItems:[],myOk:false,theirOk:false,say:""};RES_KEYS.forEach(k=>{UI.x.give[k]=0;UI.x.get[k]=0});renderX()}
+function xValue(side){const x=UI.x;let v=0;for(const k of RES_KEYS)v+=resVal(k,x[side][k]);for(const i of x[side==="give"?"giveItems":"getItems"])v+=ITEM_VAL(side==="give"?P.slots[i]:x.n.items[i]);return v}
+function xChanged(){const x=UI.x;x.myOk=false;x.theirOk=false;x.say="";renderX()}
+function renderX(){const x=UI.x,t=ST(),R=T[lang].res;if(!x)return;const n=x.n;
+ const myRows=RES_KEYS.filter(k=>RES[k]>0||x.give[k]>0).map(k=>`<div class="xrow"><span><i style="background:${RES_COL[k]}"></i>${R[k]} ${RES[k]}</span><button data-g="${k}" data-d="-1">−</button><em>${x.give[k]}</em><button data-g="${k}" data-d="1">+</button></div>`).join("");
+ const myItems=P.slots.map((k,i)=>k?`<button class="sbtn" data-gi="${i}" style="padding:4px 6px;font-size:11.5px;${x.giveItems.includes(i)?"border-color:#7fbf6a;color:#bfe8b0":""}">${T[lang].weapons[k]}</button>`:"").join(" ");
+ const thRows=RES_KEYS.filter(k=>n.inv[k]>0||x.get[k]>0).map(k=>`<div class="xrow"><span><i style="background:${RES_COL[k]}"></i>${R[k]} ${n.inv[k]}</span><button data-r="${k}" data-d="-1">−</button><em>${x.get[k]}</em><button data-r="${k}" data-d="1">+</button></div>`).join("");
+ const thItems=n.items.map((k,i)=>`<button class="sbtn" data-ri="${i}" style="padding:4px 6px;font-size:11.5px;${x.getItems.includes(i)?"border-color:#7fbf6a;color:#bfe8b0":""}">${T[lang].weapons[k]}</button>`).join(" ");
+ const off=(side,items,src)=>RES_KEYS.filter(k=>x[side][k]>0).map(k=>`${R[k]} ${x[side][k]}`).concat(x[items].map(i=>T[lang].weapons[src[i]])).join(", ")||"·";
+ sbx("xtr").innerHTML=`<h3>${t.xTitle} · ${npcName(n)}${xBtn}</h3>
+ <div class="xcols"><div class="xcol${x.myOk?" ok":""}"><b class="h">${t.me} · ${t.give}</b>${myRows}<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">${myItems}</div><div class="xoff">${off("give","giveItems",P.slots)} <span style="color:var(--stone)">(${t.value} ${xValue("give")})</span></div></div>
+ <div class="xcol${x.theirOk?" ok":""}"><b class="h">${t.them} · ${t.theirStock}</b>${thRows}<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">${thItems}</div><div class="xoff">${off("get","getItems",n.items)} <span style="color:var(--stone)">(${t.value} ${xValue("get")})</span></div></div></div>
+ <div class="xsay">${x.say?`<b>${npcName(n)}</b> ${x.say}`:""}</div>
+ <div class="xfoot"><button class="sbtn" data-cx>${t.cancel}</button><button class="sbtn" data-lock ${x.myOk?"disabled":""}>${x.myOk?t.locked:t.lock}</button><button class="sbtn gold" data-swap ${x.myOk&&x.theirOk?"":"disabled"}>${t.swap}</button></div>`;
+ $("xtr").hidden=false;const b=sbx("xtr");wireClose("xtr",cancelX);b.querySelector("[data-cx]").onclick=cancelX;
+ b.querySelectorAll("[data-g]").forEach(e=>e.onclick=()=>{const k=e.dataset.g;x.give[k]=Math.max(0,Math.min(RES[k],x.give[k]+ +e.dataset.d));xChanged()});
+ b.querySelectorAll("[data-r]").forEach(e=>e.onclick=()=>{const k=e.dataset.r;x.get[k]=Math.max(0,Math.min(n.inv[k],x.get[k]+ +e.dataset.d));xChanged()});
+ b.querySelectorAll("[data-gi]").forEach(e=>e.onclick=()=>{const i=+e.dataset.gi,j=x.giveItems.indexOf(i);if(j<0)x.giveItems.push(i);else x.giveItems.splice(j,1);xChanged()});
+ b.querySelectorAll("[data-ri]").forEach(e=>e.onclick=()=>{const i=+e.dataset.ri,j=x.getItems.indexOf(i);if(j<0)x.getItems.push(i);else x.getItems.splice(j,1);xChanged()});
+ b.querySelector("[data-lock]").onclick=()=>{const g=xValue("give"),r=xValue("get");if(!g&&!r){x.say=ST().empty;renderX();return}x.myOk=true;renderX();
+  setTimeout(()=>{if(UI.x!==x||!x.myOk)return;if(g>=Math.ceil(r*1.1)||(r===0&&g>0)){x.theirOk=true;x.say=ST().fair}else{x.say=ST().unfair}renderX()},700)};
+ b.querySelector("[data-swap]").onclick=doX}
+function doX(){const x=UI.x,n=x.n,t=ST();if(!x.myOk||!x.theirOk)return;
+ const free=P.slots.filter((k,i)=>!k||x.giveItems.includes(i)).length;if(x.getItems.length>free){toast(t.bagFull);return}
+ for(const k of RES_KEYS){RES[k]-=x.give[k];n.inv[k]+=x.give[k];RES[k]+=x.get[k];n.inv[k]-=x.get[k]}
+ const gave=x.giveItems.map(i=>P.slots[i]);x.giveItems.forEach(i=>P.slots[i]=null);const got=x.getItems.map(i=>n.items[i]);n.items=n.items.filter((k,i)=>!x.getItems.includes(i));n.items.push(...gave);
+ for(const k of got){const i=P.slots.indexOf(null);P.slots[i]=k}
+ UI.x=null;$("xtr").hidden=true;n.busy=2;refreshHand();updateStats();renderInv();toast(t.done)}
+function cancelX(){if(UI.x)UI.x.n.busy=1;UI.x=null;$("xtr").hidden=true}
+/* a citizen's personal shop */
+function openNShop(n){const t=ST(),R=T[lang].res;$("tgt").hidden=true;n.busy=30;
+ sbx("nshop").innerHTML=`<h3>${npcName(n)} · ${t.shopOpen}${xBtn}</h3><div class="sub">${T[lang].res.denarius} <b style="color:var(--gold-hi)">${RES.denarius}</b></div>`+
+ n.shop.list.map((l,i)=>`<div class="srow"><span>${l.item?T[lang].weapons[l.k]:R[l.k]} × ${l.n}</span><em>${l.p}</em><button class="sbtn" data-buy="${i}" ${l.n&&RES.denarius>=l.p?"":"disabled"}>${l.n?t.buy:t.soldOut}</button></div>`).join("");
+ $("nshop").hidden=false;wireClose("nshop");
+ sbx("nshop").querySelectorAll("[data-buy]").forEach(b=>b.onclick=()=>{const l=n.shop.list[+b.dataset.buy];if(RES.denarius<l.p){toast(t.noMoney);return}
+  if(l.item){const i=P.slots.indexOf(null);if(i<0){toast(t.bagFull);return}P.slots[i]=l.k;refreshHand()}else RES[l.k]++;
+  RES.denarius-=l.p;n.inv.denarius+=l.p;l.n--;updateStats();renderInv();openNShop(n)})}
+/* my personal shop: list, open, sit still, citizens may buy */
+const MY={title:"",list:{},items:{},open:false,timer:0,sign:null,escrow:null};
+function openMyShopPanel(){if(P.kind!=="human"||P.dead)return;const t=ST(),R=T[lang].res;closeSocial();
+ if(MY.open){sbx("mshop").innerHTML=`<h3>${MY.title}${xBtn}</h3><div class="sub">${t.shopHint}</div>`+
+   Object.entries(MY.escrow.res).filter(([k,v])=>v.n>0).map(([k,v])=>`<div class="srow"><span>${R[k]} × ${v.n}</span><em>${v.p}</em><span></span></div>`).join("")+
+   MY.escrow.items.map(v=>`<div class="srow"><span>${T[lang].weapons[v.k]}</span><em>${v.p}</em><span></span></div>`).join("")+
+   `<div class="xfoot" style="margin-top:10px"><button class="sbtn gold" data-shut>${t.closeShop}</button></div>`;
+  $("mshop").hidden=false;wireClose("mshop");sbx("mshop").querySelector("[data-shut]").onclick=closeMyShop;return}
+ const rows=RES_KEYS.filter(k=>k!=="denarius"&&RES[k]>0).map(k=>`<div class="lrow"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;background:${RES_COL[k]}"></i>${R[k]} ${RES[k]}</span><input type="number" min="0" max="${RES[k]}" value="${Math.min(RES[k],MY.list[k]?.n??RES[k])}" data-q="${k}" aria-label="${t.qty}"><input type="number" min="1" value="${MY.list[k]?.p??Math.ceil(PRICE[k]*1.3)}" data-p="${k}" aria-label="${t.price}"></div>`).join("");
+ const irows=P.slots.map((k,i)=>k?`<div class="lrow"><span>${T[lang].weapons[k]}</span><label style="font-size:11.5px"><input type="checkbox" data-iq="${i}" style="width:auto"> ${t.list}</label><input type="number" min="1" value="${Math.ceil(ITEM_VAL(k)*1.6)}" data-ip="${i}" aria-label="${t.price}"></div>`:"").join("");
+ sbx("mshop").innerHTML=`<h3>${t.myShop}${xBtn}</h3><div class="setrow"><label style="font-size:12px;color:var(--stone)">${t.shopName}</label><input id="mshopName" maxlength="24" value="${MY.title||t.shopDefault}" style="padding:7px;border-radius:5px;border:1px solid rgba(201,162,90,.4);background:rgba(0,0,0,.25);color:inherit;font:inherit"></div>
+ <div class="lrow" style="color:var(--stone);font-size:11px"><span></span><span>${t.qty}</span><span>${t.price}</span></div>${rows}${irows}${rows||irows?"":`<div class="sub">${t.shopNothing}</div>`}
+ <div class="sub" style="margin-top:8px">${t.shopHint}</div><div class="xfoot"><button class="sbtn gold" data-go ${rows||irows?"":"disabled"}>${t.openShop}</button></div>`;
+ $("mshop").hidden=false;wireClose("mshop");
+ sbx("mshop").querySelector("[data-go]").onclick=()=>{const b=sbx("mshop"),esc={res:{},items:[]};
+  b.querySelectorAll("[data-q]").forEach(e=>{const k=e.dataset.q,q=Math.max(0,Math.min(RES[k],Math.floor(+e.value||0))),p=Math.max(1,Math.floor(+b.querySelector(`[data-p="${k}"]`).value||1));MY.list[k]={n:q,p};if(q>0)esc.res[k]={n:q,p}});
+  b.querySelectorAll("[data-iq]").forEach(e=>{if(!e.checked)return;const i=+e.dataset.iq;esc.items.push({k:P.slots[i],p:Math.max(1,Math.floor(+b.querySelector(`[data-ip="${i}"]`).value||1)),slot:i})});
+  if(!Object.keys(esc.res).length&&!esc.items.length){toast(ST().shopNothing);return}
+  for(const [k,v] of Object.entries(esc.res))RES[k]-=v.n;for(const it of esc.items)P.slots[it.slot]=null;
+  MY.title=($("mshopName").value||t.shopDefault).slice(0,24);MY.escrow=esc;MY.open=true;MY.timer=6+Math.random()*6;
+  MY.sign=textSprite(MY.title,{bg:"rgba(201,162,90,.95)",fg:"#1c1712",h:.55});MY.sign.position.y=3;P.c.g.add(MY.sign);refreshHand();updateStats();renderInv();$("mshop").hidden=true;toast(MY.title)}}
+function closeMyShop(){if(!MY.open)return;for(const [k,v] of Object.entries(MY.escrow.res))RES[k]+=v.n;
+ for(const it of MY.escrow.items){const i=P.slots.indexOf(null);if(i>=0)P.slots[i]=it.k;else dropItem(it.k,P.x+1,P.z)}
+ if(MY.sign&&P.c)P.c.g.remove(MY.sign);MY.sign=null;MY.open=false;MY.escrow=null;$("mshop").hidden=true;refreshHand();updateStats();renderInv()}
+function updateMyShop(dt){if(!MY.open)return;MY.timer-=dt;if(MY.timer>0)return;MY.timer=8+Math.random()*10;
+ const buyer=NPCS[Math.floor(Math.random()*NPCS.length)];const opts=[];
+ for(const [k,v] of Object.entries(MY.escrow.res))if(v.n>0&&v.p<=PRICE[k]*1.7)opts.push(["r",k,v]);
+ MY.escrow.items.forEach((v,i)=>{if(v.p<=ITEM_VAL(v.k)*2.2)opts.push(["i",i,v])});
+ if(!opts.length||Math.random()<.25)return;const o=opts[Math.floor(Math.random()*opts.length)];
+ if(o[0]==="r"){const q=Math.min(o[2].n,1+Math.floor(Math.random()*3)),pay=q*o[2].p;if(buyer.inv.denarius<pay)return;o[2].n-=q;buyer.inv[o[1]]+=q;buyer.inv.denarius-=pay;RES.denarius+=pay;
+  toast(`${npcName(buyer)}${ST().sold} · ${T[lang].res[o[1]]} ${q} · +${pay}`)}
+ else{const v=o[2];if(buyer.inv.denarius<v.p)return;MY.escrow.items.splice(o[1],1);buyer.items.push(v.k);buyer.inv.denarius-=v.p;RES.denarius+=v.p;toast(`${npcName(buyer)}${ST().sold} · ${T[lang].weapons[v.k]} · +${v.p}`)}
+ updateStats();if(!$("mshop").hidden)openMyShopPanel();
+ if(!Object.values(MY.escrow.res).some(v=>v.n>0)&&!MY.escrow.items.length){closeMyShop();toast(ST().soldOut)}}
+/* character info */
+function openMe(){const t=ST(),R=T[lang].res;closeSocial();let worth=RES.denarius;for(const k of RES_KEYS)if(k!=="denarius")worth+=resVal(k,RES[k]);for(const k of P.slots)if(k)worth+=ITEM_VAL(k);
+ sbx("me").innerHTML=`<h3>${t.me2}${xBtn}</h3><div class="mrow"><span>${t.form}</span><b>${$("who-"+P.kind)?.textContent.trim()||P.kind}</b></div><div class="mrow"><span>${t.hp}</span><b>${Math.max(0,Math.ceil(P.hp))} / ${P.hpMax}</b></div>
+ <div class="mrow"><span>${t.held}</span><b>${curHand()?T[lang].weapons[curHand()]:t.none}</b></div><div class="mrow"><span>${R.denarius}</span><b>${RES.denarius}</b></div><div class="mrow"><span>${t.worth}</span><b>${worth}</b></div>`;
+ $("me").hidden=false;wireClose("me")}
+/* system menu and settings */
+function applyQuality(){const q=SET.quality;renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,q==="high"?(isTouch?1.5:1.75):q==="mid"?1.25:.85));renderer.setSize(innerWidth,innerHeight);
+ sun.castShadow=q!=="low";for(const n of NPCS)n.tag.visible=SET.tags}
+applyQuality();
+function openSys(view){const t=ST();let h;
+ if(view==="set")h=`<h3>${t.settings}${xBtn}</h3><div class="setrow"><span style="font-size:12.5px">${t.quality}</span><div class="seg">${["high","mid","low"].map(q=>`<button data-q="${q}" class="${SET.quality===q?"on":""}">${t[q]}</button>`).join("")}</div></div>
+  <div class="setrow"><span style="font-size:12.5px">${t.tags}</span><div class="seg"><button data-tg="1" class="${SET.tags?"on":""}">${t.on}</button><button data-tg="0" class="${SET.tags?"":"on"}">${t.off}</button></div></div><div class="xfoot"><button class="sbtn" data-back>${t.sys}</button></div>`;
+ else if(view==="keys")h=`<h3>${t.keys}${xBtn}</h3><table class="kt">${t.keyRows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join("")}</table><div class="xfoot" style="margin-top:8px"><button class="sbtn" data-back>${t.sys}</button></div>`;
+ else h=`<h3>${t.sys}${xBtn}</h3><div style="display:grid;gap:6px;margin-top:8px"><button class="sbtn gold" data-close>${t.resume}</button><button class="sbtn" data-v="set">${t.settings}</button><button class="sbtn" data-v="keys">${t.keys}</button>${mode==="play"&&P.kind==="human"?`<button class="sbtn" data-v="me">${t.me2}</button><button class="sbtn" data-v="shop">${t.myShop}</button>`:""}<button class="sbtn" data-v="fb">${t.feedback}</button><button class="sbtn" data-v="home">${t.home}</button></div>`;
+ sbx("sys").innerHTML=h;$("sys").hidden=false;wireClose("sys");const b=sbx("sys");
+ b.querySelectorAll("[data-v]").forEach(e=>e.onclick=()=>{const v=e.dataset.v;if(v==="set"||v==="keys")openSys(v);else{$("sys").hidden=true;if(v==="fb")$("fbBtn").click();else if(v==="home")goHome();else if(v==="me")openMe();else if(v==="shop")openMyShopPanel()}});
+ b.querySelectorAll("[data-back]").forEach(e=>e.onclick=()=>openSys());
+ b.querySelectorAll("[data-q]").forEach(e=>e.onclick=()=>{SET.quality=e.dataset.q;saveSet();applyQuality();openSys("set")});
+ b.querySelectorAll("[data-tg]").forEach(e=>e.onclick=()=>{SET.tags=e.dataset.tg==="1";saveSet();applyQuality();openSys("set")})}
+/* hooks into the existing input and loop */
+const SOC_PANELS=["tgt","talk","xtr","nshop","mshop","me","sys"];
+addEventListener("keydown",e=>{const tg=e.target;
+ if(tg&&(tg.tagName==="INPUT"||tg.tagName==="TEXTAREA")){if(e.key!=="Escape"){e.stopImmediatePropagation();return}}
+ if(mode!=="play")return;const c=e.code;
+ if(c==="Escape"){const any=SOC_PANELS.some(id=>!$(id).hidden);const other=!$("card").hidden||!$("inv").hidden||!$("trade").hidden||!$("help").hidden||!$("fb").hidden||FISH.on;
+  if(any){SOC_PANELS.forEach(id=>{if(!$(id).hidden){if(id==="xtr")cancelX();else $(id).hidden=true}});UI.target=null;e.stopImmediatePropagation();return}
+  if(MY.open){closeMyShop();e.stopImmediatePropagation();return}
+  if(!other){openSys();e.stopImmediatePropagation();return}return}
+ if(e.repeat)return;
+ if(c==="KeyB"){e.stopImmediatePropagation();if(!$("mshop").hidden)$("mshop").hidden=true;else openMyShopPanel();return}
+ if(c==="KeyC"){e.stopImmediatePropagation();if(!$("me").hidden)$("me").hidden=true;else openMe();return}
+ if(c==="KeyF"&&!nearestItem()){const n=nearNPC();if(n){e.stopImmediatePropagation();keys[c]=false;openTarget(n);return}}},{capture:true});
+$("atkBtn").addEventListener("pointerdown",e=>{const n=nearNPC();if(n){e.stopImmediatePropagation();e.preventDefault();openTarget(n)}},{capture:true});
+{const _tap=tapAt;tapAt=function(cx,cy){if(P.kind==="human"){ndc.set(cx/innerWidth*2-1,-(cy/innerHeight)*2+1);ray.setFromCamera(ndc,camera);
+  const hit=ray.intersectObjects(NPCS.map(n=>n.c.g),true)[0];if(hit&&hit.distance<80){let o=hit.object;const n=NPCS.find(n=>{let p=o;while(p){if(p===n.c.g)return true;p=p.parent}return false});
+   if(n){if(Math.hypot(P.x-n.x,P.z-n.z)<7)openTarget(n);else toast(T[lang].tooFar);return true}}}
+ return _tap(cx,cy)}}
+{const _near=updateNear;updateNear=function(){_near();const n=nearNPC();
+  if(n&&$("nearBtn").hidden&&$("tgt").hidden&&$("xtr").hidden){$("nearBtn").hidden=false;$("nearBtn").lastElementChild.innerHTML=`${npcName(n)} · ${ST().talk}${isTouch?"":" <kbd>F</kbd>"}`}
+  if(UI.target&&Math.hypot(P.x-UI.target.x,P.z-UI.target.z)>9){$("tgt").hidden=true;$("talk").hidden=true;$("nshop").hidden=true;UI.target=null}
+  if(UI.x&&Math.hypot(P.x-UI.x.n.x,P.z-UI.x.n.z)>9)cancelX()}}
+{const _nb=$("nearBtn").onclick;$("nearBtn").onclick=e=>{if(!nearSign){const n=nearNPC();if(n){openTarget(n);return}}_nb&&_nb(e)}}
+{const _up=updatePlayer;updatePlayer=function(dt){if(MY.open){for(const k in keys)keys[k]=false;joy.x=joy.y=0}_up(dt);updateNPCs(dt);updateMyShop(dt)}}
+{const _home=goHome;goHome=function(){closeMyShop();closeSocial();$("sys").hidden=true;_home()};$("homeBtn").onclick=goHome}
+$("helpBtn").addEventListener("contextmenu",e=>{e.preventDefault();openSys("keys")});
+/* menu button for touch and mouse */
+{const mb=document.createElement("button");mb.className="hbtn";mb.id="menuBtn";mb.setAttribute("aria-label","Menu");
+ mb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg>';mb.onclick=()=>{if($("sys").hidden)openSys();else $("sys").hidden=true};$("hud").appendChild(mb);
+ const st=document.createElement("style");st.textContent="#menuBtn{top:calc(env(safe-area-inset-top,0px) + 220px);left:calc(env(safe-area-inset-left,0px) + 12px)}@media (max-width:520px){#hud #menuBtn{top:calc(env(safe-area-inset-top,0px) + 202px)}}";document.head.appendChild(st)}
+window.__soc={NPCS,UI,MY,openTarget,startX,openSys,openMyShopPanel,closeMyShop,nearNPC};
 
 })();
 </script>
