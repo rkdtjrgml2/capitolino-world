@@ -40,13 +40,14 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--gold-hi);outline-of
 .srv .head b{color:var(--travertine);font-weight:600;letter-spacing:0;font-size:13px}
 .srvmap{position:relative;border:1px solid rgba(201,162,90,.3);border-radius:6px;overflow:hidden;background:#141b22}
 .srvmap canvas{display:block;width:100%;height:auto}
-.pin{position:absolute;transform:translate(-50%,-50%);width:22px;height:22px;display:grid;place-items:center;padding:0;font-size:10.5px;font-weight:600;color:var(--stone);white-space:nowrap}
-.pin i{width:12px;height:12px;border-radius:50%;background:#6b6458;border:2px solid #16130f;box-shadow:0 0 0 1px rgba(239,231,214,.35)}
-.pin span{position:absolute;background:rgba(22,19,15,.78);padding:1px 6px;border-radius:999px}
-.pin span.u{bottom:19px;left:50%;transform:translateX(-50%)}.pin span.r{left:19px;top:50%;transform:translateY(-50%)}.pin span.l{right:19px;top:50%;transform:translateY(-50%)}.pin span.d{top:19px;left:50%;transform:translateX(-50%)}
-.pin.open{color:var(--ink)}.pin.open span{background:var(--gold-hi)}.pin.open i{background:var(--gold-hi);box-shadow:0 0 0 4px rgba(231,201,135,.35);animation:pinPulse 1.8s infinite}
-.pin.locked{opacity:.75}.pin.locked i{width:9px;height:9px}
-.pin.open:not(.cur){opacity:.8}.pin.open:not(.cur) i{animation:none;box-shadow:0 0 0 1px rgba(239,231,214,.5)}.pin.open:not(.cur) span{background:rgba(231,201,135,.6)}
+.pin{position:absolute;transform:translate(-50%,-50%);padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;line-height:1.25;white-space:nowrap;cursor:pointer;border:1px solid transparent;transition:transform .15s,background .15s}
+.pin.l{transform:translate(-100%,-50%)}.pin.r{transform:translate(0,-50%)}.pin.u{transform:translate(-50%,-92%)}.pin.d{transform:translate(-50%,-8%)}.pin .sh{display:none}
+@media (max-width:520px){.pin{font-size:10px;padding:2px 7px}.pin.locked{font-size:8.5px;padding:1px 5px}.pin .fl{display:none}.pin .sh{display:inline}.pin.open::before{width:5px;height:5px;margin-right:4px}}
+.pin.open{background:rgba(231,201,135,.72);color:var(--ink)}.pin.open:hover{background:var(--gold-hi)}
+.pin.open.cur{background:var(--gold-hi);box-shadow:0 0 0 3px rgba(231,201,135,.3),0 2px 8px rgba(0,0,0,.5);animation:pinPulse 1.8s infinite}
+.pin.locked{background:rgba(22,19,15,.72);color:rgba(239,231,214,.5);border-color:rgba(239,231,214,.14);font-size:9.5px;font-weight:600;padding:2px 7px}.pin.locked:hover{color:var(--travertine)}
+.pin.open::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:#2f7a3a;margin-right:5px;vertical-align:1px}
+.pin.cur::after{content:"✓";margin-left:4px;font-size:10px}
 @keyframes pinPulse{50%{box-shadow:0 0 0 9px rgba(231,201,135,0)}}
 .srvnote{font-size:11.5px;color:var(--stone);text-align:center;min-height:1.3em}
 .lang button{padding:6px 14px;border-radius:999px;font-size:13px;border:1px solid rgba(239,231,214,.25);color:var(--stone)}
@@ -475,15 +476,15 @@ const T={
 /* Country servers: each server is one copy of the world in one language. Add a server by adding a row here and a T entry for its language. */
 const SERVERS=[
  {id:"kr",name:"대한민국",en:"Korea",lang:"ko",lon:127,lat:37,open:true,lab:"u"},
- {id:"us",name:"United States",en:"United States",lang:"en",lon:-98,lat:39,open:true,lab:"u"},
+ {id:"us",name:"United States",sh:"USA",en:"United States",lang:"en",lon:-98,lat:39,open:true,lab:"c"},
  {id:"jp",name:"日本",en:"Japan",lang:"ja",lon:139,lat:36,open:true,lab:"d"},
- {id:"gb",name:"United Kingdom",en:"United Kingdom",lang:"en",lon:-2,lat:54,open:false,lab:"u"},
- {id:"ca",name:"Canada",en:"Canada",lang:"en",lon:-100,lat:57,open:false,lab:"u"},
- {id:"au",name:"Australia",en:"Australia",lang:"en",lon:134,lat:-25,open:false,lab:"u"},
- {id:"es",name:"España",en:"Spain",lang:"es",lon:-4,lat:40,open:false,lab:"u"},
- {id:"mx",name:"México",en:"Mexico",lang:"es",lon:-102,lat:23,open:false,lab:"u"},
- {id:"br",name:"Brasil",en:"Brazil",lang:"pt",lon:-50,lat:-12,open:false,lab:"u"},
- {id:"it",name:"Italia",en:"Italy",lang:"it",lon:12.5,lat:42,open:false,lab:"u"}];
+ {id:"gb",name:"United Kingdom",sh:"UK",en:"United Kingdom",lang:"en",lon:-2,lat:54,open:false,lab:"c"},
+ {id:"ca",name:"Canada",en:"Canada",lang:"en",lon:-100,lat:57,open:false,lab:"c"},
+ {id:"au",name:"Australia",en:"Australia",lang:"en",lon:134,lat:-25,open:false,lab:"c"},
+ {id:"es",name:"España",en:"Spain",lang:"es",lon:-4,lat:40,open:false,lab:"l"},
+ {id:"mx",name:"México",en:"Mexico",lang:"es",lon:-102,lat:23,open:false,lab:"c"},
+ {id:"br",name:"Brasil",en:"Brazil",lang:"pt",lon:-50,lat:-12,open:false,lab:"c"},
+ {id:"it",name:"Italia",en:"Italy",lang:"it",lon:12.5,lat:42,open:false,lab:"r"}];
 let server=SERVERS[0];
 try{const q=new URLSearchParams(location.search).get("server"),st=localStorage.getItem("cap3d.server"),nl=(navigator.language||"").toLowerCase();
  const pick=id=>SERVERS.find(v=>v.id===id&&v.open);
@@ -1313,8 +1314,8 @@ function setHint(){const t=T[lang];$("hint").textContent=isTouch?(P.kind==="crow
  for(let lat=A0;lat>A1;lat-=3.2)for(let lon=L0;lon<L1;lon+=3.2){const land=LAND.some(p=>inPoly(lon,lat,p));
   x.beginPath();x.arc(px(lon),py(lat),land?2.6:1,0,7);x.fillStyle=land?"rgba(201,162,90,.55)":"rgba(239,231,214,.08)";x.fill()}
  const box2=$("srvMap");
- for(const sv of SERVERS){const b=document.createElement("button");b.dataset.srv=sv.id;b.className="pin "+(sv.open?"open":"locked");b.style.left=(px(sv.lon)/W*100)+"%";b.style.top=(py(sv.lat)/H*100)+"%";
-  b.innerHTML=sv.open?`<i></i><span class="${sv.lab}">${sv.name}</span>`:`<i></i>`;b.title=`${sv.name} · ${T[lang].soon}`;b.setAttribute("aria-label",sv.en);
+ for(const sv of SERVERS){const b=document.createElement("button");b.dataset.srv=sv.id;b.className="pin "+sv.lab+" "+(sv.open?"open":"locked");b.style.left=(px(sv.lon)/W*100)+"%";b.style.top=(py(sv.lat)/H*100)+"%";
+  b.innerHTML=sv.sh?`<span class="fl">${sv.name}</span><span class="sh">${sv.sh}</span>`:sv.name;b.title=sv.open?sv.name:`${sv.name} · ${T[lang].soon}`;b.setAttribute("aria-label",sv.en);
   if(sv===server)b.classList.add("cur");
   b.onclick=()=>{if(sv.open){if(sv===server)return;try{localStorage.setItem("cap3d.server",sv.id)}catch(e){}location.reload()}else $("srvNote").textContent=`${sv.name} ${T[lang].srvSoonNote}`};
   box2.appendChild(b)}
