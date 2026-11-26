@@ -13,6 +13,7 @@ function phong(m){
  const metal=m.metalness||0;const p=new THREE.MeshPhongMaterial({map:m.map||null,color:0xffffff,
   shininess:metal>.5?70:10,specular:metal>.5?new THREE.Color(.5,.4,.25):new THREE.Color(.05,.05,.05)});
  if(p.map){p.map.encoding=THREE.LinearEncoding;p.map.anisotropy=4}else if(m.color){p.color.copy(m.color).convertLinearToSRGB()}
+ if(m.normalMap){p.normalMap=m.normalMap;p.normalMap.encoding=THREE.LinearEncoding;p.normalScale.copy(m.normalScale||new THREE.Vector2(1,-1))}
  p.name=m.name;return p}
 window.__buildModel=function(kind){const src=LIB[kind];if(!src)return null;
  const g=src.clone(true);g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});return g};
@@ -22,8 +23,21 @@ loader.load("assets/buildings.glb",gl=>{
   const conv=arr.map(m=>cache[m.uuid]||(cache[m.uuid]=phong(m)));o.material=Array.isArray(o.material)?conv:conv[0]}});
  for(const k of ["domus","aedes","templum"]){const n=gl.scene.getObjectByName(k);if(!n)continue;
   const g=new THREE.Group();const c=n.clone(true);c.position.set(0,0,0);g.add(c);LIB[k]=g}
+ civic(gl.scene);
  console.log("[builds] ready",Object.keys(LIB).join(","));
  if(window.__rebuildHouses)window.__rebuildHouses()},undefined,e=>console.warn("[builds] load",e));
+/* civic core: the Forum temples, basilicas, curia and horrea. The detailed model takes the place of
+ * the simple stone group the game builds; beyond LOD_FAR a lighter decimated copy stands in. */
+const LOD_FAR=210;
+function civic(scene){const C=window.__civic;if(!C)return;let n=0;
+ for(const b of C){const hi=scene.getObjectByName("civic_"+b.k),lo=scene.getObjectByName("civic_"+b.k+"_lod");if(!hi||!b.group)continue;
+  const prep=o=>{const c=o.clone(true);c.position.set(0,0,0);c.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true}});return c};
+  const L=new THREE.LOD();L.addLevel(prep(hi),0);if(lo){const f=prep(lo);f.traverse(m=>{if(m.isMesh)m.castShadow=false});L.addLevel(f,LOD_FAR)}
+  L.position.copy(b.group.position);L.rotation.copy(b.group.rotation);L.name="civic3d_"+b.k;
+  b.group.parent.add(L);b.group.visible=false;b.lod=L;n++}
+ const H=window.__gfxHooks,R=H&&H.renderer;
+ if(R&&n){const cam=H.camera,base=R.render.bind(R);R.render=function(s,c){for(const b of C)if(b.lod)b.lod.update(c||cam);return base(s,c)}}
+ window.__civicDbg={count:n};console.log("[builds] civic",n)}
 /* weapons: Quaternius Medieval Weapons (CC0), grip at the origin, blade along +Y */
 const WEAP={};
 window.__weaponModel=function(kind){const src=WEAP[kind];if(!src)return null;const g=src.clone(true);g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g};
