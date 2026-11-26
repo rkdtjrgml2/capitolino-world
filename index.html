@@ -1530,7 +1530,7 @@ const SOC_T={
   value:"가치",myShop:"내 상점 열기",shopName:"상점 이름",shopDefault:"나그네의 가게",price:"값",qty:"수량",list:"올리기",openShop:"상점 열기",closeShop:"상점 닫기",
   shopHint:"상점을 여는 동안은 움직일 수 없습니다. 지나가는 시민이 사 갈 수 있습니다",shopNothing:"올린 물건이 없습니다",sold:"님이 샀습니다",buy:"사기",noMoney:"데나리우스가 모자랍니다",
   soldOut:"다 팔렸습니다",
-  sys:"메뉴",resume:"계속하기",settings:"설정",keys:"단축키",feedback:"건의 보내기",home:"처음 화면으로",quality:"그래픽 품질",high:"높음",mid:"보통",low:"낮음",tags:"이름표 표시",on:"켜기",off:"끄기",
+  sys:"메뉴",resume:"계속하기",settings:"설정",keys:"단축키",feedback:"건의 보내기",home:"처음 화면으로",quality:"그래픽 품질",high:"높음",mid:"보통",low:"낮음",tags:"이름표 표시",snd:"효과음",on:"켜기",off:"끄기",
   me2:"내 정보",form:"모습",hp:"체력",worth:"재산 가치",held:"손에 든 것",none:"없음",
   keyRows:[["WASD, 방향키","이동"],["Shift","달리기"],["Space","점프, 까마귀는 날기"],["Q E, 마우스 끌기","시점 회전"],["휠","시점 거리"],["F, 클릭","상호작용 (줍기, 대화, 채집, 공격)"],["1~8","단축 칸 선택"],["I, Tab","소지품"],["G","들고 있는 것 버리기"],["B","내 상점"],["C","내 정보"],["M","지도"],["H","도움말"],["Esc","창 닫기, 메뉴"]],
   roles:{marcus:"벌목꾼",julia:"사냥꾼",lucius:"광부",claudia:"상인",gaius:"어부",flavia:"순례자"},
@@ -1540,7 +1540,7 @@ const SOC_T={
   fair:"Fair enough. Deal",unfair:"A little more, please",empty:"Add something to trade",done:"Trade complete",bagFull:"Your hotbar is full",
   value:"value",myShop:"Open my shop",shopName:"Shop name",shopDefault:"Visitor's stall",price:"Price",qty:"Qty",list:"List",openShop:"Open shop",closeShop:"Close shop",
   shopHint:"You cannot move while your shop is open. Passing citizens may buy",shopNothing:"Nothing listed",sold:" bought",buy:"Buy",noMoney:"Not enough denarii",soldOut:"Sold out",
-  sys:"Menu",resume:"Resume",settings:"Settings",keys:"Controls",feedback:"Send feedback",home:"Back to start",quality:"Graphics",high:"High",mid:"Medium",low:"Low",tags:"Name tags",on:"On",off:"Off",
+  sys:"Menu",resume:"Resume",settings:"Settings",keys:"Controls",feedback:"Send feedback",home:"Back to start",quality:"Graphics",high:"High",mid:"Medium",low:"Low",tags:"Name tags",snd:"Sound effects",on:"On",off:"Off",
   me2:"Character",form:"Form",hp:"HP",worth:"Net worth",held:"Holding",none:"Nothing",
   keyRows:[["WASD, arrows","Move"],["Shift","Run"],["Space","Jump, crows fly"],["Q E, drag","Turn view"],["Wheel","Zoom"],["F, click","Interact (pick up, talk, gather, attack)"],["1 to 8","Hotbar slot"],["I, Tab","Inventory"],["G","Drop held item"],["B","My shop"],["C","Character"],["M","Map"],["H","Help"],["Esc","Close, menu"]],
   roles:{marcus:"Woodcutter",julia:"Hunter",lucius:"Miner",claudia:"Merchant",gaius:"Fisher",flavia:"Pilgrim"},
@@ -1550,7 +1550,7 @@ const SOC_T={
   fair:"いいでしょう。これで",unfair:"もう少しいただけますか",empty:"取引するものを置いてください",done:"交換しました",bagFull:"ショートカットがいっぱいです",
   value:"価値",myShop:"自分の店を開く",shopName:"店の名前",shopDefault:"旅人の店",price:"値段",qty:"数",list:"出品",openShop:"開店",closeShop:"閉店",
   shopHint:"開店中は動けません。通りがかりの市民が買うことがあります",shopNothing:"出品がありません",sold:"が買いました",buy:"買う",noMoney:"デナリウスが足りません",soldOut:"売り切れ",
-  sys:"メニュー",resume:"続ける",settings:"設定",keys:"操作",feedback:"ご意見",home:"最初の画面へ",quality:"画質",high:"高",mid:"中",low:"低",tags:"名前表示",on:"オン",off:"オフ",
+  sys:"メニュー",resume:"続ける",settings:"設定",keys:"操作",feedback:"ご意見",home:"最初の画面へ",quality:"画質",high:"高",mid:"中",low:"低",tags:"名前表示",snd:"効果音",on:"オン",off:"オフ",
   me2:"自分の情報",form:"姿",hp:"体力",worth:"財産価値",held:"手に持つもの",none:"なし",
   keyRows:[["WASD、矢印","移動"],["Shift","走る"],["Space","ジャンプ、カラスは飛ぶ"],["Q E、ドラッグ","視点回転"],["ホイール","距離"],["F、クリック","操作（拾う、話す、採集、攻撃）"],["1〜8","ショートカット"],["I、Tab","持ち物"],["G","持ち物を捨てる"],["B","自分の店"],["C","自分の情報"],["M","地図"],["H","ヘルプ"],["Esc","閉じる、メニュー"]],
   roles:{marcus:"木こり",julia:"狩人",lucius:"鉱夫",claudia:"商人",gaius:"漁師",flavia:"巡礼者"},
@@ -1728,14 +1728,16 @@ function applyQuality(){const q=SET.quality;renderer.setPixelRatio(Math.min(wind
 applyQuality();
 function openSys(view){const t=ST();let h;
  if(view==="set")h=`<h3>${t.settings}${xBtn}</h3><div class="setrow"><span style="font-size:12.5px">${t.quality}</span><div class="seg">${["high","mid","low"].map(q=>`<button data-q="${q}" class="${SET.quality===q?"on":""}">${t[q]}</button>`).join("")}</div></div>
-  <div class="setrow"><span style="font-size:12.5px">${t.tags}</span><div class="seg"><button data-tg="1" class="${SET.tags?"on":""}">${t.on}</button><button data-tg="0" class="${SET.tags?"":"on"}">${t.off}</button></div></div><div class="xfoot"><button class="sbtn" data-back>${t.sys}</button></div>`;
+  <div class="setrow"><span style="font-size:12.5px">${t.tags}</span><div class="seg"><button data-tg="1" class="${SET.tags?"on":""}">${t.on}</button><button data-tg="0" class="${SET.tags?"":"on"}">${t.off}</button></div></div>
+  <div class="setrow"><span style="font-size:12.5px">${t.snd}</span><div class="seg"><button data-snd="1" class="${window.__sfx&&window.__sfx.muted?"":"on"}">${t.on}</button><button data-snd="0" class="${window.__sfx&&window.__sfx.muted?"on":""}">${t.off}</button></div></div><div class="xfoot"><button class="sbtn" data-back>${t.sys}</button></div>`;
  else if(view==="keys")h=`<h3>${t.keys}${xBtn}</h3><table class="kt">${t.keyRows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join("")}</table><div class="xfoot" style="margin-top:8px"><button class="sbtn" data-back>${t.sys}</button></div>`;
  else h=`<h3>${t.sys}${xBtn}</h3><div style="display:grid;gap:6px;margin-top:8px"><button class="sbtn gold" data-close>${t.resume}</button><button class="sbtn" data-v="set">${t.settings}</button><button class="sbtn" data-v="keys">${t.keys}</button>${mode==="play"&&P.kind==="human"?`<button class="sbtn" data-v="me">${t.me2}</button><button class="sbtn" data-v="shop">${t.myShop}</button>`:""}<button class="sbtn" data-v="fb">${t.feedback}</button><button class="sbtn" data-v="home">${t.home}</button></div>`;
  sbx("sys").innerHTML=h;$("sys").hidden=false;wireClose("sys");const b=sbx("sys");
  b.querySelectorAll("[data-v]").forEach(e=>e.onclick=()=>{const v=e.dataset.v;if(v==="set"||v==="keys")openSys(v);else{$("sys").hidden=true;if(v==="fb")$("fbBtn").click();else if(v==="home")goHome();else if(v==="me")openMe();else if(v==="shop")openMyShopPanel()}});
  b.querySelectorAll("[data-back]").forEach(e=>e.onclick=()=>openSys());
  b.querySelectorAll("[data-q]").forEach(e=>e.onclick=()=>{SET.quality=e.dataset.q;saveSet();applyQuality();openSys("set")});
- b.querySelectorAll("[data-tg]").forEach(e=>e.onclick=()=>{SET.tags=e.dataset.tg==="1";saveSet();applyQuality();openSys("set")})}
+ b.querySelectorAll("[data-tg]").forEach(e=>e.onclick=()=>{SET.tags=e.dataset.tg==="1";saveSet();applyQuality();openSys("set")});
+ b.querySelectorAll("[data-snd]").forEach(e=>e.onclick=()=>{const m=e.dataset.snd==="0";if(window.__sfx)window.__sfx.muted=m;else try{localStorage.setItem("capSfxMute",m?"1":"0")}catch(_){}openSys("set")})}
 /* hooks into the existing input and loop */
 const SOC_PANELS=["tgt","talk","xtr","nshop","mshop","me","sys"];
 addEventListener("keydown",e=>{const tg=e.target;
