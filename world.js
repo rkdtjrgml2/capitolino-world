@@ -16,6 +16,33 @@ float fbm3(vec2 p){return vn(p)*.5+vn(p*2.03+7.1)*.3+vn(p*4.11-3.7)*.2;}
 `;
 
 /* ---------- ground ---------- */
+/* road and Forum surfaces: a mask texture (r road, g Forum) drives procedural paving in the ground shader */
+const PAVING=`
+vec2 h22(vec2 p){p=vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3)));return fract(sin(p)*43758.5453);}
+vec3 basalt(vec2 w){vec2 p=w*1.15,i=floor(p),f=fract(p);float d1=8.,d2=8.;vec2 id=vec2(0.);
+ for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){vec2 g=vec2(float(x),float(y)),o=h22(i+g)*.85+.07;float d=length(g+o-f);
+  if(d<d1){d2=d1;d1=d;id=i+g;}else if(d<d2)d2=d;}
+ float e=d2-d1,t=h21(id);
+ vec3 st=mix(vec3(.39,.37,.35),vec3(.5,.47,.42),t)*(.88+.22*vn(w*3.1))*(1.-.18*smoothstep(.0,.5,d1));
+ return mix(vec3(.27,.24,.2),st,smoothstep(.03,.11,e));}
+vec3 slabs(vec2 w){vec2 s=vec2(3.2,2.4);float row=floor(w.y/s.y);vec2 p=vec2(w.x/s.x+.5*mod(row,2.),w.y/s.y);vec2 i=floor(p),f=fract(p);
+ float t=h21(i);vec2 b=min(f,1.-f)*s;float e=min(b.x,b.y);
+ vec3 c=mix(vec3(.86,.81,.7),vec3(.93,.89,.8),t)*(.9+.14*vn(w*1.7+t*9.))*(1.-.1*smoothstep(.62,.8,vn(w*7.)));
+ c*=1.-.07*smoothstep(.35,0.,e);
+ return mix(vec3(.55,.5,.42),c,smoothstep(.02,.07,e));}
+`;
+function surfaceTex(){const R=H.roadDistM,F=H.inForum,G=H.G;if(!R||!F||!G)return null;
+ const N=1024,S=H.SIZE,x0=H.CX-S/2,z0=H.CZ-S/2,px=S/N;const d=new Uint8Array(N*N*4);
+ /* coarse pass so only pixels near a road pay for the exact distance */
+ const C=64,cs=S/C,coarse=new Float32Array(C*C);
+ for(let j=0;j<C;j++)for(let i=0;i<C;i++)coarse[j*C+i]=R((x0+(i+.5)*cs)/G,(z0+(j+.5)*cs)/G);
+ const reach=2.4+cs*.75/G;const sm=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t)};
+ for(let j=0;j<N;j++){const z=z0+(j+.5)*px,cj=Math.min(C-1,Math.floor((j+.5)*px/cs));
+  for(let i=0;i<N;i++){const x=x0+(i+.5)*px,ci=Math.min(C-1,Math.floor((i+.5)*px/cs));const k=(j*N+i)*4;d[k+3]=255;
+   if(coarse[cj*C+ci]<reach&&heightAt(x,z)>-.4){const rd=R(x/G,z/G);if(rd<2.4)d[k]=255*(1-sm(1.3,2.4,rd))}
+   if(F(x,z,0))d[k+1]=255}}
+ const tex=new THREE.DataTexture(d,N,N,THREE.RGBAFormat);tex.magFilter=tex.minFilter=THREE.LinearFilter;tex.needsUpdate=true;
+ return {tex,box:new THREE.Vector4(x0,z0,S,S)}}
 function ground(){
  let tm=null;scene.traverse(o=>{if(!tm&&o.isMesh&&!o.isInstancedMesh&&o.material&&o.material.vertexColors&&o.material.flatShading&&o.geometry.attributes.position.count>100000)tm=o});
  if(!tm)return false;
@@ -36,9 +63,11 @@ function ground(){
  const N=g.attributes.normal;for(let i=0;i<n;i++){const k=key[i];fn.set(nacc[k*3],nacc[k*3+1],nacc[k*3+2]).normalize();N.setXYZ(i,fn.x,fn.y,fn.z)}
  N.needsUpdate=true;
  const m=tm.material;m.flatShading=false;
+ const surf=surfaceTex();
  m.onBeforeCompile=sh=>{
+  if(surf){sh.uniforms.uSurf={value:surf.tex};sh.uniforms.uSB={value:surf.box}}
   sh.vertexShader="varying vec3 vWp;\n"+sh.vertexShader.replace("#include <worldpos_vertex>","#include <worldpos_vertex>\n vWp=(modelMatrix*vec4(transformed,1.)).xyz;");
-  sh.fragmentShader="varying vec3 vWp;\n"+NOISE+sh.fragmentShader.replace("#include <color_fragment>",`#include <color_fragment>
+  sh.fragmentShader=(surf?"#define SURF\nuniform sampler2D uSurf;uniform vec4 uSB;\n":"")+"varying vec3 vWp;\n"+NOISE+PAVING+sh.fragmentShader.replace("#include <color_fragment>",`#include <color_fragment>
   { float big=fbm3(vWp.xz*.045), mid=fbm3(vWp.xz*.33), fine=vn(vWp.xz*2.7);
     float lum=dot(diffuseColor.rgb,vec3(.3,.59,.11));
     float green=clamp((diffuseColor.g-max(diffuseColor.r,diffuseColor.b))*4.,0.,1.);
@@ -46,7 +75,16 @@ function ground(){
     c=mix(c,c*vec3(1.08,1.02,.82),green*smoothstep(.55,.8,mid)*.6);
     c*=.92+.16*fine;
     c=mix(c,c*vec3(.86,.9,.8),green*smoothstep(.6,.2,mid)*.35);
-    diffuseColor.rgb=c; }`)};
+    diffuseColor.rgb=c;
+  #ifdef SURF
+    vec4 sm=texture2D(uSurf,(vWp.xz-uSB.xy)/uSB.zw);
+    if(sm.r>.004){ float city=1.-smoothstep(230.,330.,length(vWp.xz-vec2(30.,40.)));
+      vec3 dirt=diffuseColor.rgb*(.86+.22*fbm3(vWp.xz*1.4));
+      dirt*=1.-.12*smoothstep(.75,.95,abs(sin(dot(vWp.xz,vec2(.7,.7))*.9)))*(1.-city);
+      diffuseColor.rgb=mix(diffuseColor.rgb,mix(dirt,basalt(vWp.xz),city),smoothstep(0.,.55,sm.r)); }
+    if(sm.g>.004) diffuseColor.rgb=mix(diffuseColor.rgb,slabs(vWp.xz),sm.g);
+  #endif
+  }`)};
  m.customProgramCacheKey=()=>"capground";m.needsUpdate=true;
  return true}
 

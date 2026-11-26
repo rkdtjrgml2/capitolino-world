@@ -37,6 +37,11 @@ function civic(scene){const C=window.__civic;if(!C)return;let n=0;
   b.group.parent.add(L);b.group.visible=false;b.lod=L;n++}
  const H=window.__gfxHooks,R=H&&H.renderer;
  if(R&&n){const cam=H.camera,base=R.render.bind(R);R.render=function(s,c){for(const b of C)if(b.lod)b.lod.update(c||cam);return base(s,c)}}
+ /* Forum rostra and honorary columns */
+ const D=window.__forumDeco,ro=scene.getObjectByName("civic_rostra"),hc=scene.getObjectByName("civic_honcol");
+ const put=(src,x,y,z,parent)=>{const c=src.clone(true);c.position.set(x,y,z);c.rotation.set(0,0,0);c.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true}});parent.add(c);return c};
+ if(D&&ro&&D.rostra.parent){const r=D.rostra;put(ro,r.position.x,r.position.y-1.1,r.position.z,r.parent);r.visible=false;n++}
+ if(D&&hc)for(const k of D.cols){if(!k.c.parent)continue;put(hc,k.x,k.c.position.y-4,k.z,k.c.parent);k.c.visible=false;k.s.visible=false;n++}
  window.__civicDbg={count:n};console.log("[builds] civic",n)}
 /* weapons: Quaternius Medieval Weapons (CC0), grip at the origin, blade along +Y */
 const WEAP={};
