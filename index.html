@@ -2218,7 +2218,7 @@ function drawMe(){const el=$("u2me");if(mode!=="play"){el.hidden=true;return}el.
 /* ---- resource bar with icons, denarius first ---- */
 {const _us=updateStats;updateStats=function(){_us.apply(this,arguments);
  const order=["denarius"].concat(RES_KEYS.filter(k=>k!=="denarius"&&(k!=="gold"||RES.gold>0)));
- $("resBar").innerHTML=order.map(k=>`<span class="r${k==="denarius"?" money":""}${RES[k]||k==="denarius"?"":" z"}" data-k="${k}"><span class="u2i">${ico(k)}</span>${(RES[k]||0).toLocaleString()}</span>`).join("");
+ $("resBar").innerHTML=order.map(k=>`<span class="r${k==="denarius"?" money":""}${RES[k]||k==="denarius"?"":" z"}" title="${T[lang].res[k]}" data-k="${k}"><span class="u2i">${ico(k)}</span>${(RES[k]||0).toLocaleString()}</span>`).join("");
  drawMe();drawQuest();if(!$("u2store").hidden)renderStore()}}
 
 /* ---- notice log: every toast also lands here ---- */
