@@ -10,7 +10,7 @@ const H=window.__gfxHooks,CAP=window.__cap;
 if(!H||!window.THREE||!THREE.GLTFLoader)return;
 const {scene,TREES,TREEGRID}=H;
 const isTouch=matchMedia("(pointer:coarse)").matches;
-const Q=isTouch?.5:1;
+const Q=isTouch?.42:1;
 const loader=new THREE.GLTFLoader();if(window.MeshoptDecoder)loader.setMeshoptDecoder(window.MeshoptDecoder);
 const U={time:{value:0}};
 const ZERO=new THREE.Matrix4().makeScale(0,0,0);
@@ -51,8 +51,11 @@ function NearSet(orig,parts,opt){
  const CELL=16,grid=new Map();const m=new THREE.Matrix4();
  for(let i=0;i<n;i++){const x=base[i*16+12],z=base[i*16+14];const k=Math.floor(x/CELL)+","+Math.floor(z/CELL);(grid.get(k)||grid.set(k,[]).get(k)).push(i)}
  const cap=Math.max(8,Math.round(opt.cap*Q)),R=opt.r;
- const meshes=parts.map(p=>{const im=new THREE.InstancedMesh(p.geo,p.mat,cap);im.count=0;im.frustumCulled=false;
-  im.castShadow=!!opt.shadow;im.receiveShadow=true;const d=depthFor(p.mat);if(d)im.customDepthMaterial=d;scene.add(im);return im});
+ const mk=(n,sh)=>parts.map(p=>{const im=new THREE.InstancedMesh(p.geo,p.mat,Math.max(1,n));im.count=0;im.frustumCulled=false;
+  im.castShadow=sh;im.receiveShadow=true;const d=sh&&depthFor(p.mat);if(d)im.customDepthMaterial=d;scene.add(im);return im});
+ /* only the closest instances cast shadows: the shadow pass draws every instance it is given */
+ const cs=opt.shadow?Math.min(cap,Math.round((opt.shadowN||cap)*Q)):0;
+ const meshS=cs?mk(cs,true):[],meshN=mk(cap-cs,false);
  const fix=opt.fix||new THREE.Matrix4();let cur=[];
  const others=opt.siblings||[];
  function hide(i,on){if(on){orig.setMatrixAt(i,ZERO);for(const s of others)s.setMatrixAt(i,ZERO)}
@@ -63,8 +66,8 @@ function NearSet(orig,parts,opt){
    for(const i of L){if(opt.isDown&&opt.isDown(i))continue;const dx=base[i*16+12]-px,dz=base[i*16+14]-pz,d=dx*dx+dz*dz;if(d<R*R)cand.push([d,i])}}
   cand.sort((a,b)=>a[0]-b[0]);if(cand.length>cap)cand.length=cap;
   const next=new Set(cand.map(c=>c[1]));for(const i of cur)if(!next.has(i))hide(i,false);
-  let k=0;for(const [,i] of cand){hide(i,true);m.fromArray(base,i*16).multiply(fix);for(const im of meshes)im.setMatrixAt(k,m);k++}
-  for(const im of meshes){im.count=k;im.instanceMatrix.needsUpdate=true}
+  let k=0,ks=0,kn=0;for(const [,i] of cand){hide(i,true);m.fromArray(base,i*16).multiply(fix);if(k<cs){for(const im of meshS)im.setMatrixAt(ks,m);ks++}else{for(const im of meshN)im.setMatrixAt(kn,m);kn++}k++}
+  for(const im of meshS){im.count=ks;im.instanceMatrix.needsUpdate=true}for(const im of meshN){im.count=kn;im.instanceMatrix.needsUpdate=true}
   orig.instanceMatrix.needsUpdate=true;for(const s of others)s.instanceMatrix.needsUpdate=true;cur=[...next]}
  function check(){if(!opt.isDown)return false;for(const i of cur)if(opt.isDown(i))return true;return false}
  return {refresh,check}}
@@ -93,15 +96,15 @@ function setup(gl){
  for(const [tm,info] of byIM){
   const sp=Object.keys(species).find(k=>TREES[k]&&TREES[k].trunk===tm.geometry);if(!sp)continue;
   const parts=partsOf(root,species[sp],.012);if(!parts||!parts.length)continue;
-  sets.push(NearSet(tm,parts,{cap:sp==="olive"||sp==="cypress"?80:110,r:110,shadow:true,siblings:[info.lm],isDown:i=>{const t=info.list[i];return !t||t.down}}))}
+  sets.push(NearSet(tm,parts,{cap:sp==="olive"||sp==="cypress"?80:110,r:110,shadow:true,shadowN:36,siblings:[info.lm],isDown:i=>{const t=info.list[i];return !t||t.down}}))}
  /* scatter layers made by the game: matched by geometry type and parameters */
  const S=(new THREE.Matrix4()),sc=(x,y,z)=>new THREE.Matrix4().makeScale(x,y==null?x:y,z==null?x:z);
  const layers=[
   {pick:o=>o.geometry.type==="ConeGeometry"&&o.geometry.parameters.radius===.22,name:"grass",cap:2600,r:42,fix:sc(.95,.8,.95),wind:.06},
   {pick:o=>o.geometry.type==="OctahedronGeometry"&&o.geometry.parameters.radius===.17,name:"flowers",cap:500,r:40,fix:sc(.2),wind:.05},
-  {pick:o=>o.geometry.type==="IcosahedronGeometry"&&o.geometry.parameters.radius===1&&o.instanceMatrix.count>1000,name:"bush",cap:320,r:80,fix:sc(1.05,.95,1.05),wind:.02,shadow:true},
+  {pick:o=>o.geometry.type==="IcosahedronGeometry"&&o.geometry.parameters.radius===1&&o.instanceMatrix.count>1000,name:"bush",cap:320,r:80,fix:sc(1.05,.95,1.05),wind:.02,shadow:true,shadowN:60},
   {pick:o=>o.geometry.type==="CylinderGeometry"&&o.geometry.parameters.radiusTop===.03,name:"tallgrass",cap:700,r:42,fix:sc(1.05),wind:.05},
-  {pick:o=>o.geometry.type==="DodecahedronGeometry"&&o.geometry.parameters.radius===1&&o.instanceMatrix.count>500,name:["rock1","rock2","rock3"],cap:260,r:130,fix:sc(.72),shadow:true}];
+  {pick:o=>o.geometry.type==="DodecahedronGeometry"&&o.geometry.parameters.radius===1&&o.instanceMatrix.count>500,name:["rock1","rock2","rock3"],cap:260,r:130,fix:sc(.72),shadow:true,shadowN:30}];
  for(const L of layers){const im=findIMBy(L.pick);if(!im)continue;
   const names=Array.isArray(L.name)?L.name:[L.name];
   if(names.length===1){const parts=partsOf(root,names[0],L.wind||0);if(parts)sets.push(NearSet(im,parts,L))}
