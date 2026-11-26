@@ -24,4 +24,18 @@ loader.load("assets/buildings.glb",gl=>{
   const g=new THREE.Group();const c=n.clone(true);c.position.set(0,0,0);g.add(c);LIB[k]=g}
  console.log("[builds] ready",Object.keys(LIB).join(","));
  if(window.__rebuildHouses)window.__rebuildHouses()},undefined,e=>console.warn("[builds] load",e));
+/* weapons: Quaternius Medieval Weapons (CC0), grip at the origin, blade along +Y */
+const WEAP={};
+window.__weaponModel=function(kind){const src=WEAP[kind];if(!src)return null;const g=src.clone(true);g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g};
+loader.load("assets/weapons.glb",gl=>{
+ gl.scene.traverse(o=>{if(o.isMesh){const arr=Array.isArray(o.material)?o.material:[o.material];
+  const conv=arr.map(m=>cache[m.uuid]||(cache[m.uuid]=phong(m)));o.material=Array.isArray(o.material)?conv:conv[0]}});
+ for(const k of ["dagger","sword","longsword","axe","spear"]){const n=gl.scene.getObjectByName(k);if(!n)continue;const g=new THREE.Group();const c=n.clone(true);c.position.set(0,0,0);g.add(c);WEAP[k]=g}
+ const H=window.__gfxHooks;if(!H)return;
+ /* swap what already exists: the held weapon and the weapons lying on the ground */
+ const P=H.P;if(P&&P.handMesh&&P.hand&&WEAP[P.hand]){const o=P.handMesh,n=window.__weaponModel(P.hand);n.position.copy(o.position);n.rotation.copy(o.rotation);n.scale.copy(o.scale);
+  if(o.parent){o.parent.add(n);o.parent.remove(o)}P.handMesh=n}
+ for(const it of H.items||[]){if(!WEAP[it.kind]||!it.m||it.taken)continue;const o=it.m,n=window.__weaponModel(it.kind);n.position.copy(o.position);n.rotation.copy(o.rotation);n.userData.item=it;
+  n.traverse(c=>{c.userData.item=it});n.visible=o.visible;if(o.parent){o.parent.add(n);o.parent.remove(o)}it.m=n}
+ console.log("[builds] weapons",Object.keys(WEAP).join(","))},undefined,e=>console.warn("[builds] weapons",e));
 })();
