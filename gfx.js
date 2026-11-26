@@ -35,7 +35,7 @@ function toPhong(m){
 function measure(root){
  /* bind-pose box: geometry bounds through the (dequantizing) node transforms */
  root.updateMatrixWorld(true);const box=new THREE.Box3();
- root.traverse(o=>{if(!o.isMesh)return;const pa=o.geometry.attributes.position;
+ root.traverse(o=>{if(!o.isMesh||!o.visible)return;const pa=o.geometry.attributes.position;
   /* r128 does not denormalize quantized (KHR_mesh_quantization) positions when computing bounds */
   const arr=pa.array,k=pa.normalized?(arr instanceof Int16Array?1/32767:arr instanceof Uint16Array?1/65535:arr instanceof Int8Array?1/127:arr instanceof Uint8Array?1/255:1):1;
   const bb=new THREE.Box3();for(let i=0;i<pa.count;i++){V.set(pa.getX(i)*k,pa.getY(i)*k,pa.getZ(i)*k);bb.expandByPoint(V)}
@@ -54,6 +54,7 @@ function measure(root){
 
 function prep(kind,gl){
  const s=SPEC[kind];const src=gl.scene;const mats={};
+ if(kind==="human"){const want=lookParts({});src.traverse(o=>{if(o.isMesh&&/^V_/.test(o.name)){const k=o.name.slice(2);o.visible=want.some(w=>k.startsWith(w))}})}
  src.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=false;o.frustumCulled=false;
   const arr=Array.isArray(o.material)?o.material:[o.material];const conv=arr.map(m=>mats[m.uuid]||(mats[m.uuid]=toPhong(m)));o.material=Array.isArray(o.material)?conv:conv[0]}});
  const clips={};for(const a of gl.animations)clips[a.name]=a;
@@ -142,11 +143,23 @@ function humanAnim(I,isPlayer,npc){
   }
   I.mixer.update(dt);
  }}
+/* outfits: human.glb carries optional parts named V_*; each person shows a set of them */
+const LOOKS={marcus:{beard:1},lucius:{beard:1,noCloak:1},gaius:{noCloak:1},julia:{female:1},claudia:{female:1,stola:1,palla:0x2f6f8f},flavia:{female:1,stola:1,palla:0xe6dcc4}};
+const SKINS={marcus:0xc98a5e,lucius:0xb57650,gaius:0xd9a070,julia:0xe0b088,claudia:0xd29a70,flavia:0xc68660};
+function lookParts(L){const p=L.female?["HairF","Bun"]:["HairM"];
+ if(L.stola)p.push("Stola","Instita","Palla","Drape");else{p.push("SkirtM","HemM");if(!L.female)p.push("ApronM");if(!L.noCloak)p.push("Cloak","Fibula")}
+ if(L.beard)p.push("Beard");return p}
+function applyLook(I,L,tint){const want=lookParts(L);
+ I.model.traverse(o=>{if(o.isMesh&&/^V_/.test(o.name)){const k=o.name.slice(2);o.visible=want.some(w=>k.startsWith(w))}});
+ I.mats.forEach(m=>{if(m.name==="Stola"&&tint!=null)m.color.setHex(tint);if(m.name==="Palla"&&L.palla)m.color.setHex(L.palla);
+  if(m.name==="Tunic"&&L.stola&&tint!=null)m.color.setHex(tint).offsetHSL(0,-.1,.12)})}
 function upgradeHuman(c,isPlayer,npc){
  let tint=null;c.g.traverse(o=>{if(!tint&&o.isMesh&&o.material&&o.material.color&&o.material.color.getHex()!==0xb83a26&&npc){}});
  if(npc&&npc.__tint!=null)tint=npc.__tint;
  const I=makeInstance("human",c,{ownMats:!!npc});if(!I)return;
  if(tint!=null){I.mats.forEach(m=>{if(m.name==="Tunic")m.color.setHex(tint)})}
+ applyLook(I,npc?LOOKS[npc.id]||{}:{},tint);
+ if(npc&&SKINS[npc.id])I.mats.forEach(m=>{if(m.name==="Skin")m.color.setHex(SKINS[npc.id])});
  I.lastSwing=0;c.anim=humanAnim(I,isPlayer,npc);c.armR=new THREE.Object3D();/* swing code rotates this harmlessly */
 }
 
