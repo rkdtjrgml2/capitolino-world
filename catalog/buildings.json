@@ -1,0 +1,142 @@
+[
+ {
+  "id": "domus",
+  "tab": "house",
+  "name": {
+   "ko": "도무스",
+   "en": "Domus",
+   "ja": "ドムス"
+  },
+  "cost": {
+   "wood": 12,
+   "stone": 6,
+   "denarius": 20
+  },
+  "open": true,
+  "size": "9x7",
+  "signs": 1,
+  "card": "card_bld_domus"
+ },
+ {
+  "id": "smithy",
+  "tab": "prod",
+  "name": {
+   "ko": "대장간",
+   "en": "Smithy",
+   "ja": "鍛冶屋"
+  },
+  "cost": {
+   "wood": 30,
+   "stone": 20,
+   "iron": 5,
+   "denarius": 80
+  },
+  "req": "domus",
+  "card": "card_bld_smithy"
+ },
+ {
+  "id": "tannery",
+  "tab": "prod",
+  "name": {
+   "ko": "가죽 공방",
+   "en": "Tannery",
+   "ja": "革工房"
+  },
+  "cost": {
+   "wood": 24,
+   "stone": 10,
+   "hide": 6,
+   "denarius": 60
+  },
+  "req": "domus",
+  "card": "card_bld_tannery"
+ },
+ {
+  "id": "popina",
+  "tab": "prod",
+  "name": {
+   "ko": "식당",
+   "en": "Popina",
+   "ja": "食堂"
+  },
+  "cost": {
+   "wood": 20,
+   "stone": 16,
+   "food": 10,
+   "denarius": 70
+  },
+  "req": "domus",
+  "card": "card_bld_popina"
+ },
+ {
+  "id": "taberna",
+  "tab": "prod",
+  "name": {
+   "ko": "술집",
+   "en": "Taberna",
+   "ja": "酒場"
+  },
+  "cost": {
+   "wood": 26,
+   "stone": 20,
+   "denarius": 90
+  },
+  "req": "domus",
+  "card": "card_bld_taberna"
+ },
+ {
+  "id": "farm",
+  "tab": "farm",
+  "name": {
+   "ko": "농장",
+   "en": "Farm",
+   "ja": "農場"
+  },
+  "cost": {
+   "wood": 20,
+   "denarius": 40
+  },
+  "req": "domus",
+  "card": "card_bld_farm"
+ },
+ {
+  "id": "olive",
+  "tab": "farm",
+  "name": {
+   "ko": "올리브 밭",
+   "en": "Olive grove",
+   "ja": "オリーブ畑"
+  },
+  "cost": {
+   "wood": 10,
+   "denarius": 60
+  },
+  "req": "domus",
+  "card": "card_bld_olive"
+ },
+ {
+  "id": "statue",
+  "tab": "deco",
+  "name": {
+   "ko": "대리석 상",
+   "en": "Marble statue",
+   "ja": "大理石像"
+  },
+  "cost": {
+   "stone": 30,
+   "silver": 2
+  },
+  "req": "domus"
+ },
+ {
+  "id": "sign",
+  "tab": "sign",
+  "name": {
+   "ko": "링크 간판",
+   "en": "Link sign",
+   "ja": "リンク看板"
+  },
+  "cost": {},
+  "open": true
+ }
+]

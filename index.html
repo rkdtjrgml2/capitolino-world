@@ -1960,6 +1960,339 @@ window.addEventListener("pagehide",()=>{saveNow()});
 $("homeBtn")&&($("homeBtn").onclick=()=>goHome());
 renderAcct();
 
+/* ============ UI2: game style and layout v1 (style thread, 2026-11-26) ============
+   Warm Roman look: walnut HUD, parchment windows, bronze gold trim.
+   Adds: status plate (top left), icon resource bar, quest list, notice log, menu bar (bottom right),
+   storage beside the bag (Horrea public storage, small home storage), build menu (B) with ghost preview.
+   Icons: inline SVG placeholders; a PNG/WebP in assets/icons/<id>.webp replaces one when listed in catalog/icons.json.
+   Buildings: defaults below, overridable by catalog/buildings.json. */
+{
+const U2T={
+ ko:{lvl:"시민",quest:"할 일",q:["나무 10개 모으기","포룸 시장에서 자원 팔기","첫 땅 사기","도무스 짓기","간판에 내 링크 걸기"],qDone:"첫 순환 완료. 이제 원하는 대로 키워 보세요",
+  log:"알림",bag:"가방",build:"건설",map:"지도",me:"캐릭터",menu:"메뉴",help:"도움말",fb:"건의",
+  store:"창고",pub:"호레아 공공창고",home:"내 집 창고",units:"개",putAll:"자원 모두 넣기",takeAll:"모두 꺼내기",storeTip:"누르면 1개, Shift 누르고 누르면 전부 옮깁니다",full:"창고가 가득 찼습니다",
+  carried:"들고 있는 자원",nearStore:"I 를 눌러 창고 열기",
+  tabs:{house:"집",prod:"생산",farm:"농장",deco:"장식",sign:"간판"},soon:"곧 열림",needDomus:"도무스 먼저",doBuild:"짓기",
+  bHint:"카드를 고르고 내 땅 위에서 짓기",noLand:"땅이 없습니다. 가장 가까운 파는 땅까지 약 {d}m",standOn:"내 땅 위에 서 주세요. 가장 가까운 내 땅까지 약 {d}m",
+  notCleared:"땅의 나무를 먼저 베어 주세요 ({n}/3)",built:"이미 지었습니다",noRes:"자원이 모자랍니다",ok:"지을 수 있습니다",signOk:"간판을 걸 수 있습니다",
+  keysB:"B 닫기 · 우클릭 취소"},
+ en:{lvl:"Citizen",quest:"To do",q:["Gather 10 wood","Sell resources at the Forum market","Buy your first land","Build a domus","Hang your link on a sign"],qDone:"First loop done. Grow it your way",
+  log:"Notices",bag:"Bag",build:"Build",map:"Map",me:"Character",menu:"Menu",help:"Help",fb:"Feedback",
+  store:"Storage",pub:"Horrea public storage",home:"Home storage",units:"",putAll:"Store all resources",takeAll:"Take all",storeTip:"Click moves 1, Shift click moves all",full:"Storage is full",
+  carried:"Carried resources",nearStore:"Press I to open storage",
+  tabs:{house:"Home",prod:"Craft",farm:"Farm",deco:"Decor",sign:"Signs"},soon:"Coming soon",needDomus:"Domus first",doBuild:"Build",
+  bHint:"Pick a card, then build on your land",noLand:"You have no land. Nearest land for sale about {d}m",standOn:"Stand on your land. Nearest is about {d}m",
+  notCleared:"Clear the trees first ({n}/3)",built:"Already built",noRes:"Not enough resources",ok:"Ready to build",signOk:"You can hang a sign",
+  keysB:"B close · right click cancel"},
+ ja:{lvl:"市民",quest:"やること",q:["木を10本集める","フォルムの市場で売る","最初の土地を買う","ドムスを建てる","看板にリンクを掛ける"],qDone:"最初の一巡が完了。自由に育てましょう",
+  log:"お知らせ",bag:"かばん",build:"建設",map:"地図",me:"キャラ",menu:"メニュー",help:"ヘルプ",fb:"要望",
+  store:"倉庫",pub:"ホレア公共倉庫",home:"自宅の倉庫",units:"",putAll:"資源をすべて預ける",takeAll:"すべて出す",storeTip:"クリックで1個、Shiftクリックで全部",full:"倉庫がいっぱいです",
+  carried:"持っている資源",nearStore:"Iで倉庫を開く",
+  tabs:{house:"家",prod:"生産",farm:"農場",deco:"装飾",sign:"看板"},soon:"準備中",needDomus:"先にドムス",doBuild:"建てる",
+  bHint:"カードを選び、自分の土地で建てる",noLand:"土地がありません。売り地まで約{d}m",standOn:"自分の土地に立ってください。約{d}m",
+  notCleared:"先に木を切ってください ({n}/3)",built:"建設済み",noRes:"資源が足りません",ok:"建てられます",signOk:"看板を掛けられます",
+  keysB:"B 閉じる · 右クリック取消"}};
+const UT=()=>U2T[lang]||U2T.en;
+
+/* ---- icons: inline placeholders, replaced by real art listed in catalog/icons.json ---- */
+const SV=(b,vb)=>`<svg viewBox="${vb||"0 0 32 32"}" aria-hidden="true">${b}</svg>`;
+const OL='stroke="#2a1d12" stroke-width="2" stroke-linejoin="round"';
+const ICO={
+ denarius:SV(`<circle cx="16" cy="16" r="12" fill="#dfe3e8" ${OL}/><circle cx="16" cy="16" r="8.4" fill="none" stroke="#9aa3ad" stroke-width="1.4" stroke-dasharray="2 2"/><path d="M13 11.5c3-2 6 0 6 3s-2 3-3 5" stroke="#7d8790" stroke-width="2" fill="none"/>`),
+ food:SV(`<path d="M6 18c0-7 8-11 14-9s7 9 2 13-16 4-16-4z" fill="#b5532f" ${OL}/><path d="M11 15l9 2M10 19l9 2" stroke="#7d2617" stroke-width="1.6"/><path d="M22 22l5 5" stroke="#efe7d6" stroke-width="3" stroke-linecap="round"/>`),
+ wood:SV(`<rect x="4" y="9" width="22" height="7" rx="3.5" fill="#8a5a32" ${OL}/><rect x="6" y="17" width="22" height="7" rx="3.5" fill="#a06d3e" ${OL}/><circle cx="25" cy="20.5" r="2.5" fill="#e2c28e"/>`),
+ stone:SV(`<path d="M5 22l4-9 8-3 8 4 2 8-6 4H10z" fill="#b3ac9f" ${OL}/><path d="M12 14l3 4 6-2" stroke="#7d776d" stroke-width="1.6" fill="none"/>`),
+ iron:SV(`<path d="M6 21l3-9 9-4 8 6-2 9-9 3z" fill="#555150" ${OL}/><path d="M11 15l4 3M17 12l3 6M14 22l5-2" stroke="#c0643a" stroke-width="1.8"/>`),
+ silver:SV(`<path d="M6 21l3-9 9-4 8 6-2 9-9 3z" fill="#d6d0c4" ${OL}/><path d="M11 15l4 3M17 12l3 6" stroke="#fff" stroke-width="2"/>`),
+ gold:SV(`<path d="M6 21l3-9 9-4 8 6-2 9-9 3z" fill="#e0b440" ${OL}/><path d="M11 15l4 3M17 12l3 6" stroke="#fff3b0" stroke-width="2"/>`),
+ hide:SV(`<path d="M8 7c4 2 12 2 16 0l-1 6 3 5-3 5 1 3c-4-2-12-2-16 0l1-3-3-5 3-5z" fill="#b98a55" ${OL}/>`),
+ bag:SV(`<path d="M8 12h16l2 15H6z" fill="#9b6a3c" ${OL}/><path d="M12 12c0-6 8-6 8 0" stroke="#2a1d12" stroke-width="2" fill="none"/><rect x="13" y="16" width="6" height="4" rx="1" fill="#e2bd6e"/>`),
+ build:SV(`<path d="M8 27V15l8-7 8 7v12z" fill="#efe2c4" ${OL}/><path d="M5 16l11-10 11 10" stroke="#b5532f" stroke-width="3.2" fill="none" stroke-linecap="round"/><rect x="13" y="19" width="6" height="8" fill="#6b4a30"/>`),
+ map:SV(`<path d="M5 8l7-3 8 3 7-3v19l-7 3-8-3-7 3z" fill="#efe2c4" ${OL}/><path d="M9 20c3-5 6 1 9-4s4-3 6-5" stroke="#b5532f" stroke-width="1.8" fill="none" stroke-dasharray="2 2"/>`),
+ me:SV(`<path d="M7 21c0-9 5-13 11-13s8 6 8 11l-5 1v5H10z" fill="#d4a94f" ${OL}/><path d="M12 8c2-4 8-4 10 0" stroke="#a33a26" stroke-width="4" fill="none"/>`),
+ menu:SV(`<circle cx="16" cy="16" r="7" fill="#d4a94f" ${OL}/><circle cx="16" cy="16" r="2.5" fill="#2a1d12"/><path d="M16 4v5M16 23v5M4 16h5M23 16h5M7.5 7.5l3.5 3.5M21 21l3.5 3.5M7.5 24.5l3.5-3.5M21 11l3.5-3.5" stroke="#2a1d12" stroke-width="3"/>`),
+ store:SV(`<rect x="5" y="11" width="22" height="15" rx="2" fill="#9b6a3c" ${OL}/><path d="M5 11l3-5h16l3 5" fill="#b07a46" ${OL}/><path d="M5 16h22" stroke="#d4a94f" stroke-width="2"/><rect x="14" y="14" width="4" height="5" fill="#d4a94f" ${OL}/>`),
+ quest:SV(`<rect x="7" y="5" width="18" height="22" rx="2" fill="#efe2c4" ${OL}/><path d="M11 11h10M11 16h10M11 21h6" stroke="#8a6a3a" stroke-width="2"/>`),
+ lock:SV(`<rect x="8" y="14" width="16" height="12" rx="2" fill="#8a7a6a" ${OL}/><path d="M11 14v-3a5 5 0 0 1 10 0v3" stroke="#2a1d12" stroke-width="2.4" fill="none"/>`)};
+const BLD_ART={
+ domus:`<path d="M8 40h48" stroke="#5f8f3c" stroke-width="4"/><path d="M14 40V20h36v20z" fill="#efe2c4" ${OL}/><path d="M10 21L32 8l22 13z" fill="#b5532f" ${OL}/><rect x="28" y="28" width="8" height="12" fill="#5a3b25"/><rect x="18" y="25" width="6" height="5" fill="#7fb0d6" stroke="#2a1d12"/>`,
+ smithy:`<path d="M8 40h48" stroke="#5f8f3c" stroke-width="4"/><path d="M12 40V22h34v18z" fill="#d9c08c" ${OL}/><path d="M8 23l26-11 18 11z" fill="#9e4a2a" ${OL}/><rect x="44" y="6" width="6" height="16" fill="#8a7a6a" stroke="#2a1d12"/><rect x="18" y="28" width="12" height="12" fill="#2a1d12"/><circle cx="24" cy="35" r="3" fill="#f0a040"/>`,
+ tannery:`<path d="M8 40h48" stroke="#5f8f3c" stroke-width="4"/><path d="M10 40V22h30v18z" fill="#e2d1ab" ${OL}/><path d="M7 23l18-10 18 10z" fill="#a85a34" ${OL}/><path d="M44 40V18M56 40V18M44 20h12" stroke="#6b4a30" stroke-width="2"/><path d="M46 21l3 10 3-10z" fill="#b98a55" ${OL}/>`,
+ popina:`<path d="M8 40h48" stroke="#5f8f3c" stroke-width="4"/><path d="M12 40V22h40v18z" fill="#efe2c4" ${OL}/><path d="M8 23h48l-4-7H12z" fill="#b5532f" ${OL}/><rect x="16" y="30" width="32" height="5" fill="#c9bfae" ${OL}/><circle cx="24" cy="29" r="2.5" fill="#a0612f"/><circle cx="32" cy="29" r="2.5" fill="#a0612f"/>`,
+ taberna:`<path d="M8 40h48" stroke="#5f8f3c" stroke-width="4"/><path d="M12 40V20h40v20z" fill="#efe2c4" ${OL}/><path d="M8 21L32 9l24 12z" fill="#b5532f" ${OL}/><path d="M14 26h36" stroke="#9e2f22" stroke-width="5"/><ellipse cx="18" cy="35" rx="3" ry="5" fill="#b5703a" stroke="#2a1d12"/><ellipse cx="46" cy="35" rx="3" ry="5" fill="#b5703a" stroke="#2a1d12"/><rect x="28" y="30" width="8" height="10" fill="#5a3b25"/>`,
+ farm:`<path d="M4 40h56" stroke="#5f8f3c" stroke-width="4"/><path d="M6 38l10-14h40l-6 14z" fill="#d6b04a" ${OL}/><path d="M14 36l8-11M24 36l6-11M34 36l4-11M44 36l2-11" stroke="#a8842e" stroke-width="2"/><path d="M46 24V14h12v10z" fill="#9e4a2a" ${OL}/>`,
+ olive:`<path d="M4 40h56" stroke="#5f8f3c" stroke-width="4"/><g fill="#8a9a6a" ${OL}><circle cx="16" cy="24" r="7"/><circle cx="32" cy="22" r="8"/><circle cx="48" cy="24" r="7"/></g><path d="M16 31v8M32 30v9M48 31v8" stroke="#6b4a30" stroke-width="3"/>`,
+ statue:`<path d="M8 40h48" stroke="#5f8f3c" stroke-width="4"/><rect x="24" y="30" width="16" height="10" fill="#d9d0bd" ${OL}/><path d="M28 30V18l4-6 4 6v12z" fill="#efe7d6" ${OL}/>`,
+ sign:`<path d="M8 40h48" stroke="#5f8f3c" stroke-width="4"/><path d="M20 40V12M44 40V12" stroke="#6b4a30" stroke-width="3"/><rect x="16" y="12" width="32" height="18" rx="2" fill="#efe2c4" ${OL}/><path d="M24 21h16" stroke="#b5532f" stroke-width="3"/>`};
+let ICON_OK=new Set();
+fetch("catalog/icons.json",{cache:"no-cache"}).then(r=>r.ok?r.json():[]).then(a=>{if(Array.isArray(a)){ICON_OK=new Set(a);u2Refresh()}}).catch(()=>{});
+const RES_ICON={denarius:"icon_denarius",food:"icon_food",wood:"icon_wood",stone:"icon_stone",iron:"icon_iron",silver:"icon_silver",gold:"icon_gold",hide:"icon_hide"};
+function ico(k){const id=RES_ICON[k]||("ui_icon_"+k);return ICON_OK.has(id)?`<img src="assets/icons/${id}.webp" alt="">`:(ICO[k]||"")}
+
+/* ---- buildings catalog (defaults; catalog/buildings.json overrides) ---- */
+let BLD=[
+ {id:"domus",tab:"house",name:{ko:"도무스",en:"Domus",ja:"ドムス"},cost:HOUSE_COST,open:true},
+ {id:"smithy",tab:"prod",name:{ko:"대장간",en:"Smithy",ja:"鍛冶屋"},cost:{wood:30,stone:20,iron:5,denarius:80},req:"domus"},
+ {id:"tannery",tab:"prod",name:{ko:"가죽 공방",en:"Tannery",ja:"革工房"},cost:{wood:24,stone:10,hide:6,denarius:60},req:"domus"},
+ {id:"popina",tab:"prod",name:{ko:"식당",en:"Popina",ja:"食堂"},cost:{wood:20,stone:16,food:10,denarius:70},req:"domus"},
+ {id:"taberna",tab:"prod",name:{ko:"술집",en:"Taberna",ja:"酒場"},cost:{wood:26,stone:20,denarius:90},req:"domus"},
+ {id:"farm",tab:"farm",name:{ko:"농장",en:"Farm",ja:"農場"},cost:{wood:20,denarius:40},req:"domus"},
+ {id:"olive",tab:"farm",name:{ko:"올리브 밭",en:"Olive grove",ja:"オリーブ畑"},cost:{wood:10,denarius:60},req:"domus"},
+ {id:"statue",tab:"deco",name:{ko:"대리석 상",en:"Marble statue",ja:"大理石像"},cost:{stone:30,silver:2},req:"domus"},
+ {id:"sign",tab:"sign",name:{ko:"링크 간판",en:"Link sign",ja:"リンク看板"},cost:{},open:true}];
+fetch("catalog/buildings.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(a=>{if(Array.isArray(a)&&a.length){BLD=a.map(b=>b.id==="domus"?Object.assign({},b,{cost:HOUSE_COST}):b);if(!$("u2build").hidden)renderBuild()}}).catch(()=>{});
+const bName=b=>(b.name&&(b.name[lang]||b.name.en))||b.id;
+
+/* ---- styles ---- */
+{const st=document.createElement("style");st.id="u2css";st.textContent=`
+:root{--wal:#2b2119;--wal2:#3a2c21;--parch:#efe2c4;--parch2:#e3d0a8;--brz:#c9a25a;--brz-hi:#e7c987;--rred:#7d2617;--umber:#3a2b1d;--umber2:#6b4e2a}
+.u2wood{background:linear-gradient(180deg,rgba(58,44,33,.94),rgba(36,28,21,.94));border:2px solid var(--brz);box-shadow:0 4px 14px rgba(0,0,0,.35),inset 0 0 0 1px rgba(0,0,0,.45);border-radius:10px;color:#f3ead8}
+/* old left column goes away; menu bar replaces it */
+#hud #homeBtn,#hud #bagBtn,#hud #menuBtn{display:none}
+#stats{background:linear-gradient(180deg,rgba(58,44,33,.94),rgba(36,28,21,.94))!important;border:2px solid var(--brz)!important;border-radius:12px!important;box-shadow:0 4px 14px rgba(0,0,0,.35);padding:6px 14px!important}
+#stats>.it{display:none}
+#resBar{gap:12px!important;align-items:center}
+#resBar .r{gap:5px!important;font-size:14px!important;color:#f3ead8}
+#resBar .r .u2i{width:22px;height:22px;display:grid;place-items:center}#resBar .r .u2i>*{width:100%;height:100%}
+#resBar .r.money{font-size:16px!important;font-weight:700;color:var(--brz-hi);padding-right:12px;border-right:1px solid rgba(201,162,90,.45)}
+#resBar .r.money .u2i{width:26px;height:26px}
+#stats #slot{display:none}
+#mapWrap{border:4px solid var(--brz)!important;box-shadow:0 0 0 3px var(--wal2),0 6px 16px rgba(0,0,0,.4)!important}
+#place{font-family:var(--display)}
+#u2me{position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);left:calc(env(safe-area-inset-left,0px) + 12px);display:flex;gap:10px;align-items:center;padding:6px 14px 6px 6px;z-index:4;pointer-events:none}
+#u2me .pt{width:50px;height:50px;border-radius:50%;border:3px solid var(--brz);display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,#5a4330,#2b2119);font-family:var(--display);font-weight:700;font-size:20px;color:var(--brz-hi)}
+#u2me .pt img{width:100%;height:100%;border-radius:50%}
+#u2me .nm{font-family:var(--display);font-size:13.5px;color:var(--brz-hi);white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+#u2me .no{font-family:var(--body);font-size:11px;color:#cbbfa6;margin-left:6px}
+#u2me .mt{height:8px;width:150px;border-radius:4px;background:rgba(0,0,0,.55);overflow:hidden;margin-top:5px}#u2me .mt b{display:block;height:100%;background:linear-gradient(90deg,#a8321f,#e0734f);transition:width .2s}
+#u2menu{position:fixed;right:calc(env(safe-area-inset-right,0px) + 14px);bottom:calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;gap:8px;align-items:flex-end;z-index:5}
+#u2menu .mb{position:relative;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;cursor:pointer;padding:0}
+#u2menu .mb:hover,#u2menu .mb:focus-visible{border-color:var(--brz-hi);box-shadow:0 0 12px rgba(231,201,135,.6);outline:none}
+#u2menu .mb.on{border-color:var(--brz-hi);background:linear-gradient(180deg,#6a4a2a,#3a2c21)}
+#u2menu .mb .u2i{width:28px;height:28px}#u2menu .mb .u2i>*{width:100%;height:100%}
+#u2menu .mb kbd{position:absolute;right:-4px;bottom:-4px;font:700 10.5px var(--body);background:var(--brz);color:#16130f;border-radius:4px;padding:1px 4px;min-width:10px;text-align:center}
+#u2menu .mini{display:grid;gap:6px}
+#hud #u2menu .hbtn{position:relative!important;inset:auto!important;width:36px;height:36px;top:auto!important;left:auto!important}
+#hud #u2menu .hbtn svg{width:18px;height:18px}
+#u2quest{position:fixed;right:calc(env(safe-area-inset-right,0px) + 12px);top:calc(env(safe-area-inset-top,0px) + 196px);width:210px;padding:8px 12px;z-index:4;font-size:12.5px;display:grid;gap:5px}
+#u2quest b{font-family:var(--display);color:var(--brz-hi);font-size:13px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+#u2quest label{display:flex;gap:7px;align-items:flex-start;line-height:1.35}
+#u2quest i{flex:none;width:11px;height:11px;margin-top:2px;border:1.5px solid var(--brz);border-radius:2px}#u2quest i.ok{background:var(--brz)}
+#u2quest label.ok{opacity:.55;text-decoration:line-through}
+#u2quest.min label{display:none}
+#u2log{position:fixed;left:calc(env(safe-area-inset-left,0px) + 12px);bottom:calc(env(safe-area-inset-bottom,0px) + 14px);width:300px;max-width:30vw;padding:8px 10px;z-index:3;font-size:12.5px;display:grid;gap:3px;background:rgba(22,19,15,.55);border-radius:8px;pointer-events:none}
+#u2log .h{font-family:var(--display);color:var(--brz-hi);font-size:12px;letter-spacing:.06em}
+#u2log span{color:#efe7d6;text-shadow:0 1px 2px rgba(0,0,0,.7);opacity:.92}
+#u2log span.old{opacity:.6}
+#u2log:empty{display:none}
+/* hotbar */
+#hotbar{background:linear-gradient(180deg,rgba(58,44,33,.94),rgba(36,28,21,.94))!important;border:2px solid var(--brz)!important;border-radius:10px!important;padding:5px!important;gap:5px!important}
+@media (pointer:fine){#hotbar{bottom:calc(env(safe-area-inset-bottom,0px) + 18px)!important}}
+#hotbar button{width:52px!important;height:52px!important;border-radius:6px!important;background:linear-gradient(180deg,#2b2119,#1b140f)!important;border:2px solid #6b5536!important}
+#hotbar button.sel{border-color:var(--brz-hi)!important;box-shadow:0 0 10px rgba(231,201,135,.75)}
+#hotbar button svg{width:32px!important;height:32px!important}
+#hint{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)!important}
+/* parchment windows */
+#inv .ibox,#trade .ibox,.sbox,#u2store .ibox,#u2build .ibox{--travertine:#3a2b1d;--stone:#6b4e2a;--gold-hi:#7d2617;--ink-soft:#efe2c4;background:linear-gradient(180deg,#f2e6cb,#e6d4ad)!important;color:#3a2b1d!important;border:3px solid #8a6a3a!important;border-radius:10px!important;box-shadow:inset 0 0 0 2px #f6ead0,inset 0 0 40px rgba(120,80,30,.22),0 10px 30px rgba(0,0,0,.45)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+#inv .ihead,#trade .ihead,.sbox h3,#u2store .ihead,#u2build .ihead{margin:-12px -12px 4px!important;padding:8px 12px!important;background:linear-gradient(180deg,#a33a26,#7d2617);color:#f6e7c8!important;font-family:var(--display);letter-spacing:.05em;border-bottom:2px solid var(--brz);border-radius:7px 7px 0 0}
+#inv .ihead button,#trade .ihead button,.sbox h3 .x,#u2store .ihead button,#u2build .ihead button{color:#f6e7c8!important}
+#inv .cell,#trade .shop button{background:linear-gradient(180deg,#dcc89c,#cdb684)!important;border:1.5px solid #9b7b48!important;color:#3a2b1d!important}
+#inv .cell.on{border-color:#4f8a3a!important}#inv .cell.sel{border-color:#7d2617!important;box-shadow:0 0 0 2px var(--brz)}
+#inv .cell svg path,#inv .cell svg line{stroke:#3a2b1d}
+#trade .row{background:#ead9b3;border-radius:5px;padding:3px 6px}
+#trade button,.sbox .sbtn,#u2store button,#u2build button.go{border-color:#7a5a2a!important}
+.sbox .sbtn{background:#e7d6b0!important;color:#3a2b1d!important}.sbox .sbtn.gold,#u2build button.go,#u2store button.go{background:linear-gradient(180deg,#d8b46a,#b48a42)!important;color:#2a1d10!important}
+.sbox input{background:#fbf4e4;color:#3a2b1d;border:1px solid #9b7b48}
+/* storage */
+@media (min-width:521px){#inv{left:calc(env(safe-area-inset-left,0px) + 12px)!important;top:calc(env(safe-area-inset-top,0px) + 80px)!important}}
+#u2store{position:fixed;z-index:7;top:calc(env(safe-area-inset-top,0px) + 80px);left:calc(env(safe-area-inset-left,0px) + 326px)}
+#u2store .ibox{box-sizing:border-box;width:min(320px,calc(100vw - 24px));padding:12px;display:grid;gap:8px}
+#u2store .ihead{display:flex;justify-content:space-between;align-items:center;font-size:14px}
+#u2store .ihead button{background:none;border:0;font-size:20px;cursor:pointer;width:30px;height:30px}
+#u2store .cap{display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:#6b4e2a}
+#u2store .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+#u2store .c{position:relative;aspect-ratio:1;border-radius:6px;background:linear-gradient(180deg,#dcc89c,#cdb684);border:1.5px solid #9b7b48;display:grid;place-items:center;cursor:pointer;padding:0}
+#u2store .c:hover{border-color:#7d2617}
+#u2store .c .u2i{width:62%;height:62%}#u2store .c .u2i>*{width:100%;height:100%}
+#u2store .c u{position:absolute;right:4px;bottom:1px;text-decoration:none;font-size:11px;font-weight:700;color:#3a2b1d}
+#u2store .c.e{opacity:.45;cursor:default}
+#u2store .row{display:flex;gap:6px;flex-wrap:wrap}
+#u2store button.go,#u2store button.alt{font:600 12px var(--body);padding:6px 10px;border-radius:5px;border:1px solid;cursor:pointer}
+#u2store button.alt{background:#e7d6b0;color:#3a2b1d}
+#u2store .tip{font-size:11.5px;color:#6b4e2a}
+#u2store h4{margin:2px 0 0;font-size:12px;color:#6b4e2a}
+/* build */
+#u2build{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 92px);z-index:6;width:min(620px,calc(100vw - 24px))}
+#u2build .ibox{box-sizing:border-box;padding:12px;display:grid;gap:8px}
+#u2build .ihead{display:flex;justify-content:space-between;align-items:center;font-size:14px}
+#u2build .ihead small{font:600 11px var(--body);background:rgba(0,0,0,.25);padding:1px 6px;border-radius:4px;margin-left:auto;margin-right:8px}
+#u2build .ihead button{background:none;border:0;font-size:20px;cursor:pointer;width:30px;height:30px}
+#u2build .tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:2px solid #7d2617}
+#u2build .tab{font:600 12.5px var(--body);padding:5px 12px;border-radius:6px 6px 0 0;background:#d9c59a;color:#5a4128;border:0;cursor:pointer}
+#u2build .tab.on{background:#7d2617;color:#f6e7c8}
+#u2build .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+#u2build .bc{border-radius:7px;border:1.5px solid #9b7b48;background:#f6ead0;overflow:hidden;display:grid;font-size:11.5px;text-align:left;padding:0;cursor:pointer;color:#3a2b1d}
+#u2build .bc.on{border-color:#7d2617;box-shadow:0 0 0 2px var(--brz)}
+#u2build .bc .pic{aspect-ratio:3/2;display:grid;place-items:center;background:#e9dcc0}
+#u2build .bc .pic svg,#u2build .bc .pic img{width:72%;height:82%;object-fit:contain}
+#u2build .bc .t{padding:4px 6px 0;font-weight:700;font-size:12.5px}
+#u2build .bc .k{padding:0 6px 6px;color:#6b4e2a;display:flex;gap:6px;flex-wrap:wrap}
+#u2build .bc .k .no{color:#a33a26;font-weight:700}
+#u2build .bc.lock{opacity:.55}
+#u2build .st{display:flex;gap:10px;align-items:center;font-size:13px}
+#u2build .st .dot{width:10px;height:10px;border-radius:50%;flex:none}
+#u2build .st span{flex:1}
+#u2build button.go{font:700 13px var(--body);padding:7px 16px;border-radius:6px;border:1px solid;cursor:pointer}
+#u2build button.go[disabled]{opacity:.5;cursor:default}
+@media (max-width:640px){#u2build .cards{grid-template-columns:repeat(2,minmax(0,1fr))}#u2store{left:50%;top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);transform:translateX(-50%)}}
+@media (pointer:coarse){#u2log{display:none}#u2menu{right:auto;left:calc(env(safe-area-inset-left,0px) + 10px);bottom:auto;top:calc(env(safe-area-inset-top,0px) + 76px);flex-direction:column;align-items:flex-start}#u2menu .mb{width:42px;height:42px}#u2menu .mb .u2i{width:22px;height:22px}#u2menu .mb kbd{display:none}#u2menu .mini{display:none}
+ #u2quest{top:calc(env(safe-area-inset-top,0px) + 160px);width:170px;font-size:11.5px}#hotbar button{width:40px!important;height:40px!important}#hotbar button svg{width:24px!important;height:24px!important}}
+@media (max-width:520px){#u2me{display:none}#u2quest{display:none}#stats{left:calc(env(safe-area-inset-left,0px) + 60px)!important;padding:5px 8px!important}#resBar{gap:7px!important}#resBar .r{font-size:12px!important;gap:3px!important}#resBar .r.money{font-size:13px!important;padding-right:7px}#resBar .r .u2i,#resBar .r.money .u2i{width:16px;height:16px}}
+`;document.head.appendChild(st)}
+
+/* ---- elements ---- */
+const mk=(id,cls,html,parent)=>{const d=document.createElement("div");d.id=id;if(cls)d.className=cls;d.innerHTML=html||"";(parent||$("hud")).appendChild(d);return d};
+mk("u2me","u2wood",`<div class="pt"></div><div><div class="nm"></div><div class="mt"><b></b></div></div>`);
+mk("u2quest","u2wood","");
+mk("u2log","","");
+const menu=mk("u2menu","","");
+mk("u2store","",'<div class="ibox"></div>').hidden=true;
+mk("u2build","",'<div class="ibox"></div>').hidden=true;
+SOC_PANELS.push("u2store","u2build");
+const MB=[["bag","I",()=>toggleInv()],["build","B",()=>toggleBuild()],["map","M",()=>$("mapWrap").click()],["me","C",()=>{if(!$("me").hidden)$("me").hidden=true;else openMe()}],["menu","Esc",()=>{if($("sys").hidden)openSys();else $("sys").hidden=true}]];
+function drawMenu(){const t=UT();menu.innerHTML=`<div class="mini"></div>`+MB.map(([k,key])=>`<button class="mb u2wood" data-mb="${k}" aria-label="${t[k]}" title="${t[k]} (${key})"><span class="u2i">${ico(k)}</span><kbd>${key}</kbd></button>`).join("");
+ const mini=menu.querySelector(".mini");for(const id of ["helpBtn","fbBtn"]){const b=$(id);if(b)mini.appendChild(b)}
+ menu.querySelectorAll("[data-mb]").forEach(b=>{const m=MB.find(x=>x[0]===b.dataset.mb);b.onclick=e=>{e.stopPropagation();m[2]()}})}
+drawMenu();
+/* help panel was anchored next to the old left button; keep it on screen */
+{const h=$("help");if(h&&h.parentElement!==$("hud"))$("hud").appendChild(h)}
+
+/* ---- status plate ---- */
+const KIND_INI={human:"",crow:"C",hare:"H",deer:"D",boar:"B",wolf:"W",bear:"U",fish:"F"};
+function drawMe(){const el=$("u2me");if(mode!=="play"){el.hidden=true;return}el.hidden=false;
+ const pr=window.__auth&&window.__auth.prof;const nm=(pr&&pr.display_name)||($("acctName")&&$("acctName").textContent)||UT().lvl;
+ const no=pr&&pr.citizen_no?`<span class="no">No.${pr.citizen_no}</span>`:"";
+ el.querySelector(".nm").innerHTML=String(nm).replace(/</g,"&lt;")+no;
+ const pid="portrait_"+P.kind;el.querySelector(".pt").innerHTML=ICON_OK.has(pid)?`<img src="assets/icons/${pid}.webp" alt="">`:(KIND_INI[P.kind]||String(nm).trim().charAt(0).toUpperCase()||"C");
+ el.querySelector(".mt b").style.width=Math.max(0,P.hp/P.hpMax*100)+"%"}
+
+/* ---- resource bar with icons, denarius first ---- */
+{const _us=updateStats;updateStats=function(){_us.apply(this,arguments);
+ const order=["denarius"].concat(RES_KEYS.filter(k=>k!=="denarius"&&(k!=="gold"||RES.gold>0)));
+ $("resBar").innerHTML=order.map(k=>`<span class="r${k==="denarius"?" money":""}${RES[k]||k==="denarius"?"":" z"}" title="${T[lang].res[k]}"><span class="u2i">${ico(k)}</span>${(RES[k]||0).toLocaleString()}</span>`).join("");
+ drawMe();drawQuest();if(!$("u2store").hidden)renderStore()}}
+
+/* ---- notice log: every toast also lands here ---- */
+const LOG=[];
+{const _t=toast;toast=function(msg){_t.apply(this,arguments);if(!msg)return;const s=String(msg);if(LOG.length&&LOG[LOG.length-1].m===s)return;LOG.push({m:s,at:Date.now()});if(LOG.length>5)LOG.shift();drawLog()}}
+function drawLog(){const el=$("u2log");if(!LOG.length||mode!=="play"){el.innerHTML="";return}const now=Date.now();
+ el.innerHTML=`<div class="h">${UT().log}</div>`+LOG.map(l=>`<span class="${now-l.at>20000?"old":""}">${l.m.replace(/</g,"&lt;")}</span>`).join("")}
+
+/* ---- first loop quest list ---- */
+const QKEY=()=>"cap3d.quest."+server.id;
+let QS={};try{QS=JSON.parse(localStorage.getItem(QKEY())||"{}")}catch(e){}
+let qMin=false;
+function questState(){const own=PLOTS.some(p=>p.own);return [QS.w||RES.wood>=10,QS.s||false,QS.l||own,QS.h||PLOTS.some(p=>p.own&&p.house),QS.g||PLOTS.some(p=>p.own&&p.sign)]}
+let qSig="";
+function drawQuest(){const el=$("u2quest");if(mode!=="play"||P.kind!=="human"){el.hidden=true;qSig="";return}el.hidden=false;
+ const st=questState();const sig=st.join()+qMin+lang;if(sig===qSig)return;qSig=sig;const keys=["w","s","l","h","g"];let ch=false;st.forEach((v,i)=>{if(v&&!QS[keys[i]]){QS[keys[i]]=1;ch=true}});if(ch)try{localStorage.setItem(QKEY(),JSON.stringify(QS))}catch(e){}
+ const t=UT();const all=st.every(Boolean);el.classList.toggle("min",qMin);
+ el.innerHTML=`<b data-qt>${t.quest}<span>${qMin?"+":"−"}</span></b>`+(all?`<label class="ok"><i class="ok"></i>${t.qDone}</label>`:t.q.map((q,i)=>`<label class="${st[i]?"ok":""}"><i class="${st[i]?"ok":""}"></i>${q}</label>`).join(""));
+ el.querySelector("[data-qt]").onclick=()=>{qMin=!qMin;qSig="";drawQuest()};el.style.pointerEvents="auto"}
+/* selling at the market counts as the second step */
+{const _rt=renderTrade;renderTrade=function(){const before=RES.denarius;const r=_rt.apply(this,arguments);
+ const el=$("trade");el.querySelectorAll("[data-s1],[data-sa]").forEach(b=>{const f=b.onclick;b.onclick=function(){const d0=RES.denarius;f&&f.apply(this,arguments);if(RES.denarius>d0&&!QS.s){QS.s=1;try{localStorage.setItem(QKEY(),JSON.stringify(QS))}catch(e){}drawQuest()}}});return r}}
+
+/* ---- storage beside the bag ---- */
+const HORREA=CIVIC.find(c=>c.k==="horrea");
+const SKEY=w=>"cap3d.store."+w+"."+server.id+"."+(AUTH.user?AUTH.user.id:"guest");
+const CAP={pub:600,home:150};
+function loadStash(w){let o={};try{o=JSON.parse(localStorage.getItem(SKEY(w))||"{}")}catch(e){}const r={};RES_KEYS.forEach(k=>{if(k!=="denarius")r[k]=Math.max(0,o[k]|0)});return r}
+function saveStash(w,s){try{localStorage.setItem(SKEY(w),JSON.stringify(s))}catch(e){}}
+function whichStore(){if(P.kind!=="human"||P.dead||mode!=="play")return null;
+ if(HORREA&&Math.hypot(P.x-HORREA.x,P.z-HORREA.z)<Math.max(HORREA.w,HORREA.d)*.5+10)return "pub";
+ for(const p of PLOTS)if(p.own&&p.house&&Math.hypot(P.x-p.x,P.z-p.z)<p.w/2+3)return "home";return null}
+let storeW=null;
+function renderStore(){const el=$("u2store");if(!storeW){el.hidden=true;return}const t=UT(),R=T[lang].res;const s=loadStash(storeW);const used=Object.values(s).reduce((a,b)=>a+b,0);
+ const ks=RES_KEYS.filter(k=>k!=="denarius");
+ const cell=(k,n,side)=>n>0?`<button class="c" data-mv="${side}" data-k="${k}" title="${R[k]} ${n}"><span class="u2i">${ico(k)}</span><u>${n}</u></button>`:"";
+ const fill=(arr,min)=>{const h=arr.join("");const c=arr.filter(Boolean).length;let pad="";for(let i=c;i<min;i++)pad+=`<div class="c e"></div>`;return h+pad};
+ el.firstElementChild.innerHTML=`<div class="ihead"><b>${storeW==="pub"?t.pub:t.home}</b><button data-x aria-label="Close">&times;</button></div>
+  <div class="cap"><span>${t.store}</span><span>${used} / ${CAP[storeW]}</span></div><div class="grid">${fill(ks.map(k=>cell(k,s[k],"out")),8)}</div>
+  <div class="row"><button class="alt" data-all-out>${t.takeAll}</button></div>
+  <h4>${t.carried}</h4><div class="grid">${fill(ks.map(k=>cell(k,RES[k],"in")),4)}</div>
+  <div class="row"><button class="go" data-all-in>${t.putAll}</button></div><div class="tip">${t.storeTip}</div>`;
+ el.hidden=false;const q=s2=>el.querySelector(s2);
+ q("[data-x]").onclick=()=>{storeW=null;el.hidden=true};
+ const mv=(k,dir,all)=>{const st=loadStash(storeW);const used=Object.values(st).reduce((a,b)=>a+b,0);
+  if(dir==="in"){let n=all?RES[k]:1;n=Math.min(n,CAP[storeW]-used);if(n<=0){toast(t.full);return}RES[k]-=n;st[k]+=n}
+  else{const n=all?st[k]:Math.min(1,st[k]);st[k]-=n;RES[k]+=n}saveStash(storeW,st);updateStats();if(typeof saveSoon==="function")saveSoon()};
+ el.querySelectorAll("[data-mv]").forEach(b=>b.onclick=e=>mv(b.dataset.k,b.dataset.mv,e.shiftKey));
+ q("[data-all-in]").onclick=()=>{for(const k of ks)if(RES[k]>0)mv(k,"in",true)};
+ q("[data-all-out]").onclick=()=>{for(const k of ks)if(loadStash(storeW)[k]>0)mv(k,"out",true)}}
+{const _ti=toggleInv;toggleInv=function(v){_ti.apply(this,arguments);const open=!$("inv").hidden;storeW=open?whichStore():null;renderStore()}}
+let storeHintAt=0,lastW=null;
+function storeTick(){const w=whichStore();if(w!==lastW){lastW=w;if(w&&Date.now()-storeHintAt>15000){storeHintAt=Date.now();toast(UT().nearStore)}}
+ if(storeW&&w!==storeW){storeW=null;$("u2store").hidden=true}}
+
+/* ---- build menu (B) ---- */
+let bTab="house",bSel="domus",ghost=null;
+function myPlotHere(){return plotAt(P.x,P.z,1)}
+function nearestPlot(own){let best=null,bd=1e9;for(const p of PLOTS){if(!!p.own!==own||(!own&&p.taken))continue;const d=Math.hypot(P.x-p.x,P.z-p.z);if(d<bd){bd=d;best=p}}return best?{p:best,d:Math.round(bd)}:null}
+function lacks(cost){return Object.entries(cost||{}).filter(([k,v])=>(RES[k]||0)<v).map(([k])=>k)}
+function buildCheck(b){const t=UT();if(!b)return {ok:false,msg:t.bHint};
+ if(!b.open){if(b.req==="domus"&&!PLOTS.some(p=>p.own&&p.house))return {ok:false,msg:t.needDomus};return {ok:false,msg:t.soon}}
+ const p=myPlotHere();
+ if(!p||!p.own){const own=nearestPlot(true);if(own)return {ok:false,msg:t.standOn.replace("{d}",own.d)};const fs=nearestPlot(false);return {ok:false,msg:t.noLand.replace("{d}",fs?fs.d:"?")}}
+ const n=p.cl.filter(Boolean).length;if(n<3)return {ok:false,p,msg:t.notCleared.replace("{n}",n)};
+ if(b.id==="sign")return {ok:true,p,msg:t.signOk};
+ if(b.id==="domus"&&p.house)return {ok:false,p,msg:t.built};
+ if(lacks(b.cost).length)return {ok:false,p,msg:t.noRes};return {ok:true,p,msg:t.ok}}
+function costHtml(c){const R=T[lang].res;const e=Object.entries(c||{});if(!e.length)return "";return e.map(([k,v])=>`<span class="${(RES[k]||0)<v?"no":""}">${R[k]} ${v}</span>`).join("")}
+function renderBuild(){const t=UT();const el=$("u2build");const list=BLD.filter(b=>b.tab===bTab);
+ const art=b=>ICON_OK.has("card_bld_"+b.id)?`<img src="assets/cards/card_bld_${b.id}.webp" alt="">`:`<svg viewBox="0 0 64 44" aria-hidden="true">${BLD_ART[b.id]||BLD_ART.domus}</svg>`;
+ const sel=BLD.find(b=>b.id===bSel);const ck=buildCheck(sel&&sel.tab===bTab?sel:null);
+ el.firstElementChild.innerHTML=`<div class="ihead"><b>${t.build}</b><small>${t.keysB}</small><button data-x aria-label="Close">&times;</button></div>
+  <div class="tabs">${Object.entries(t.tabs).map(([k,v])=>`<button class="tab${k===bTab?" on":""}" data-tab="${k}">${v}</button>`).join("")}</div>
+  <div class="cards">${list.map(b=>{const lk=!b.open;return `<button class="bc${b.id===bSel?" on":""}${lk?" lock":""}" data-b="${b.id}"><div class="pic">${art(b)}</div><div class="t">${bName(b)}</div><div class="k">${lk&&b.req!=="domus"?t.soon:lk?(PLOTS.some(p=>p.own&&p.house)?t.soon:t.needDomus):costHtml(b.cost)}</div></button>`}).join("")}</div>
+  <div class="st"><i class="dot" style="background:${ck.ok?"#4f9a3a":"#b5532f"}"></i><span>${ck.msg}</span><button class="go" data-go ${ck.ok?"":"disabled"}>${t.doBuild}</button></div>`;
+ el.hidden=false;const q=s=>el.querySelector(s);
+ q("[data-x]").onclick=()=>closeBuild();
+ el.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{bTab=b.dataset.tab;const f=BLD.find(x=>x.tab===bTab);bSel=f?f.id:null;renderBuild()});
+ el.querySelectorAll("[data-b]").forEach(b=>b.onclick=()=>{bSel=b.dataset.b;renderBuild()});
+ q("[data-go]").onclick=()=>{const b=BLD.find(x=>x.id===bSel);const c=buildCheck(b);if(!c.ok){toast(c.msg);return}
+  if(b.id==="sign"){closeBuild();openLand(c.p,"sign");return}
+  if(b.id==="domus"){openLand(c.p);const hb=sbx("land").querySelector("[data-house]");if(hb)hb.click();if(c.p.house)closeBuild();else renderBuild()}}}
+function toggleBuild(){if(!$("u2build").hidden){closeBuild();return}if(P.kind!=="human"||P.dead||mode!=="play")return;$("mshop").hidden=true;renderBuild();markMenu()}
+function closeBuild(){$("u2build").hidden=true;if(ghost)ghost.visible=false;markMenu()}
+function markMenu(){const b=menu.querySelector('[data-mb="build"]');if(b)b.classList.toggle("on",!$("u2build").hidden);const g=menu.querySelector('[data-mb="bag"]');if(g)g.classList.toggle("on",!$("inv").hidden)}
+function ghostTick(){const open=!$("u2build").hidden;const b=BLD.find(x=>x.id===bSel);
+ if(!open||!b||b.id==="sign"||!b.open){if(ghost)ghost.visible=false;return}
+ const p=myPlotHere();if(!p||!p.own||p.house){if(ghost)ghost.visible=false;return}
+ if(!ghost){ghost=new THREE.Mesh(new THREE.BoxGeometry(9,4.6,7),new THREE.MeshBasicMaterial({color:0x50dc6e,transparent:true,opacity:.28,depthWrite:false}));
+  const e=new THREE.LineSegments(new THREE.EdgesGeometry(ghost.geometry),new THREE.LineBasicMaterial({color:0x9bffad}));ghost.add(e);scene.add(ghost)}
+ const ok=buildCheck(b).ok;ghost.material.color.setHex(ok?0x50dc6e:0xf05a46);ghost.children[0].material.color.setHex(ok?0x9bffad:0xff9a8a);
+ ghost.position.set(p.x,heightAt(p.x,p.z)+2.4,p.z);ghost.visible=true}
+/* B now opens the build menu; the personal shop stays in the bag window and the system menu */
+{const _ms=openMyShopPanel;openMyShopPanel=function(){const ev=window.event;if(ev&&ev.type==="keydown"&&ev.code==="KeyB"){toggleBuild();return}return _ms.apply(this,arguments)}}
+addEventListener("contextmenu",e=>{if(!$("u2build").hidden&&e.target===renderer.domElement){e.preventDefault();closeBuild()}});
+/* the bag window gets a shortcut to the personal shop */
+{const _ri=renderInv;renderInv=function(){_ri.apply(this,arguments);if($("inv").hidden||P.kind!=="human")return;const tip=$("invTip");if(!tip||tip.querySelector("[data-myshop]"))return;
+ const b=document.createElement("button");b.className="dropb";b.dataset.myshop="1";b.textContent=(ST&&ST().myShop)||"My shop";b.style.marginTop="8px";b.onclick=()=>{toggleInv(false);openMyShopPanel()};tip.appendChild(document.createElement("br"));tip.appendChild(b)}}
+
+/* ---- per frame hooks ---- */
+let u2t=0;
+{const _near=updateNear;updateNear=function(){_near.apply(this,arguments);const now=performance.now();if(now-u2t<200)return;u2t=now;
+ storeTick();ghostTick();drawMe();drawQuest();if(!$("u2build").hidden)renderBuildStatus();markMenu();
+ const play=mode==="play";$("u2menu").hidden=!play;if(!play){$("u2me").hidden=true;$("u2quest").hidden=true}}}
+let lastStatus="";
+function renderBuildStatus(){const b=BLD.find(x=>x.id===bSel);const ck=buildCheck(b&&b.tab===bTab?b:null);const key=ck.ok+ck.msg;if(key===lastStatus)return;lastStatus=key;
+ const st=$("u2build").querySelector(".st");if(!st)return;st.querySelector(".dot").style.background=ck.ok?"#4f9a3a":"#b5532f";st.querySelector("span").textContent=ck.msg;st.querySelector("[data-go]").disabled=!ck.ok}
+function u2Refresh(){drawMenu();if(mode==="play"){updateStats();drawLog()}}
+setInterval(()=>{if(mode==="play")drawLog()},5000);
+window.__ui2={toggleBuild,renderStore,PLOTS,BLD:()=>BLD,ICON_OK:()=>ICON_OK};
+}
+
 })();
 </script>
 <script src="gfx.js"></script>
