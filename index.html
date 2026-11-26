@@ -1196,7 +1196,7 @@ function tapAt(cx,cy){ndc.set(cx/innerWidth*2-1,-(cy/innerHeight)*2+1);ray.setFr
  const live=items.filter(i=>!i.taken);const hit=ray.intersectObjects(signObjs.concat(faunaGroups(),live.map(i=>i.ring),live.map(i=>i.m)),true)[0];if(!hit||hit.distance>120)return false;
  let o=hit.object;while(o&&!o.userData.item&&o.parent)o=o.parent;
  if(o&&o.userData.item){const it=o.userData.item;if(Math.hypot(P.x-it.x,P.z-it.z)<4.5)tryPick(it);else toast(T[lang].tooFar);return true}
- if(hit.object.userData.sign){openCard(hit.object.userData.sign);return true}if(hit.object.userData.fauna){attack(hit.object.userData.fauna);return true}return false}
+ if(hit.object.userData.sign){openCard(hit.object.userData.sign);return true}if(hit.object.userData.fauna){const fa=hit.object.userData.fauna;if(fa.dead){if(fa.carcass&&P.kind==="human"&&P.cd<=0&&Math.hypot(fa.x-P.x,fa.z-P.z)<4.5){butcher(fa);return true}return false}attack(fa);return true}return false}
 function clickWorld(cx,cy){if(mode!=="play")return;if(FISH.on){reelIn();return}if(tapAt(cx,cy))return;if(!isTouch&&!useItem()&&!gather())attack()}
 
 /* ============ combat & items ============ */
@@ -1243,14 +1243,24 @@ const _o=new THREE.Object3D();
 function setTree(t,vis){_o.position.set(t.q[0],t.q[1],t.q[2]);_o.rotation.set(0,t.q[4],0);_o.scale.setScalar(vis?t.q[3]:0.0001);_o.updateMatrix();
  t.tm.setMatrixAt(t.i,_o.matrix);t.lm.setMatrixAt(t.i,_o.matrix);t.tm.instanceMatrix.needsUpdate=true;t.lm.instanceMatrix.needsUpdate=true}
 const regrow=[];
+/* resource gain: harvest.js flies the icons to the bar and adds them as they land */
+function gain(k,n,x,y,z){if(!n)return;if(window.__gainFx&&window.__gainFx(k,n,x,y,z,T[lang].res[k],m=>{RES[k]+=m;updateStats()}))return;
+ RES[k]+=n;toast(`+${n} ${T[lang].res[k]}`);updateStats()}
+const fxHit=(...a)=>{try{window.__hitFx&&window.__hitFx(...a)}catch(e){}};
+function nearCarcass(){let best=null,bd=3.6;for(const a of fauna){if(!a.dead||!a.carcass||a.butchering)continue;const d=Math.hypot(a.x-P.x,a.z-P.z);if(d<bd){bd=d;best=a}}return best}
+function butcher(a){a.butchering=1;P.cd=1.5;P.act="butcher";P.swing=1;P.face=Math.atan2(a.x-P.x,a.z-P.z);fxHit("butcher",a);
+ setTimeout(()=>{a.butchering=0;if(P.dead||Math.hypot(a.x-P.x,a.z-P.z)>4.5||!a.dead||!a.carcass)return;const L=a.carcass;a.carcass=null;
+  const y=heightAt(a.x,a.z)+.5;gain("food",L.food,a.x,y,a.z);setTimeout(()=>gain("hide",L.hide,a.x,y,a.z),160);fxHit("butchered",a);a.deadT=Math.max(a.deadT,18.6)},1350)}
+window.__harvest={nearCarcass};
 function gather(){if(P.kind!=="human"||P.dead||P.cd>0)return false;const h=curHand();
+ const cc=nearCarcass();if(cc){butcher(cc);return true}
  const n=nearNode();if(n){if(h!=="pick"){toast(T[lang].needPick);return true}
-  P.cd=.7;P.swing=1;P.face=Math.atan2(n.x-P.x,n.z-P.z);n.hp-=1;const amt=n.res==="stone"?1+(Math.random()<.4?1:0):(n.g===2?2:n.g===1?(Math.random()<.5?2:1):1);
-  RES[n.res]+=amt;toast(`+${amt} ${T[lang].res[n.res]}`);updateStats();
-  if(n.hp<=0){n.down=1;n.meshes.forEach(m=>m.visible=false);regrow.push({n,at:clock.elapsedTime+240});toast(T[lang].depleted)}return true}
- const t=nearTree();if(t){P.cd=h==="axe"?.6:.9;P.swing=1;P.face=Math.atan2(t.x-P.x,t.z-P.z);t.hp-=h==="axe"?1.4:.5;const amt=h==="axe"?2:1;
-  RES.wood+=amt;toast(`+${amt} ${T[lang].res.wood}`);updateStats();
-  if(t.hp<=0){t.down=1;setTree(t,false);regrow.push({t,at:clock.elapsedTime+180})}return true}
+  P.cd=.7;P.swing=1;P.act="mine";P.face=Math.atan2(n.x-P.x,n.z-P.z);n.hp-=1;const amt=n.res==="stone"?1+(Math.random()<.4?1:0):(n.g===2?2:n.g===1?(Math.random()<.5?2:1):1);
+  fxHit("rock",n);gain(n.res,amt,n.x,heightAt(n.x,n.z)+1.2,n.z);
+  if(n.hp<=0){n.down=1;fxHit("rockDone",n);n.meshes.forEach(m=>m.visible=false);regrow.push({n,at:clock.elapsedTime+240});toast(T[lang].depleted)}return true}
+ const t=nearTree();if(t){P.cd=h==="axe"?.6:.9;P.swing=1;P.act="chop";P.face=Math.atan2(t.x-P.x,t.z-P.z);t.hp-=h==="axe"?1.4:.5;const amt=h==="axe"?2:1;
+  fxHit("tree",t);gain("wood",amt,t.x,t.q[1]+1.6,t.z);
+  if(t.hp<=0){t.down=1;fxHit("fell",t);setTree(t,false);regrow.push({t,at:clock.elapsedTime+180})}return true}
  return false}
 function updateRegrow(){const now=clock.elapsedTime;for(let i=regrow.length-1;i>=0;i--){const r=regrow[i];if(now<r.at)continue;
  if(r.t){r.t.down=0;r.t.hp=4;setTree(r.t,true)}else{r.n.down=0;r.n.hp=r.n.res==="stone"?5:6;r.n.meshes.forEach(m=>m.visible=true)}regrow.splice(i,1)}}
@@ -1278,7 +1288,7 @@ function castLine(){const fx=P.x+Math.sin(P.face)*6,fz=P.z+Math.cos(P.face)*6;
  b.add(top,bot);b.position.set(fx,.05,fz);scene.add(b);FISH.bobber=b;FISH.on=true;FISH.t=0;FISH.biteAt=2+Math.random()*5;
  const zn=zoneAtM(fx/G,fz/G,["fish"]);FISH.rich=zn?1:.35;toast(T[lang].cast)}
 function reelIn(){if(!FISH.on)return;const biting=FISH.t>FISH.biteAt&&FISH.t<FISH.biteAt+1.3;
- if(biting&&Math.random()<FISH.rich+.25){const n=FISH.rich>=1?2:1;RES.food+=n;toast(`+${n} ${T[lang].fishCatch}`);updateStats()}else toast(T[lang].miss);stopFishing()}
+ if(biting&&Math.random()<FISH.rich+.25){const n=FISH.rich>=1?2:1;const b=FISH.bobber.position;fxHit("fish",b);gain("food",n,b.x,.4,b.z)}else toast(T[lang].miss);stopFishing()}
 function updateFishing(dt,t){if(!FISH.on)return;FISH.t+=dt;const b=FISH.bobber;
  if(P.moving>.3||curHand()!=="rod"){stopFishing();return}
  const biting=FISH.t>FISH.biteAt&&FISH.t<FISH.biteAt+1.3;b.position.y=biting?-.12+Math.sin(t*30)*.08:.05+Math.sin(t*3)*.04;
@@ -1299,8 +1309,10 @@ function attack(target){
  if(tgt.kind==="hare"){tgt.flee=2}else if(tgt.kind==="deer"){tgt.tx=tgt.x+kx/kl*30;tgt.tz=tgt.z+kz/kl*30;tgt.wait=0;tgt.flee=3}else tgt.aggro=10;
  if(tgt.hp<=0)kill(tgt);
 }
-function kill(a){a.dead=1;a.deadT=0;a.c.g.rotation.z=Math.PI/2;for(const m of a.mats)m.emissive.setHex(0);const L=LOOT[a.kind];RES.food+=L.food;RES.hide+=L.hide;
- toast(`+${L.food} ${T[lang].food}   +${L.hide} ${T[lang].hide}`);updateStats()}
+function kill(a){a.dead=1;a.deadT=0;a.c.g.rotation.z=Math.PI/2;for(const m of a.mats)m.emissive.setHex(0);const L=LOOT[a.kind];
+ /* a person butchers the carcass for meat and hide; a beast eats on the spot */
+ if(P.kind==="human"){a.carcass={food:L.food,hide:L.hide};fxHit("kill",a);return}
+ const y=heightAt(a.x,a.z)+.5;gain("food",L.food,a.x,y,a.z);gain("hide",L.hide,a.x,y,a.z)}
 function hurt(d){if(P.dead)return;P.hp-=d;P.lastHurt=0;$("hurt").style.opacity=1;setTimeout(()=>$("hurt").style.opacity=0,180);updateStats();
  if(P.hp<=0){P.dead=true;RES_KEYS.forEach(k=>{if(k!=="denarius")RES[k]=0});updateStats();$("dead").hidden=false;setTimeout(()=>{$("dead").hidden=true;goHome()},2600)}}
 
@@ -1405,7 +1417,7 @@ function updateCamera(dt,target,eyeH){
  let x=cam.target.x+Math.sin(cam.yaw)*cp*camD,z=cam.target.z+Math.cos(cam.yaw)*cp*camD,y=cam.target.y+Math.sin(cam.pitch)*camD;
  const fl=Math.max(heightAt(x,z),0)+.7;if(y<fl)y=fl;camera.position.set(x,y,z);camera.lookAt(cam.target);
 }
-function respawnFauna(a){a.dead=0;a.hp=HPMAX[a.kind];a.aggro=0;a.c.g.visible=true;a.c.g.rotation.z=0;a.x=a.home[0]+(Math.random()-.5)*a.rad;a.z=a.home[1]+(Math.random()-.5)*a.rad;
+function respawnFauna(a){a.dead=0;a.carcass=null;a.butchering=0;a.hp=HPMAX[a.kind];a.aggro=0;a.c.g.visible=true;a.c.g.rotation.z=0;a.x=a.home[0]+(Math.random()-.5)*a.rad;a.z=a.home[1]+(Math.random()-.5)*a.rad;
  if(heightAt(a.x,a.z)<1){a.x=a.home[0];a.z=a.home[1]}}
 function updateFauna(dt,t){
  const playing=mode==="play"&&P.c&&!P.dead;
@@ -1413,7 +1425,7 @@ function updateFauna(dt,t){
   if(a.kind==="crow"){a.phase+=dt*a.sp;const cx=a.home[0]+Math.sin(a.phase*.3)*a.rad*.5,cz=a.home[1]+Math.cos(a.phase*.23)*a.rad*.5;
    const x=cx+Math.cos(a.phase)*a.cr,z=cz+Math.sin(a.phase)*a.cr,y=Math.max(heightAt(x,z),0)+a.alt+Math.sin(a.phase*2)*2;
    a.c.g.position.set(x,y,z);a.c.g.rotation.y=Math.atan2(-Math.sin(a.phase),Math.cos(a.phase));a.c.g.rotation.z=.25;a.c.anim(t+a.cr,.6,true);continue}
-  if(a.dead){a.deadT+=dt;if(a.deadT>20)a.c.g.visible=false;if(a.deadT>60)respawnFauna(a);else a.c.g.position.set(a.x,heightAt(a.x,a.z)+.3,a.z);continue}
+  if(a.dead){a.deadT+=dt;if(a.deadT>(a.carcass?60:20))a.c.g.visible=false;if(a.deadT>60)respawnFauna(a);else a.c.g.position.set(a.x,heightAt(a.x,a.z)+.3,a.z);continue}
   if(a.flash>0){a.flash-=dt;for(const m of a.mats)m.emissive.setHex(a.flash>0?0x992211:0x000000)}
   const pd=playing?Math.hypot(P.x-a.x,P.z-a.z):1e9;
   let sp=a.kind==="wolf"?2.6:2,mv=0;
@@ -2335,4 +2347,4 @@ window.__ui2={toggleBuild,renderStore,PLOTS,BLD:()=>BLD,ICON_OK:()=>ICON_OK};
 
 })();
 </script>
-<script src="gfx.js"></script><script src="nature.js"></script><script src="world.js"></script><script src="builds.js"></script>
+<script src="gfx.js"></script><script src="nature.js"></script><script src="world.js"></script><script src="builds.js"></script><script src="harvest.js"></script>
