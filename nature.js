@@ -8,7 +8,7 @@
 "use strict";
 const H=window.__gfxHooks,CAP=window.__cap;
 if(!H||!window.THREE||!THREE.GLTFLoader)return;
-const {scene,TREES,TREEGRID}=H;
+const {scene,TREES,TREEGRID}=H,heightAt=H.heightAt;
 const isTouch=matchMedia("(pointer:coarse)").matches;
 const Q=isTouch?.42:1;
 const loader=new THREE.GLTFLoader();if(window.MeshoptDecoder)loader.setMeshoptDecoder(window.MeshoptDecoder);
@@ -60,22 +60,34 @@ function NearSet(orig,parts,opt){
  const others=opt.siblings||[];
  function hide(i,on){if(on){orig.setMatrixAt(i,ZERO);for(const s of others)s.setMatrixAt(i,ZERO)}
   else if(!opt.isDown||!opt.isDown(i)){m.fromArray(base,i*16);orig.setMatrixAt(i,m);for(const s of others)s.setMatrixAt(i,m)}}
+ /* on a slope the downhill side of the footprint is lower than the center: drop to the lowest point */
+ const dy=opt.foot?new Float32Array(n).fill(NaN):null;
+ function drop(i){if(!isNaN(dy[i]))return dy[i];const o=i*16,x=base[o+12],y=base[o+13],z=base[o+14];
+  const s=Math.hypot(base[o],base[o+1],base[o+2])*opt.foot;let lo=y;
+  for(let a=0;a<8;a++){const h=heightAt(x+Math.cos(a*.785)*s,z+Math.sin(a*.785)*s);if(h<lo)lo=h}
+  return dy[i]=Math.max(-1.5,Math.min(0,lo-y))}
  function refresh(px,pz){
   const c0x=Math.floor((px-R)/CELL),c1x=Math.floor((px+R)/CELL),c0z=Math.floor((pz-R)/CELL),c1z=Math.floor((pz+R)/CELL);
   const cand=[];for(let a=c0x;a<=c1x;a++)for(let b=c0z;b<=c1z;b++){const L=grid.get(a+","+b);if(!L)continue;
    for(const i of L){if(opt.isDown&&opt.isDown(i))continue;const dx=base[i*16+12]-px,dz=base[i*16+14]-pz,d=dx*dx+dz*dz;if(d<R*R)cand.push([d,i])}}
   cand.sort((a,b)=>a[0]-b[0]);if(cand.length>cap)cand.length=cap;
   const next=new Set(cand.map(c=>c[1]));for(const i of cur)if(!next.has(i))hide(i,false);
-  let k=0,ks=0,kn=0;for(const [,i] of cand){hide(i,true);m.fromArray(base,i*16).multiply(fix);if(k<cs){for(const im of meshS)im.setMatrixAt(ks,m);ks++}else{for(const im of meshN)im.setMatrixAt(kn,m);kn++}k++}
+  let k=0,ks=0,kn=0;for(const [,i] of cand){hide(i,true);m.fromArray(base,i*16).multiply(fix);if(opt.foot)m.elements[13]+=drop(i);if(k<cs){for(const im of meshS)im.setMatrixAt(ks,m);ks++}else{for(const im of meshN)im.setMatrixAt(kn,m);kn++}k++}
   for(const im of meshS){im.count=ks;im.instanceMatrix.needsUpdate=true}for(const im of meshN){im.count=kn;im.instanceMatrix.needsUpdate=true}
   orig.instanceMatrix.needsUpdate=true;for(const s of others)s.instanceMatrix.needsUpdate=true;cur=[...next]}
  function check(){if(!opt.isDown)return false;for(const i of cur)if(opt.isDown(i))return true;return false}
  return {refresh,check}}
 
+/* the source file lays its models out 12 m apart along x; take that slot offset out so each model
+   stands on its own origin, and sink it a little so the roots go into the ground */
+const SINK={pine:.3,cypress:.25,oak:.3,olive:.25,bush:.12,rock1:.2,rock2:.2,rock3:.2};
 function partsOf(root,name,wind){
  const node=root.getObjectByName(name);if(!node)return null;const out=[];
+ node.updateMatrixWorld(true);const wp=new THREE.Vector3().setFromMatrixPosition(node.matrixWorld);
+ const ox=Math.round(wp.x/12)*12,sink=SINK[name]||0;
  node.traverse(o=>{if(!o.isMesh)return;const mats=Array.isArray(o.material)?o.material:[o.material];
-  const leaf=/Leaf|Leaves|Grass|Flower/i.test(mats[0].name);out.push({geo:bake(o),mat:material(mats[0],leaf,leaf?wind:0)})});
+  const leaf=/Leaf|Leaves|Grass|Flower/i.test(mats[0].name);const g=bake(o);g.translate(-ox,-sink,0);g.computeBoundingSphere();
+  out.push({geo:g,mat:material(mats[0],leaf,leaf?wind:0)})});
  return out}
 
 let oakParts=null;
@@ -96,15 +108,15 @@ function setup(gl){
  for(const [tm,info] of byIM){
   const sp=Object.keys(species).find(k=>TREES[k]&&TREES[k].trunk===tm.geometry);if(!sp)continue;
   const parts=partsOf(root,species[sp],.012);if(!parts||!parts.length)continue;
-  sets.push(NearSet(tm,parts,{cap:sp==="olive"||sp==="cypress"?80:110,r:110,shadow:true,shadowN:36,siblings:[info.lm],isDown:i=>{const t=info.list[i];return !t||t.down}}))}
+  sets.push(NearSet(tm,parts,{foot:.45,cap:sp==="olive"||sp==="cypress"?80:110,r:110,shadow:true,shadowN:36,siblings:[info.lm],isDown:i=>{const t=info.list[i];return !t||t.down}}))}
  /* scatter layers made by the game: matched by geometry type and parameters */
  const S=(new THREE.Matrix4()),sc=(x,y,z)=>new THREE.Matrix4().makeScale(x,y==null?x:y,z==null?x:z);
  const layers=[
   {pick:o=>o.geometry.type==="ConeGeometry"&&o.geometry.parameters.radius===.22,name:"grass",cap:2600,r:42,fix:sc(.95,.8,.95),wind:.06},
   {pick:o=>o.geometry.type==="OctahedronGeometry"&&o.geometry.parameters.radius===.17,name:"flowers",cap:500,r:40,fix:sc(.2),wind:.05},
-  {pick:o=>o.geometry.type==="IcosahedronGeometry"&&o.geometry.parameters.radius===1&&o.instanceMatrix.count>1000,name:"bush",cap:320,r:80,fix:sc(1.05,.95,1.05),wind:.02,shadow:true,shadowN:60},
+  {pick:o=>o.geometry.type==="IcosahedronGeometry"&&o.geometry.parameters.radius===1&&o.instanceMatrix.count>1000,name:"bush",foot:.6,cap:320,r:80,fix:sc(1.05,.95,1.05),wind:.02,shadow:true,shadowN:60},
   {pick:o=>o.geometry.type==="CylinderGeometry"&&o.geometry.parameters.radiusTop===.03,name:"tallgrass",cap:700,r:42,fix:sc(1.05),wind:.05},
-  {pick:o=>o.geometry.type==="DodecahedronGeometry"&&o.geometry.parameters.radius===1&&o.instanceMatrix.count>500,name:["rock1","rock2","rock3"],cap:260,r:130,fix:sc(.72),shadow:true,shadowN:30}];
+  {pick:o=>o.geometry.type==="DodecahedronGeometry"&&o.geometry.parameters.radius===1&&o.instanceMatrix.count>500,name:["rock1","rock2","rock3"],foot:.5,cap:260,r:130,fix:sc(.72),shadow:true,shadowN:30}];
  for(const L of layers){const im=findIMBy(L.pick);if(!im)continue;
   const names=Array.isArray(L.name)?L.name:[L.name];
   if(names.length===1){const parts=partsOf(root,names[0],L.wind||0);if(parts)sets.push(NearSet(im,parts,L))}
