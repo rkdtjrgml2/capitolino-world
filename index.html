@@ -1760,6 +1760,9 @@ const LAND_T={
   rule:"建物は土地を買ってから。共有資源地（森、狩場、川、鉱脈）は買えません",saved:"土地はこのブラウザに保存されます。ログイン開始後にアカウントへ移ります",refund:"返金額"}};
 const LT=()=>LAND_T[lang]||LAND_T.en;
 const HOUSE_COST={wood:12,stone:6,denarius:20};
+const BUILD_KINDS={domus:{cost:HOUSE_COST,fp:[9,8.6]},aedes:{cost:{wood:10,stone:30,iron:2,denarius:90},fp:[7,12]},templum:{cost:{wood:24,stone:80,iron:8,silver:4,denarius:320},fp:[10.6,13.2]}};
+const BUILD_NAME={ko:{domus:"도무스 (집)",aedes:"작은 신전 (아이데스)",templum:"큰 신전 (템플룸)"},en:{domus:"Domus (house)",aedes:"Small temple (aedes)",templum:"Grand temple (templum)"},ja:{domus:"ドムス（家）",aedes:"小神殿（アエデス）",templum:"大神殿（テンプルム）"}};
+const houseKind=p=>p.house===true?"domus":(BUILD_KINDS[p.house]?p.house:"domus");
 const PLOTS=[];
 {const S0=6,cand=[];
  for(let mz=-120;mz<=150;mz+=9)for(let mx=-60;mx<=160;mx+=9){
@@ -1774,7 +1777,7 @@ const PLOTS=[];
   PLOTS.push({id:PLOTS.length+1,x:c.X,z:c.Z,w:S0*G,h:c.h,view,price,own:false,cl:[false,false,false],house:false,sign:null,objs:{}})}}
 const LANDKEY="cap3d.land."+server.id;
 function saveLand(){const o={};for(const p of PLOTS)if(p.own)o[p.id]={cl:p.cl,house:p.house,sign:p.sign};try{localStorage.setItem(LANDKEY,JSON.stringify(o))}catch(e){}}
-{let o={};try{o=JSON.parse(localStorage.getItem(LANDKEY)||"{}")}catch(e){}for(const p of PLOTS){const s=o[p.id];if(s){p.own=true;p.cl=s.cl||p.cl;p.house=!!s.house;p.sign=s.sign||null}}}
+{let o={};try{o=JSON.parse(localStorage.getItem(LANDKEY)||"{}")}catch(e){}for(const p of PLOTS){const s=o[p.id];if(s){p.own=true;p.cl=s.cl||p.cl;p.house=s.house||false;p.sign=s.sign||null}}}
 const stakeMat=phong(0xe7c987),stakeMine=phong(0x2f78cf),ropeMat=new THREE.LineBasicMaterial({color:0xe7c987,transparent:true,opacity:.8}),ropeMine=new THREE.LineBasicMaterial({color:0x6fa8ff});
 function buildPlot(p){const g=new THREE.Group();const hw=p.w/2;const pts=[];
  for(const [sx,sz] of [[-1,-1],[1,-1],[1,1],[-1,1]]){const x=p.x+sx*hw,z=p.z+sz*hw,y=heightAt(x,z);const s=box(.18,1.3,.18,p.own?stakeMine:stakeMat);s.position.set(x,y+.65,z);g.add(s);pts.push(new THREE.Vector3(x,y+1.15,z))}
@@ -1786,7 +1789,14 @@ function buildPlot(p){const g=new THREE.Group();const hw=p.w/2;const pts=[];
   tr.castShadow=lf.castShadow=true;g.add(tg);p.trees.push({g:tg,x:tx,z:tz,hp:3,idx:k});if(p.cl[k])tg.visible=false}
  const tag=textSprite(p.own?LT().mine:`${LT().forSale} · ${p.price}◎`,p.own?{bg:"rgba(47,120,207,.9)"}:{bg:"rgba(201,162,90,.92)",fg:"#1c1712"});tag.position.set(p.x,p.h+2.4,p.z);tag.scale.multiplyScalar(1.4);g.add(tag);
  if(p.objs.g)scene.remove(p.objs.g);p.objs={g,tag};scene.add(g);if(p.house)buildHouse(p);if(p.sign)buildPlotSign(p)}
-function buildHouse(p){if(p.objs.house)p.objs.g.remove(p.objs.house);const g=new THREE.Group(),y=heightAt(p.x,p.z);
+function buildHouse(p){if(p.objs.house)p.objs.g.remove(p.objs.house);const kind=houseKind(p);
+ const det=window.__buildModel&&window.__buildModel(kind);
+ if(det){const y=heightAt(p.x,p.z);const fp=BUILD_KINDS[kind].fp;let lo=y;for(const [a,b] of [[-1,-1],[1,-1],[1,1],[-1,1]])lo=Math.min(lo,heightAt(p.x+a*fp[0]/2,p.z+b*fp[1]/2));
+  det.position.set(p.x,lo-.15,p.z);p.objs.g.add(det);p.objs.house=det;
+  if(p.block){BLOCKS.splice(BLOCKS.indexOf(p.block),1);p.block=null}
+  p.block={b:{k:kind},x0:p.x-fp[0]/2,x1:p.x+fp[0]/2,z0:p.z-fp[1]/2,z1:p.z+fp[1]/2,top:99};BLOCKS.push(p.block);
+  if(p.objs.tag)p.objs.tag.position.y=p.h+((window.__buildInfo||{})[kind]||{h:7}).h+1;return}
+ const g=new THREE.Group(),y=heightAt(p.x,p.z);
  const base=box(9,1.4,7,phong(0xcfc6b0));base.position.y=.2;g.add(base);
  const wall=phong(0xe9dcc0),roof=phong(0xb4523a),wood=phong(0x6b4a30);
  const body=box(8,3.6,6,wall);body.position.y=2.7;g.add(body);
@@ -1804,25 +1814,26 @@ function buildPlotSign(p){if(p.objs.sign)p.objs.g.remove(p.objs.sign);const c=do
  const sx=p.x,sz=p.z+p.w/2-1.2;g.position.set(sx,heightAt(sx,sz),sz);board.userData.plotSign=p;p.objs.g.add(g);p.objs.sign=g;p.signAt=[sx,sz]}
 for(const L of ["ko","en","ja"])if(T[L]&&T[L].civic)T[L].civic.domus={ko:"도무스",en:"Domus",ja:"ドムス"}[L];
 PLOTS.forEach(buildPlot);
+window.__rebuildHouses=()=>{for(const p of PLOTS)if(p.house&&p.objs.g)buildHouse(p)};
 function plotAt(x,z,pad){pad=pad||0;for(const p of PLOTS)if(Math.abs(x-p.x)<p.w/2+pad&&Math.abs(z-p.z)<p.w/2+pad)return p;return null}
 function nearPlotTree(){const p=plotAt(P.x,P.z,2);if(!p||!p.own)return null;let best=null,bd=3.2;for(const t of p.trees){if(p.cl[t.idx])continue;const d=Math.hypot(t.x-P.x,t.z-P.z);if(d<bd){bd=d;best=t}}return best?{p,t:best}:null}
 function nearPlotSign(){for(const p of PLOTS)if(p.sign&&p.signAt&&Math.hypot(P.x-p.signAt[0],P.z-p.signAt[1])<5)return p;return null}
 {const st=document.createElement("style");st.textContent="#land{position:fixed;z-index:20;left:50%;top:50%;transform:translate(-50%,-50%);width:min(340px,calc(100vw - 24px));color:var(--travertine)}#land[hidden]{display:none}#land .cost{font-size:12px;color:var(--stone);margin:4px 0}#land .stars{color:var(--gold-hi)}#land input{width:100%;box-sizing:border-box;padding:7px;border-radius:5px;border:1px solid rgba(201,162,90,.4);background:rgba(0,0,0,.25);color:inherit;font:inherit;margin:3px 0 8px}";document.head.appendChild(st);
  const d=document.createElement("div");d.id="land";d.hidden=true;d.innerHTML='<div class="sbox"></div>';$("hud").appendChild(d);SOC_PANELS.push("land")}
-function costTxt(){const R=T[lang].res;return Object.entries(HOUSE_COST).map(([k,v])=>`${R[k]} ${v}`).join(", ")}
+function costTxt(k){const R=T[lang].res;return Object.entries((BUILD_KINDS[k]||BUILD_KINDS.domus).cost).map(([k,v])=>`${R[k]} ${v}`).join(", ")}
 function openLand(p,view){const t=LT(),b=sbx("land");closeSocial();let h=`<h3>${t.plot} ${p.id}${xBtn}</h3><div class="sub">${t.size} ${Math.round(p.w)}×${Math.round(p.w)} · ${t.view} <span class="stars">${"★".repeat(p.view)}${"☆".repeat(3-p.view)}</span></div>`;
  if(view==="sign"){h+=`<div style="font-size:12px;color:var(--stone)">${t.signTitle}</div><input id="lsT" maxlength="20" value="${p.sign?p.sign.t.replace(/"/g,"&quot;"):""}"><div style="font-size:12px;color:var(--stone)">${t.signUrl}</div><input id="lsU" maxlength="200" placeholder="https://" value="${p.sign?p.sign.u.replace(/"/g,"&quot;"):""}">
   <div class="xfoot"><button class="sbtn" data-back>${t.look}</button><button class="sbtn gold" data-save>${t.signSave}</button></div>`}
  else if(!p.own){h+=`<div class="mrow"><span>${t.price}</span><b>${p.price} ◎</b></div><div class="cost" style="margin-top:8px">${t.rule}</div><div class="xfoot" style="margin-top:8px"><button class="sbtn gold" data-buy ${RES.denarius>=p.price?"":"disabled"}>${t.buy}</button></div>`}
  else{const n=p.cl.filter(Boolean).length,done=n===3;
   h+=`<div class="mrow"><span>${t.clear}</span><b>${done?t.cleared:n+" / 3"}</b></div>${done?"":`<div class="cost">${t.clearHint}</div>`}
-  ${p.house?`<div class="mrow"><span>${t.house}</span><b>✓</b></div>`:`<div class="cost">${t.house} · ${t.need} ${costTxt()}</div>`}
+  ${p.house?`<div class="mrow"><span>${(BUILD_NAME[lang]||BUILD_NAME.en)[houseKind(p)]}</span><b>✓</b></div>`:Object.keys(BUILD_KINDS).map(k=>`<div class="cost">${(BUILD_NAME[lang]||BUILD_NAME.en)[k]} · ${t.need} ${costTxt(k)}</div>`).join("")}
   <div class="cost">${t.saved}</div>
-  <div style="display:grid;gap:6px;margin-top:8px">${p.house?"":`<button class="sbtn gold" data-house ${done?"":"disabled"}>${t.house}</button>`}<button class="sbtn" data-sign ${done?"":"disabled"}>${p.sign?t.signEdit:t.sign}</button><button class="sbtn" data-sell>${t.sell} · ${t.refund} ${Math.floor(p.price*.7)} ◎</button></div>`}
+  <div style="display:grid;gap:6px;margin-top:8px">${p.house?"":Object.keys(BUILD_KINDS).map(k=>`<button class="sbtn${k==="domus"?" gold":""}" data-house="${k}" ${done?"":"disabled"}>${(BUILD_NAME[lang]||BUILD_NAME.en)[k]}</button>`).join("")}<button class="sbtn" data-sign ${done?"":"disabled"}>${p.sign?t.signEdit:t.sign}</button><button class="sbtn" data-sell>${t.sell} · ${t.refund} ${Math.floor(p.price*.7)} ◎</button></div>`}
  b.innerHTML=h;$("land").hidden=false;wireClose("land");UI.plot=p;
  const q=s=>b.querySelector(s);
  if(q("[data-buy]"))q("[data-buy]").onclick=()=>{if(RES.denarius<p.price){toast(T[lang].noMoney||t.noRes);return}RES.denarius-=p.price;p.own=true;saveLand();buildPlot(p);updateStats();toast(t.bought);openLand(p)};
- if(q("[data-house]"))q("[data-house]").onclick=()=>{if(Object.entries(HOUSE_COST).some(([k,v])=>RES[k]<v)){toast(t.noRes);return}for(const [k,v] of Object.entries(HOUSE_COST))RES[k]-=v;p.house=true;buildHouse(p);saveLand();updateStats();toast(t.houseBuilt);openLand(p)};
+ b.querySelectorAll("[data-house]").forEach(btn=>btn.onclick=()=>{const kind=btn.dataset.house,C=BUILD_KINDS[kind].cost;if(Object.entries(C).some(([k,v])=>(RES[k]||0)<v)){toast(t.noRes);return}for(const [k,v] of Object.entries(C))RES[k]-=v;p.house=kind;buildHouse(p);saveLand();updateStats();toast(t.houseBuilt);openLand(p)});
  if(q("[data-sign]"))q("[data-sign]").onclick=()=>openLand(p,"sign");
  if(q("[data-sell]"))q("[data-sell]").onclick=()=>{RES.denarius+=Math.floor(p.price*.7);p.own=false;p.house=false;p.sign=null;if(p.block){BLOCKS.splice(BLOCKS.indexOf(p.block),1);p.block=null}p.cl=[false,false,false];p.signAt=null;saveLand();buildPlot(p);updateStats();toast(t.sold);$("land").hidden=true};
  if(q("[data-back]"))q("[data-back]").onclick=()=>openLand(p);
@@ -1853,7 +1864,7 @@ $("atkBtn").addEventListener("pointerdown",e=>{if(nearNPC()||nearPlotTree())retu
 /* plots on the minimap: small squares drawn after the map */
 window.__land={PLOTS,openLand,plotAt,nearPlotTree};
 
-window.__gfxHooks={P,fauna,NPCS,scene,camera,renderer,MAKERS,TREES,TREEGRID,items,weaponMesh,heightAt,get mode(){return mode}};
+window.__gfxHooks={P,fauna,NPCS,scene,camera,renderer,MAKERS,TREES,TREEGRID,items,weaponMesh,heightAt,PLOTS,get mode(){return mode}};
 /* ===== Members: Google login (Supabase auth), character save, land and signs on the account ===== */
 const AUTH_T={
  ko:{no:"시민 No.",out:"로그아웃",namePh:"이름 (2자에서 16자)",nameSave:"이름 정하기",nameTaken:"이미 쓰는 이름입니다",nameBad:"이름은 2자에서 16자입니다",nameSet:"이름을 정했습니다",
@@ -1910,13 +1921,13 @@ async function loadMemberLand(){const sb=AUTH.sb,uid=AUTH.user.id;AUTH.parcels={
  const byPlot={};for(const r of pars||[]){const k=r.shape&&(r.shape.plot??r.shape.id);if(k!=null)byPlot[k]=r}
  for(const p of PLOTS){const r=byPlot[p.id],l=local[p.id];
   if(r){AUTH.parcels[p.id]=r;p.pid=r.id;p.price=Number(r.price)||p.price;p.own=r.owner_id===uid;p.taken=!!r.owner_id&&!p.own}else{p.pid=null;p.own=!!l;p.taken=false}
-  p.cl=p.own&&l&&l.cl?l.cl:[false,false,false];p.house=!!(p.own&&l&&l.house);
+  p.cl=p.own&&l&&l.cl?l.cl:[false,false,false];p.house=p.own&&l&&l.house||false;
   const s=r&&signs[r.id];p.sign=s?{t:s.title,u:s.url,st:s.status}:(p.own&&l&&l.sign&&!r?l.sign:null);
   if(!p.own&&p.block){BLOCKS.splice(BLOCKS.indexOf(p.block),1);p.block=null;if(p.objs.house){p.objs.g.remove(p.objs.house);p.objs.house=null}}
   if(p.objs.sign&&!p.sign){p.objs.g.remove(p.objs.sign);p.objs.sign=null;p.signAt=null}
   buildPlot(p)}}
 function guestLand(){let o={};try{o=JSON.parse(localStorage.getItem(LANDKEY)||"{}")}catch(e){}
- for(const p of PLOTS){const s=o[p.id];p.taken=false;p.pid=null;p.own=!!s;p.cl=s&&s.cl||[false,false,false];p.house=!!(s&&s.house);p.sign=s&&s.sign||null;
+ for(const p of PLOTS){const s=o[p.id];p.taken=false;p.pid=null;p.own=!!s;p.cl=s&&s.cl||[false,false,false];p.house=s&&s.house||false;p.sign=s&&s.sign||null;
   if(!p.house&&p.block){BLOCKS.splice(BLOCKS.indexOf(p.block),1);p.block=null;if(p.objs.house){p.objs.g.remove(p.objs.house);p.objs.house=null}}
   if(p.objs.sign&&!p.sign){p.objs.g.remove(p.objs.sign);p.objs.sign=null;p.signAt=null}buildPlot(p)}}
 {const _ol=openLand;openLand=function(p,view){
@@ -2295,4 +2306,4 @@ window.__ui2={toggleBuild,renderStore,PLOTS,BLD:()=>BLD,ICON_OK:()=>ICON_OK};
 
 })();
 </script>
-<script src="gfx.js"></script>
+<script src="gfx.js"></script><script src="nature.js"></script><script src="world.js"></script><script src="builds.js"></script>
