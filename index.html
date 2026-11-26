@@ -1,7 +1,8 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko" translate="no">
 <head>
 <meta charset="utf-8">
+<meta name="google" content="notranslate">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>혼자 걷는 로마</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -499,6 +500,12 @@ try{const q=new URLSearchParams(location.search).get("server"),st=localStorage.g
  const pick=id=>SERVERS.find(v=>v.id===id&&v.open);
  server=pick(q)||pick(st)||(nl.startsWith("ja")?pick("jp"):nl.startsWith("ko")?pick("kr"):nl.startsWith("en")?pick("us"):null)||SERVERS[0]}catch(e){}
 let lang=server.lang,who="human";
+const SVN={ko:{kr:"대한민국",us:"미국",jp:"일본",gb:"영국",ca:"캐나다",au:"호주",es:"스페인",mx:"멕시코",br:"브라질",it:"이탈리아"},
+ en:{kr:"Korea",us:"United States",jp:"Japan",gb:"United Kingdom",ca:"Canada",au:"Australia",es:"Spain",mx:"Mexico",br:"Brazil",it:"Italy"},
+ ja:{kr:"韓国",us:"アメリカ",jp:"日本",gb:"イギリス",ca:"カナダ",au:"オーストラリア",es:"スペイン",mx:"メキシコ",br:"ブラジル",it:"イタリア"}};
+const SVSH={en:{us:"USA",gb:"UK"}};
+const svName=sv=>(SVN[lang]||SVN.en)[sv.id]||sv.name;
+function pinHTML(sv){const n=svName(sv),sh=(SVSH[lang]||{})[sv.id];return sh?`<span class="fl">${n}</span><span class="sh">${sh}</span>`:n}
 try{
   const w=localStorage.getItem("cap3d.who");if(["human","crow","hare","deer","boar","wolf","bear","fish"].includes(w))who=w;}catch(e){}
 const $=id=>document.getElementById(id);
@@ -1329,7 +1336,7 @@ let nearSign=null;$("nearBtn").onclick=()=>{if(nearSign)openCard(nearSign);else 
 
 /* ============ UI wiring ============ */
 function applyLang(){document.documentElement.lang=lang;document.querySelectorAll("[data-t]").forEach(el=>{const v=T[lang][el.dataset.t];if(typeof v==="string")el.textContent=v});
- $("srvName").textContent=server.name;
+ $("srvName").textContent=svName(server);document.querySelectorAll("#srvMap .pin").forEach(b=>{const sv=SERVERS.find(v=>v.id===b.dataset.srv);if(sv){b.innerHTML=pinHTML(sv);b.title=sv.open?svName(sv):`${svName(sv)} · ${T[lang].soon}`}});
  $("help").innerHTML=T[lang].keys+"<br>"+T[lang].help;$("nearBtn").lastElementChild.textContent=T[lang].near;setHint()}
 function applyWho(){["human","crow","hare","deer","boar","wolf","bear","fish"].forEach(k=>$("who-"+k).setAttribute("aria-pressed",k===who))}
 function setHint(){const t=T[lang];$("hint").textContent=isTouch?(P.kind==="crow"?t.hintTouchCrow:t.hintTouch):(P.kind==="crow"?t.hintKeyCrow:P.kind==="fish"?t.hintKeyFish:P.kind==="human"?t.hintKey:t.hintKeyBeast)}
@@ -1350,9 +1357,9 @@ function setHint(){const t=T[lang];$("hint").textContent=isTouch?(P.kind==="crow
   x.beginPath();x.arc(px(lon),py(lat),land?2.6:1,0,7);x.fillStyle=land?"rgba(201,162,90,.55)":"rgba(239,231,214,.08)";x.fill()}
  const box2=$("srvMap");
  for(const sv of SERVERS){const b=document.createElement("button");b.dataset.srv=sv.id;b.className="pin "+sv.lab+" "+(sv.open?"open":"locked");b.style.left=(px(sv.lon)/W*100)+"%";b.style.top=(py(sv.lat)/H*100)+"%";
-  b.innerHTML=sv.sh?`<span class="fl">${sv.name}</span><span class="sh">${sv.sh}</span>`:sv.name;b.title=sv.open?sv.name:`${sv.name} · ${T[lang].soon}`;b.setAttribute("aria-label",sv.en);
+  b.innerHTML=pinHTML(sv);b.title=sv.open?svName(sv):`${svName(sv)} · ${T[lang].soon}`;b.setAttribute("aria-label",sv.en);
   if(sv===server)b.classList.add("cur");
-  b.onclick=()=>{if(sv.open){if(sv===server)return;try{localStorage.setItem("cap3d.server",sv.id)}catch(e){}location.reload()}else $("srvNote").textContent=`${sv.name} ${T[lang].srvSoonNote}`};
+  b.onclick=()=>{if(sv.open){if(sv===server)return;try{localStorage.setItem("cap3d.server",sv.id)}catch(e){}location.reload()}else $("srvNote").textContent=`${svName(sv)} ${T[lang].srvSoonNote}`};
   box2.appendChild(b)}
  setTimeout(()=>{if($("srvNote"))$("srvNote").textContent=T[lang].srvOpenNote},0)}
 document.querySelectorAll("[data-who]").forEach(b=>b.onclick=()=>{who=b.dataset.who;try{localStorage.setItem("cap3d.who",who)}catch(e){}applyWho()});
@@ -1910,7 +1917,7 @@ const AUTH_T={
   banned:"利用が制限されたアカウントです",saveFail:"保存できませんでした。少し後で再試行します",taken:"持ち主のいる土地",takenSub:"他の市民が買った土地です",
   pending:"看板は運営の確認後にみんなに表示されます",already:"他の市民が先に買いました",memberSave:"アカウントに保存されます",enterAs:"{n}として入る",enterMember:"市民として入る",enterGuest:"ゲストで見て回る",signedNote:"デナリウス、資源、土地、看板がこのアカウントに保存されます"}};
 const AT=()=>AUTH_T[lang]||AUTH_T.en;
-for(const L of ["ko","en","ja"])if(T[L])T[L].acctNote={ko:"회원이 되면 데나리우스, 자원, 땅, 간판이 계정에 저장됩니다. 나그네로 둘러보기만 해도 됩니다",en:"Members keep their denarii, resources, land and signs. You can also just look around as a visitor",ja:"会員になるとデナリウス、資源、土地、看板がアカウントに保存されます。旅人として見て回るだけでもかまいません"}[L];
+for(const L of ["ko","en","ja"])if(T[L])T[L].acctNote={ko:"회원이 되면 데나리우스, 자원, 땅, 간판이 계정에 저장됩니다. 손님으로 둘러보기만 해도 됩니다",en:"Members keep their denarii, resources, land and signs. You can also just look around as a guest",ja:"会員になるとデナリウス、資源、土地、看板がアカウントに保存されます。ゲストで見て回るだけでもかまいません"}[L];
 $("acctNote").textContent=T[lang].acctNote;
 const AUTH={sb:null,user:null,prof:null,ready:false,parcels:{},loaded:false,playAdd:0,saving:false};
 window.__auth=AUTH;
