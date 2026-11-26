@@ -1,3 +1,8 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>혼자 걷는 로마</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Sans+KR:wght@400;600;700&display=swap">
@@ -425,6 +430,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--gold-hi);outline-of
 
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 (function(){
 "use strict";
@@ -1446,7 +1452,7 @@ Promise.race([fontsReady,new Promise(r=>setTimeout(r,1800))]).catch(()=>{}).then
 window.__cap={P,cam,heightAt,SIGNS,items,fauna,openCard,spawn,attack,tryPick,RES,NODES,STALLS,FISH,gather,get mode(){return mode}};
 
 /* ===== Operator hooks (CapOps from 06_운영/client-ops.js) ===== */
-const CLIENT_VER="0.3";
+const CLIENT_VER="0.4";
 const OPS_T={
  ko:{title:"건의 보내기",kinds:{bug:"버그",idea:"건의",question:"질문",other:"기타"},ph:"무엇이든 적어 주세요. 운영자가 읽고 답합니다.",send:"보내기",sent:"보냈습니다. 고맙습니다",fail:"지금은 보낼 수 없습니다. 잠시 뒤 다시 시도해 주세요",empty:"내용을 적어 주세요",mine:"내 건의",none:"아직 보낸 건의가 없습니다",st:{new:"접수됨",reviewing:"확인 중",fixed:"고침",wontfix:"반영 안 함",done:"답변 완료"},reply:"운영자 답변",newReply:"운영자 답변이 도착했습니다",maintT:"점검 중",maintS:"더 나은 로마를 위해 점검하고 있습니다. 잠시 뒤 다시 찾아 주세요",update:"새 버전이 있습니다. 새로고침해 주세요",online:"명 접속"},
  en:{title:"Send feedback",kinds:{bug:"Bug",idea:"Idea",question:"Question",other:"Other"},ph:"Tell us anything. The operator reads and replies.",send:"Send",sent:"Sent. Thank you",fail:"Could not send right now. Please try again soon",empty:"Please write something",mine:"My feedback",none:"Nothing sent yet",st:{new:"Received",reviewing:"Reviewing",fixed:"Fixed",wontfix:"Not planned",done:"Answered"},reply:"Operator reply",newReply:"You have a reply from the operator",maintT:"Maintenance",maintS:"We are improving Rome. Please come back shortly",update:"A new version is out. Please refresh",online:"online"},
@@ -1483,7 +1489,7 @@ const OPS_T={
   const mm=opsSettings.maintenance_mode===true||opsSettings.maintenance_mode==="true";$("maintT").textContent=t.maintT;$("maintS").textContent=t.maintS;$("maint").hidden=!mm;
   if(opsSettings.min_client_version&&newer(opsSettings.min_client_version,CLIENT_VER)){$("maintT").textContent=t.update;$("maintS").innerHTML=`<button onclick="location.reload()" style="padding:10px 18px;border-radius:6px;border:0;background:var(--gold);color:var(--ink);font:inherit;font-weight:700;cursor:pointer">↻</button>`;$("maint").hidden=false}
   showMotd()});
- CapOps.start({server:server.id,ver:CLIENT_VER,getState:()=>({nickname:null,form:mode==="play"?P.kind:who,zone:mode==="play"?lastPlace:"entry"})});
+ CapOps.start({server:server.id,ver:CLIENT_VER,getState:()=>({nickname:(window.__auth&&window.__auth.prof&&window.__auth.prof.display_name)||null,form:mode==="play"?P.kind:who,zone:mode==="play"?lastPlace:"entry"})});
  const go=$("enterBtn").onclick;$("enterBtn").onclick=e=>{go&&go(e);CapOps.setServer(server.id);showMotd()};
  CapOps.onlineCounts().then(c=>{for(const b of document.querySelectorAll(".srv [data-srv]")){const n=c[b.dataset.srv];if(n)b.title=`${n} ${ot().online}`}}).catch(()=>{});
 })();
@@ -1845,6 +1851,112 @@ $("atkBtn").addEventListener("pointerdown",e=>{if(nearNPC()||nearPlotTree())retu
   return _tap(cx,cy)}}
 /* plots on the minimap: small squares drawn after the map */
 window.__land={PLOTS,openLand,plotAt,nearPlotTree};
+
+window.__gfxHooks={P,fauna,NPCS,scene,camera,renderer,MAKERS,TREES,TREEGRID,items,weaponMesh,heightAt,get mode(){return mode}};
+/* ===== Members: Google login (Supabase auth), character save, land and signs on the account ===== */
+const AUTH_T={
+ ko:{no:"시민 No.",out:"로그아웃",namePh:"이름 (2자에서 16자)",nameSave:"이름 정하기",nameTaken:"이미 쓰는 이름입니다",nameBad:"이름은 2자에서 16자입니다",nameSet:"이름을 정했습니다",
+  noName:"이름을 정하면 다른 시민에게 보입니다",loading:"계정에서 불러오는 중",loaded:"계정에서 불러왔습니다",fail:"로그인하지 못했습니다",notHere:"로그인은 world.capitolino.org 에서 됩니다",
+  banned:"이용이 제한된 계정입니다",saveFail:"저장하지 못했습니다. 잠시 뒤 다시 시도합니다",taken:"주인 있는 땅",takenSub:"다른 시민이 산 땅입니다",
+  pending:"간판은 운영자 검토 뒤 모두에게 보입니다",already:"방금 다른 시민이 샀습니다",memberSave:"내 계정에 저장됩니다",signedNote:"데나리우스, 자원, 땅, 간판이 이 계정에 저장됩니다"},
+ en:{no:"Citizen No.",out:"Sign out",namePh:"Name (2 to 16 letters)",nameSave:"Set name",nameTaken:"That name is taken",nameBad:"Names are 2 to 16 letters",nameSet:"Name saved",
+  noName:"Pick a name other citizens will see",loading:"Loading your account",loaded:"Loaded from your account",fail:"Could not sign in",notHere:"Sign in works on world.capitolino.org",
+  banned:"This account is restricted",saveFail:"Could not save. Trying again soon",taken:"Owned land",takenSub:"Another citizen owns this plot",
+  pending:"Your sign shows to everyone after an operator review",already:"Another citizen just bought it",memberSave:"Saved to your account",signedNote:"Denarii, resources, land and signs are saved to this account"},
+ ja:{no:"市民 No.",out:"ログアウト",namePh:"名前（2〜16文字）",nameSave:"名前を決める",nameTaken:"その名前は使われています",nameBad:"名前は2〜16文字です",nameSet:"名前を決めました",
+  noName:"名前を決めると他の市民に表示されます",loading:"アカウントから読み込み中",loaded:"アカウントから読み込みました",fail:"ログインできませんでした",notHere:"ログインは world.capitolino.org で行えます",
+  banned:"利用が制限されたアカウントです",saveFail:"保存できませんでした。少し後で再試行します",taken:"持ち主のいる土地",takenSub:"他の市民が買った土地です",
+  pending:"看板は運営の確認後にみんなに表示されます",already:"他の市民が先に買いました",memberSave:"アカウントに保存されます",signedNote:"デナリウス、資源、土地、看板がこのアカウントに保存されます"}};
+const AT=()=>AUTH_T[lang]||AUTH_T.en;
+for(const L of ["ko","en","ja"])if(T[L])T[L].acctNote={ko:"회원이 되면 데나리우스, 자원, 땅, 간판이 계정에 저장됩니다. 나그네로 둘러보기만 해도 됩니다",en:"Members keep their denarii, resources, land and signs. You can also just look around as a visitor",ja:"会員になるとデナリウス、資源、土地、看板がアカウントに保存されます。旅人として見て回るだけでもかまいません"}[L];
+$("acctNote").textContent=T[lang].acctNote;
+const AUTH={sb:null,user:null,prof:null,ready:false,parcels:{},loaded:false,playAdd:0,saving:false};
+window.__auth=AUTH;
+try{if(window.supabase&&window.supabase.createClient)AUTH.sb=window.supabase.createClient("https://cjlzuojkuzsqgvvymxaq.supabase.co","sb_publishable_ZRpU6JpWT93AfNG_L9aqZA_wsnY1Wph",{auth:{persistSession:true,detectSessionInUrl:true,flowType:"pkce"}})}catch(e){console.warn(e)}
+{const st=document.createElement("style");st.textContent=`.acct .me{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:6px;background:rgba(231,201,135,.12);border:1px solid rgba(201,162,90,.35)}
+.acct .me img{width:30px;height:30px;border-radius:50%;object-fit:cover;background:#2a2620}.acct .me .nm{flex:1;min-width:0;display:grid;line-height:1.25;text-align:left}.acct .me .nm b{color:var(--travertine);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acct .me .nm small{color:var(--stone);font-size:11.5px}.acct .me button{padding:5px 9px;border-radius:5px;border:1px solid rgba(201,162,90,.4);background:transparent;color:var(--stone);font:inherit;font-size:12px;cursor:pointer}
+.acct .nmrow{display:flex;gap:6px;margin-top:6px}.acct .nmrow[hidden],.acct .me[hidden]{display:none}.acct .nmrow input{flex:1;min-width:0;padding:8px;border-radius:5px;border:1px solid rgba(201,162,90,.4);background:rgba(0,0,0,.3);color:var(--travertine);font:inherit;font-size:13px}
+.acct .nmrow button{padding:8px 11px;border-radius:5px;border:0;background:var(--gold);color:var(--ink);font:inherit;font-weight:700;font-size:13px;cursor:pointer}`;document.head.appendChild(st);
+ const me=document.createElement("div");me.className="me";me.id="acctMe";me.hidden=true;me.innerHTML=`<img id="acctPic" alt=""><div class="nm"><b id="acctName"></b><small id="acctNo"></small></div><button id="acctOut"></button>`;
+ const nr=document.createElement("div");nr.className="nmrow";nr.id="acctNameRow";nr.hidden=true;nr.innerHTML=`<input id="acctNameIn" maxlength="16"><button id="acctNameBtn"></button>`;
+ $("googleBtn").after(me,nr)}
+function renderAcct(){const t=AT(),on=!!AUTH.user;$("googleBtn").hidden=on;$("acctMe").hidden=!on;
+ if(!on){$("acctNameRow").hidden=true;$("acctNote").textContent=T[lang].acctNote;return}
+ const p=AUTH.prof||{},meta=AUTH.user.user_metadata||{};$("acctPic").src=p.avatar_url||meta.avatar_url||"";$("acctPic").style.visibility=(p.avatar_url||meta.avatar_url)?"visible":"hidden";
+ $("acctName").textContent=p.display_name||meta.full_name||meta.name||"";$("acctNo").textContent=p.citizen_no?t.no+p.citizen_no:"";$("acctOut").textContent=t.out;
+ $("acctNameRow").hidden=!!p.display_name;$("acctNameIn").placeholder=t.namePh;$("acctNameBtn").textContent=t.nameSave;
+ $("acctNote").textContent=p.banned?t.banned:p.display_name?t.signedNote:t.noName}
+async function loadProfile(){if(!AUTH.sb||!AUTH.user)return;try{const {data,error}=await AUTH.sb.rpc("my_profile");if(error)throw error;AUTH.prof=data}catch(e){console.warn("profile",e)}renderAcct()}
+async function onSession(sess){const u=sess&&sess.user||null;const changed=(u&&u.id)!==(AUTH.user&&AUTH.user.id);AUTH.user=u;if(!u){AUTH.prof=null;renderAcct();return}if(changed||!AUTH.prof)await loadProfile();else renderAcct()}
+if(AUTH.sb){AUTH.sb.auth.getSession().then(({data})=>onSession(data&&data.session)).catch(()=>{});AUTH.sb.auth.onAuthStateChange((ev,sess)=>{onSession(sess)})}
+$("googleBtn").onclick=async()=>{const t=AT();if(!AUTH.sb){$("acctNote").textContent=t.fail;return}
+ if(!/^https?:$/.test(location.protocol)||/claude\.ai|claudeusercontent/.test(location.host)){$("acctNote").textContent=t.notHere;return}
+ try{const {error}=await AUTH.sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:location.origin+location.pathname}});if(error)throw error}catch(e){console.warn(e);$("acctNote").textContent=t.fail}};
+$("acctOut").onclick=async()=>{try{await saveNow()}catch(e){}try{await AUTH.sb.auth.signOut()}catch(e){}AUTH.user=null;AUTH.prof=null;AUTH.loaded=false;renderAcct()};
+$("acctNameBtn").onclick=async()=>{const t=AT(),v=$("acctNameIn").value.trim();if(v.length<2||v.length>16){toast(t.nameBad);$("acctNote").textContent=t.nameBad;return}
+ $("acctNameBtn").disabled=true;try{const {error}=await AUTH.sb.rpc("set_display_name",{p_name:v});if(error)throw error;await loadProfile();$("acctNote").textContent=t.nameSet}
+ catch(e){$("acctNote").textContent=(e.code==="23505"||/duplicate|unique/i.test(e.message||""))?t.nameTaken:/check/i.test(e.message||"")?t.nameBad:t.fail}$("acctNameBtn").disabled=false};
+$("acctNameIn").addEventListener("keydown",e=>{e.stopPropagation();if(e.key==="Enter")$("acctNameBtn").click()});
+/* land: members keep clearing and house state per account; parcels come from the server */
+const MKEY=()=>"cap3d.mland."+server.id+"."+(AUTH.user?AUTH.user.id:"");
+{const _sl=saveLand;saveLand=function(){if(!AUTH.user||!AUTH.loaded)return _sl();const o={};for(const p of PLOTS)if(p.own)o[p.id]={cl:p.cl,house:p.house,sign:p.sign};try{localStorage.setItem(MKEY(),JSON.stringify(o))}catch(e){}}}
+{const _bp=buildPlot;buildPlot=function(p){_bp(p);if(p.taken&&!p.own&&p.objs.tag){p.objs.g.remove(p.objs.tag);const tag=textSprite(AT().taken,{bg:"rgba(60,52,44,.88)"});tag.position.set(p.x,p.h+(p.house?7.2:2.4),p.z);tag.scale.multiplyScalar(1.4);p.objs.g.add(tag);p.objs.tag=tag}}}
+async function loadMemberLand(){const sb=AUTH.sb,uid=AUTH.user.id;AUTH.parcels={};
+ let local={};try{local=JSON.parse(localStorage.getItem(MKEY())||"{}")}catch(e){}
+ const {data:pars}=await sb.from("parcels").select("id,shape,price,owner_id").eq("server",server.id);
+ const signs={};try{const {data:sg}=await sb.from("signs").select("parcel_id,title,url,status,owner_id,created_at").order("created_at",{ascending:true});for(const s of sg||[])signs[s.parcel_id]=s}catch(e){}
+ const byPlot={};for(const r of pars||[]){const k=r.shape&&(r.shape.plot??r.shape.id);if(k!=null)byPlot[k]=r}
+ for(const p of PLOTS){const r=byPlot[p.id],l=local[p.id];
+  if(r){AUTH.parcels[p.id]=r;p.pid=r.id;p.price=Number(r.price)||p.price;p.own=r.owner_id===uid;p.taken=!!r.owner_id&&!p.own}else{p.pid=null;p.own=!!l;p.taken=false}
+  p.cl=p.own&&l&&l.cl?l.cl:[false,false,false];p.house=!!(p.own&&l&&l.house);
+  const s=r&&signs[r.id];p.sign=s?{t:s.title,u:s.url,st:s.status}:(p.own&&l&&l.sign&&!r?l.sign:null);
+  if(!p.own&&p.block){BLOCKS.splice(BLOCKS.indexOf(p.block),1);p.block=null;if(p.objs.house){p.objs.g.remove(p.objs.house);p.objs.house=null}}
+  if(p.objs.sign&&!p.sign){p.objs.g.remove(p.objs.sign);p.objs.sign=null;p.signAt=null}
+  buildPlot(p)}}
+function guestLand(){let o={};try{o=JSON.parse(localStorage.getItem(LANDKEY)||"{}")}catch(e){}
+ for(const p of PLOTS){const s=o[p.id];p.taken=false;p.pid=null;p.own=!!s;p.cl=s&&s.cl||[false,false,false];p.house=!!(s&&s.house);p.sign=s&&s.sign||null;
+  if(!p.house&&p.block){BLOCKS.splice(BLOCKS.indexOf(p.block),1);p.block=null;if(p.objs.house){p.objs.g.remove(p.objs.house);p.objs.house=null}}
+  if(p.objs.sign&&!p.sign){p.objs.g.remove(p.objs.sign);p.objs.sign=null;p.signAt=null}buildPlot(p)}}
+{const _ol=openLand;openLand=function(p,view){
+  if(AUTH.user&&AUTH.loaded&&p.taken&&!p.own){const t=LT(),a=AT();closeSocial();sbx("land").innerHTML=`<h3>${t.plot} ${p.id}${xBtn}</h3><div class="sub">${a.takenSub}</div>`+(p.sign?`<div class="xfoot"><button class="sbtn gold" data-go>${t.open}</button></div>`:"");$("land").hidden=false;wireClose("land");
+   const g=sbx("land").querySelector("[data-go]");if(g)g.onclick=()=>window.open(p.sign.u,"_blank","noopener");return}
+  _ol(p,view);if(!AUTH.user||!AUTH.loaded)return;const b=sbx("land"),q=s=>b.querySelector(s),t=LT(),a=AT();
+  if(q("[data-sell]"))q("[data-sell]").remove();
+  if(p.own){const c=[...b.querySelectorAll(".cost")].find(e=>e.textContent===t.saved);if(c)c.textContent=a.memberSave}
+  if(q("[data-buy]")&&p.pid)q("[data-buy]").onclick=async e=>{const btn=e.currentTarget;if(RES.denarius<p.price){toast(T[lang].noMoney||t.noRes);return}btn.disabled=true;
+   const {error}=await AUTH.sb.rpc("buy_parcel",{p_parcel:p.pid});
+   if(error){btn.disabled=false;const m=error.message||"";if(/already owned/.test(m)){p.taken=true;buildPlot(p);toast(a.already);openLand(p);return}toast(/not enough/.test(m)?(T[lang].noMoney||t.noRes):a.fail);return}
+   RES.denarius-=p.price;p.own=true;p.taken=false;saveLand();buildPlot(p);updateStats();toast(t.bought);openLand(p);saveSoon()};
+  if(view==="sign"&&q("[data-save]")){q("[data-save]").onclick=async()=>{const tt=$("lsT").value.trim(),u=$("lsU").value.trim();let ok=false;try{ok=new URL(u).protocol==="https:"}catch(e){}
+   if(!tt||!ok){toast(t.signBad);return}
+   if(p.pid){const {error}=await AUTH.sb.rpc("submit_sign",{p_parcel:p.pid,p_title:tt,p_url:u});if(error){toast(a.fail);return}toast(a.pending)}
+   p.sign={t:tt,u,st:p.pid?"pending":undefined};buildPlotSign(p);saveLand();openLand(p)}}
+  if(!view&&p.own&&p.sign&&p.sign.st==="pending"){const d=document.createElement("div");d.className="cost";d.setAttribute("data-x","");d.textContent=a.pending;b.querySelector("h3").after(d)}}}
+window.__land.openLand=openLand;
+/* character: enter, load, save */
+async function memberEnter(){const sb=AUTH.sb,t=AT();if(!sb||!AUTH.user)return;AUTH.loaded=false;toast(t.loading);
+ try{if(AUTH.prof&&AUTH.prof.banned){toast(t.banned);return}
+  const {error}=await sb.rpc("enter_server",{p_server:server.id,p_form:P.kind});if(error)throw error;
+  const uid=AUTH.user.id;const [{data:ch},{data:rs}]=await Promise.all([sb.from("characters").select("form,pos").eq("user_id",uid).eq("server",server.id).maybeSingle(),sb.from("resources").select("resource,amount").eq("user_id",uid).eq("server",server.id)]);
+  if(mode!=="play")return;RES_KEYS.forEach(k=>RES[k]=0);for(const r of rs||[])if(k_ok(r.resource))RES[r.resource]=Number(r.amount)||0;
+  const pos=ch&&ch.pos;if(pos&&isFinite(pos.x)&&isFinite(pos.z)&&P.kind!=="fish"&&(!ch.form||ch.form===P.kind)){P.x=pos.x;P.z=pos.z;P.y=heightAt(P.x,P.z)+(P.kind==="crow"?6:0)}
+  await loadMemberLand();AUTH.loaded=true;AUTH.playAdd=0;updateStats();renderInv();toast(t.loaded)}
+ catch(e){console.warn("enter",e);toast(/banned/.test(e.message||"")?t.banned:t.saveFail)}}
+const k_ok=k=>RES_KEYS.includes(k);
+async function saveNow(){const sb=AUTH.sb;if(!sb||!AUTH.user||!AUTH.loaded||AUTH.saving)return;AUTH.saving=true;
+ const add=Math.min(600,Math.round(AUTH.playAdd));const res={};for(const k of RES_KEYS)res[k]=Math.max(0,Math.floor(RES[k]||0));
+ try{const {error}=await sb.rpc("save_state",{p_server:server.id,p_pos:{x:+P.x.toFixed(2),z:+P.z.toFixed(2),zone:lastPlace||null},p_play_add:add,p_resources:res});if(error)throw error;AUTH.playAdd-=add}
+ catch(e){console.warn("save",e)}AUTH.saving=false}
+let saveT=null;function saveSoon(){clearTimeout(saveT);saveT=setTimeout(saveNow,1500)}
+setInterval(()=>{if(mode==="play"&&AUTH.loaded&&!document.hidden)AUTH.playAdd+=5},5000);
+setInterval(()=>{if(mode==="play")saveNow()},30000);
+document.addEventListener("visibilitychange",()=>{if(document.hidden)saveNow()});
+window.addEventListener("pagehide",()=>{saveNow()});
+{const _go=$("enterBtn").onclick;$("enterBtn").onclick=e=>{_go&&_go(e);if(AUTH.user)memberEnter();else if(AUTH.wasMember){AUTH.wasMember=false;RES_KEYS.forEach(k=>RES[k]=0);updateStats();guestLand()}}}
+{const _gh=goHome;goHome=function(){if(AUTH.user&&AUTH.loaded){saveNow();AUTH.wasMember=true}AUTH.loaded=false;return _gh.apply(this,arguments)}}
+$("homeBtn")&&($("homeBtn").onclick=()=>goHome());
+renderAcct();
 
 })();
 </script>
