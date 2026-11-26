@@ -91,6 +91,7 @@ function partsOf(root,name,wind){
  return out}
 
 let oakParts=null;
+const TREEPARTS={};window.__natureTree=sp=>TREEPARTS[sp]||null;
 /* frontier plot trees are plain meshes the game rebuilds; give each the detailed oak */
 function plotTrees(){if(!oakParts||!TREES.oak)return;const found=[];
  scene.traverse(o=>{if(o.isMesh&&!o.isInstancedMesh&&o.geometry===TREES.oak.trunk&&o.parent&&!o.parent.userData.natOak)found.push(o.parent)});
@@ -108,6 +109,7 @@ function setup(gl){
  for(const [tm,info] of byIM){
   const sp=Object.keys(species).find(k=>TREES[k]&&TREES[k].trunk===tm.geometry);if(!sp)continue;
   const parts=partsOf(root,species[sp],.012);if(!parts||!parts.length)continue;
+  TREEPARTS[sp]=parts;
   sets.push(NearSet(tm,parts,{foot:.45,cap:sp==="olive"||sp==="cypress"?80:110,r:110,shadow:true,shadowN:36,siblings:[info.lm],isDown:i=>{const t=info.list[i];return !t||t.down}}))}
  /* scatter layers made by the game: matched by geometry type and parameters */
  const S=(new THREE.Matrix4()),sc=(x,y,z)=>new THREE.Matrix4().makeScale(x,y==null?x:y,z==null?x:z);

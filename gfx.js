@@ -105,8 +105,12 @@ function busy(I){const o=I.one;return !!(o&&o.isRunning()&&o.time<o.getClip().du
 
 /* ---------- player and citizens ---------- */
 let swingN=0;
-const ATK={fist:["Punch","Punch2"],dagger:["SlashA","SlashB"],sword:["SlashA","SlashB","SlashA","Heavy"],longsword:["Heavy","SlashB","SlashA"],
- axe:["Heavy","SlashA"],spear:["SwordAttack"],pick:["Mine"],rod:["Cast"]};
+/* combos: each weapon cycles its own moves; a pause longer than the cooldown starts over */
+const ATK={fist:["Punch","Punch2","Heavy"],dagger:["SlashA","Punch","SlashB"],sword:["SlashA","SlashB","SwordAttack"],longsword:["Heavy","SlashC","SwordAttack"],
+ axe:["Chop","SlashA","Heavy"],spear:["Punch","Interact","SlashC"],pick:["Chop","Mine"],rod:["Cast"]};
+/* gathering moves the game asks for through P.act */
+const ACT={chop:"Chop",mine:"Mine",butcher:"PickUp"};
+let lastAtkAt=0;const sfx=(n,a)=>{if(window.__sfx)window.__sfx.play(n,a)};
 const BLADE={dagger:.55,sword:1.02,longsword:1.62,axe:.95,spear:2.3,pick:1.0};
 function humanAnim(I,isPlayer,npc){
  return function(t,s){
@@ -115,10 +119,14 @@ function humanAnim(I,isPlayer,npc){
    if(P.dead){if(!I.dead){I.dead=true;play(I,"Death",.1,true)}I.mixer.update(dt);return}
    if(I.dead){I.dead=false;play(I,"Idle",.1)}
    if(P.swing>I.lastSwing+.5){/* new attack */
-    const hand=P.hand||"fist";const list=ATK[hand]||ATK.sword;const name=list[swingN++%list.length];
-    const w=CAP&&CAP.P?null:null;const cd=({dagger:.38,sword:.55,longsword:.75,axe:.85,spear:1.05,fist:.5,pick:.7,rod:.6})[hand]||.6;
+    const hand=P.hand||"fist";const list=ATK[hand]||ATK.sword;const act=P.act;P.act=null;
+    const cd=({dagger:.38,sword:.55,longsword:.75,axe:.85,spear:1.05,fist:.5,pick:.7,rod:.6})[hand]||.6;
+    if(now-lastAtkAt>cd*1000+650)swingN=0;lastAtkAt=now;
+    const name=act&&ACT[act]?ACT[act]:list[swingN++%list.length];
     const clip=I.acts[name]&&I.acts[name].getClip();const sp=clip?Math.max(1,clip.duration/(cd*1.15)):1;
-    play(I,name,.05,true,sp);I.trail=BLADE[hand]?now+clip.duration/sp*1000:0;I.atkStart=now;I.atkDur=clip?clip.duration/sp*1000:400;
+    play(I,name,.05,true,act==="butcher"?2.2:sp);I.trail=BLADE[hand]&&act!=="butcher"?now+clip.duration/sp*1000:0;I.atkStart=now;I.atkDur=clip?clip.duration/sp*1000:400;
+    if(act==="butcher"){[480,960].forEach(ms=>setTimeout(()=>{if(!P.dead)play(I,"PickUp",.05,true,2.2)},ms))}
+    else if(!act&&hand!=="rod")setTimeout(()=>sfx("swoosh",hand),(clip?clip.duration/sp*1000:300)*.28);
    }
    I.lastSwing=P.swing;
    if(!busy(I)){
@@ -155,7 +163,7 @@ function faunaAnim(I,a){
   else{if(I.dead){I.dead=false;I.model.rotation.z=0;play(I,"Idle",.1)}
    if(a.bite>I.bite+.3&&FAUNA_ATK[a.kind]){const f=FAUNA_ATK[a.kind];play(I,f.clip,.05,true,f.sp);I.lunge=now;I.lungeLen=f.lunge;
     if(a.kind==="wolf"||a.kind==="bear")fx.claw(a);}
-   if(a.hp<I.hp-.01&&!busy(I)){play(I,"Hit",.05,true,1.6);fx.hitSpark(a.c.g.position,a.kind)}
+   if(a.hp<I.hp-.01&&!busy(I)){play(I,"Hit",.05,true,1.6);fx.hitSpark(a.c.g.position,a.kind);sfx("flesh")}
    if(!busy(I)){if(mv>.7)play(I,"Run",.2,false,a.kind==="bear"?1:1.15);else if(mv>.05)play(I,"Walk",.2,false,1.3);else play(I,"Idle",.35)}}
   I.bite=a.bite;I.hp=a.hp;
   /* lunge: snap forward then recover */
@@ -214,7 +222,7 @@ const fx=(function(){
  const arcGeo=new THREE.RingGeometry(.55,.62,18,1,-.9,1.8);
  function claw(a){const g=new THREE.Group();for(let i=0;i<3;i++){const m=new THREE.Mesh(arcGeo,arcMat.clone());m.position.set((i-1)*.16,0,0);m.rotation.set(0,Math.PI/2,.5+i*.1);g.add(m)}
   const tx=P.x,tz=P.z;g.position.set(a.x+(tx-a.x)*.7,a.c.g.position.y+ (a.kind==="bear"?1.5:.9),a.z+(tz-a.z)*.7);g.rotation.y=Math.atan2(tx-a.x,tz-a.z);g.userData.t=0;scene.add(g);arcs.push(g);
-  shake(a.kind==="bear"?.35:.18);burst(V.set(P.x,P.y+1.2,P.z),"blood",5,2)}
+  shake(a.kind==="bear"?.35:.18);if(window.__sfx)window.__sfx.play("flesh");burst(V.set(P.x,P.y+1.2,P.z),"blood",5,2)}
  function updArcs(dt){for(let i=arcs.length-1;i>=0;i--){const g=arcs[i];g.userData.t+=dt;const k=g.userData.t/.22;
   if(k>=1){scene.remove(g);arcs.splice(i,1);continue}g.children.forEach((m,j)=>{m.material.opacity=(1-k)*.95;m.rotation.z=.5+j*.1-k*1.6;m.scale.setScalar(.8+k*.6)})}}
  let shakeAmt=0;function shake(a){shakeAmt=Math.max(shakeAmt,a)}
