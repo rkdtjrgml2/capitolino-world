@@ -1,0 +1,87 @@
+[
+ {
+  "id": "rod",
+  "cat": "tool",
+  "name": {
+   "ko": "낚싯대",
+   "en": "Fishing rod",
+   "ja": "釣り竿"
+  },
+  "icon": "tool_fishing_rod",
+  "slot": "hand",
+  "stack": 1
+ },
+ {
+  "id": "axe",
+  "cat": "tool",
+  "name": {
+   "ko": "도끼",
+   "en": "Axe",
+   "ja": "斧"
+  },
+  "icon": "tool_axe",
+  "slot": "hand",
+  "stack": 1
+ },
+ {
+  "id": "pick",
+  "cat": "tool",
+  "name": {
+   "ko": "곡괭이",
+   "en": "Pickaxe",
+   "ja": "つるはし"
+  },
+  "icon": "tool_pickaxe",
+  "slot": "hand",
+  "stack": 1
+ },
+ {
+  "id": "dagger",
+  "cat": "weapon",
+  "name": {
+   "ko": "단검",
+   "en": "Dagger",
+   "ja": "短剣"
+  },
+  "icon": "wpn_knife",
+  "slot": "hand",
+  "stack": 1
+ },
+ {
+  "id": "sword",
+  "cat": "weapon",
+  "name": {
+   "ko": "글라디우스 검",
+   "en": "Gladius",
+   "ja": "グラディウス"
+  },
+  "icon": "wpn_gladius",
+  "slot": "hand",
+  "stack": 1
+ },
+ {
+  "id": "longsword",
+  "cat": "weapon",
+  "name": {
+   "ko": "장검",
+   "en": "Longsword",
+   "ja": "長剣"
+  },
+  "icon": "wpn_longsword",
+  "slot": "hand",
+  "stack": 1,
+  "shop": 55
+ },
+ {
+  "id": "spear",
+  "cat": "weapon",
+  "name": {
+   "ko": "창",
+   "en": "Spear",
+   "ja": "槍"
+  },
+  "icon": "wpn_spear",
+  "slot": "hand",
+  "stack": 1
+ }
+]
