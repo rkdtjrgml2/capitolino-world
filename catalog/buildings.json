@@ -18,6 +18,45 @@
   "card": "card_bld_domus"
  },
  {
+  "id": "aedes",
+  "tab": "house",
+  "name": {
+   "ko": "작은 신전",
+   "en": "Small temple",
+   "ja": "小神殿"
+  },
+  "cost": {
+   "wood": 10,
+   "stone": 30,
+   "iron": 2,
+   "denarius": 90
+  },
+  "open": true,
+  "size": "7x12",
+  "signs": 1,
+  "card": "card_bld_aedes"
+ },
+ {
+  "id": "templum",
+  "tab": "house",
+  "name": {
+   "ko": "큰 신전",
+   "en": "Grand temple",
+   "ja": "大神殿"
+  },
+  "cost": {
+   "wood": 24,
+   "stone": 80,
+   "iron": 8,
+   "silver": 4,
+   "denarius": 320
+  },
+  "open": true,
+  "size": "11x13",
+  "signs": 1,
+  "card": "card_bld_templum"
+ },
+ {
   "id": "smithy",
   "tab": "prod",
   "name": {

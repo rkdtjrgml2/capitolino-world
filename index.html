@@ -2027,6 +2027,8 @@ const ICO={
  lock:SV(`<rect x="8" y="14" width="16" height="12" rx="2" fill="#8a7a6a" ${OL}/><path d="M11 14v-3a5 5 0 0 1 10 0v3" stroke="#2a1d12" stroke-width="2.4" fill="none"/>`)};
 const BLD_ART={
  domus:`<path d="M8 40h48" stroke="#5f8f3c" stroke-width="4"/><path d="M14 40V20h36v20z" fill="#efe2c4" ${OL}/><path d="M10 21L32 8l22 13z" fill="#b5532f" ${OL}/><rect x="28" y="28" width="8" height="12" fill="#5a3b25"/><rect x="18" y="25" width="6" height="5" fill="#7fb0d6" stroke="#2a1d12"/>`,
+ aedes:`<path d="M8 40h48" stroke="#5f8f3c" stroke-width="4"/><rect x="16" y="35" width="32" height="5" fill="#e9e1cf" ${OL}/><path d="M20 35V20M28 35V20M36 35V20M44 35V20" stroke="#efe8d8" stroke-width="4"/><path d="M14 20h36L32 9z" fill="#e9e1cf" ${OL}/>`,
+ templum:`<path d="M4 40h56" stroke="#5f8f3c" stroke-width="4"/><rect x="8" y="34" width="48" height="6" fill="#e9e1cf" ${OL}/><path d="M13 34V17M20 34V17M27 34V17M34 34V17M41 34V17M48 34V17M55 34V17" stroke="#efe8d8" stroke-width="4"/><rect x="9" y="14" width="46" height="4" fill="#c9a25a" ${OL}/><path d="M8 14h48L32 4z" fill="#e9e1cf" ${OL}/>`,
  smithy:`<path d="M8 40h48" stroke="#5f8f3c" stroke-width="4"/><path d="M12 40V22h34v18z" fill="#d9c08c" ${OL}/><path d="M8 23l26-11 18 11z" fill="#9e4a2a" ${OL}/><rect x="44" y="6" width="6" height="16" fill="#8a7a6a" stroke="#2a1d12"/><rect x="18" y="28" width="12" height="12" fill="#2a1d12"/><circle cx="24" cy="35" r="3" fill="#f0a040"/>`,
  tannery:`<path d="M8 40h48" stroke="#5f8f3c" stroke-width="4"/><path d="M10 40V22h30v18z" fill="#e2d1ab" ${OL}/><path d="M7 23l18-10 18 10z" fill="#a85a34" ${OL}/><path d="M44 40V18M56 40V18M44 20h12" stroke="#6b4a30" stroke-width="2"/><path d="M46 21l3 10 3-10z" fill="#b98a55" ${OL}/>`,
  popina:`<path d="M8 40h48" stroke="#5f8f3c" stroke-width="4"/><path d="M12 40V22h40v18z" fill="#efe2c4" ${OL}/><path d="M8 23h48l-4-7H12z" fill="#b5532f" ${OL}/><rect x="16" y="30" width="32" height="5" fill="#c9bfae" ${OL}/><circle cx="24" cy="29" r="2.5" fill="#a0612f"/><circle cx="32" cy="29" r="2.5" fill="#a0612f"/>`,
@@ -2043,6 +2045,8 @@ function ico(k){const id=RES_ICON[k]||("ui_icon_"+k);return ICON_OK.has(id)?`<im
 /* ---- buildings catalog (defaults; catalog/buildings.json overrides) ---- */
 let BLD=[
  {id:"domus",tab:"house",name:{ko:"도무스",en:"Domus",ja:"ドムス"},cost:HOUSE_COST,open:true},
+ {id:"aedes",tab:"house",name:{ko:"작은 신전",en:"Small temple",ja:"小神殿"},cost:BUILD_KINDS.aedes.cost,open:true},
+ {id:"templum",tab:"house",name:{ko:"큰 신전",en:"Grand temple",ja:"大神殿"},cost:BUILD_KINDS.templum.cost,open:true},
  {id:"smithy",tab:"prod",name:{ko:"대장간",en:"Smithy",ja:"鍛冶屋"},cost:{wood:30,stone:20,iron:5,denarius:80},req:"domus"},
  {id:"tannery",tab:"prod",name:{ko:"가죽 공방",en:"Tannery",ja:"革工房"},cost:{wood:24,stone:10,hide:6,denarius:60},req:"domus"},
  {id:"popina",tab:"prod",name:{ko:"식당",en:"Popina",ja:"食堂"},cost:{wood:20,stone:16,food:10,denarius:70},req:"domus"},
@@ -2051,7 +2055,7 @@ let BLD=[
  {id:"olive",tab:"farm",name:{ko:"올리브 밭",en:"Olive grove",ja:"オリーブ畑"},cost:{wood:10,denarius:60},req:"domus"},
  {id:"statue",tab:"deco",name:{ko:"대리석 상",en:"Marble statue",ja:"大理石像"},cost:{stone:30,silver:2},req:"domus"},
  {id:"sign",tab:"sign",name:{ko:"링크 간판",en:"Link sign",ja:"リンク看板"},cost:{},open:true}];
-fetch("catalog/buildings.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(a=>{if(Array.isArray(a)&&a.length){BLD=a.map(b=>b.id==="domus"?Object.assign({},b,{cost:HOUSE_COST}):b);if(!$("u2build").hidden)renderBuild()}}).catch(()=>{});
+fetch("catalog/buildings.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(a=>{if(Array.isArray(a)&&a.length){BLD=a.map(b=>BUILD_KINDS[b.id]?Object.assign({},b,{cost:BUILD_KINDS[b.id].cost}):b);if(!$("u2build").hidden)renderBuild()}}).catch(()=>{});
 const bName=b=>(b.name&&(b.name[lang]||b.name.en))||b.id;
 
 /* ---- styles ---- */
@@ -2257,7 +2261,7 @@ function buildCheck(b){const t=UT();if(!b)return {ok:false,msg:t.bHint};
  if(!p||!p.own){const own=nearestPlot(true);if(own)return {ok:false,msg:t.standOn.replace("{d}",own.d)};const fs=nearestPlot(false);return {ok:false,msg:t.noLand.replace("{d}",fs?fs.d:"?")}}
  const n=p.cl.filter(Boolean).length;if(n<3)return {ok:false,p,msg:t.notCleared.replace("{n}",n)};
  if(b.id==="sign")return {ok:true,p,msg:t.signOk};
- if(b.id==="domus"&&p.house)return {ok:false,p,msg:t.built};
+ if(BUILD_KINDS[b.id]&&p.house)return {ok:false,p,msg:t.built};
  if(lacks(b.cost).length)return {ok:false,p,msg:t.noRes};return {ok:true,p,msg:t.ok}}
 function costHtml(c){const R=T[lang].res;const e=Object.entries(c||{});if(!e.length)return "";return e.map(([k,v])=>`<span class="${(RES[k]||0)<v?"no":""}">${R[k]} ${v}</span>`).join("")}
 function renderBuild(){const t=UT();const el=$("u2build");const list=BLD.filter(b=>b.tab===bTab);
@@ -2273,7 +2277,7 @@ function renderBuild(){const t=UT();const el=$("u2build");const list=BLD.filter(
  el.querySelectorAll("[data-b]").forEach(b=>b.onclick=()=>{bSel=b.dataset.b;renderBuild()});
  q("[data-go]").onclick=()=>{const b=BLD.find(x=>x.id===bSel);const c=buildCheck(b);if(!c.ok){toast(c.msg);return}
   if(b.id==="sign"){closeBuild();openLand(c.p,"sign");return}
-  if(b.id==="domus"){openLand(c.p);const hb=sbx("land").querySelector("[data-house]");if(hb)hb.click();if(c.p.house)closeBuild();else renderBuild()}}}
+  if(BUILD_KINDS[b.id]){openLand(c.p);const hb=sbx("land").querySelector('[data-house="'+b.id+'"]');if(hb)hb.click();if(c.p.house)closeBuild();else renderBuild()}}}
 function toggleBuild(){if(!$("u2build").hidden){closeBuild();return}if(P.kind!=="human"||P.dead||mode!=="play")return;$("mshop").hidden=true;renderBuild();markMenu()}
 function closeBuild(){$("u2build").hidden=true;if(ghost)ghost.visible=false;markMenu()}
 function markMenu(){const b=menu.querySelector('[data-mb="build"]');if(b)b.classList.toggle("on",!$("u2build").hidden);const g=menu.querySelector('[data-mb="bag"]');if(g)g.classList.toggle("on",!$("inv").hidden)}
@@ -2282,8 +2286,9 @@ function ghostTick(){const open=!$("u2build").hidden;const b=BLD.find(x=>x.id===
  const p=myPlotHere();if(!p||!p.own||p.house){if(ghost)ghost.visible=false;return}
  if(!ghost){ghost=new THREE.Mesh(new THREE.BoxGeometry(9,4.6,7),new THREE.MeshBasicMaterial({color:0x50dc6e,transparent:true,opacity:.28,depthWrite:false}));
   const e=new THREE.LineSegments(new THREE.EdgesGeometry(ghost.geometry),new THREE.LineBasicMaterial({color:0x9bffad}));ghost.add(e);scene.add(ghost)}
+ {const fp=(BUILD_KINDS[b.id]||BUILD_KINDS.domus).fp;const h=(window.__buildInfo&&__buildInfo[b.id]&&__buildInfo[b.id].h)||4.6;ghost.scale.set(fp[0]/9,h/4.6,fp[1]/7);ghost.userData.h=h}
  const ok=buildCheck(b).ok;ghost.material.color.setHex(ok?0x50dc6e:0xf05a46);ghost.children[0].material.color.setHex(ok?0x9bffad:0xff9a8a);
- ghost.position.set(p.x,heightAt(p.x,p.z)+2.4,p.z);ghost.visible=true}
+ ghost.position.set(p.x,heightAt(p.x,p.z)+(ghost.userData.h||4.6)/2,p.z);ghost.visible=true}
 /* B now opens the build menu; the personal shop stays in the bag window and the system menu */
 {const _ms=openMyShopPanel;openMyShopPanel=function(){const ev=window.event;if(ev&&ev.type==="keydown"&&ev.code==="KeyB"){toggleBuild();return}return _ms.apply(this,arguments)}}
 addEventListener("contextmenu",e=>{if(!$("u2build").hidden&&e.target===renderer.domElement){e.preventDefault();closeBuild()}});
