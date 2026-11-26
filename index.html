@@ -559,7 +559,7 @@ const CIVIC=[
  {k:"aemilia",type:"basilica",x:61,z:31,w:26,d:11,rot:0},
  {k:"iulia",type:"basilica",x:53,z:75,w:30,d:12,rot:2},
  {k:"saturni",type:"temple",x:30,z:62,w:10,d:15,col:8,rot:1,roof:0xb5552f,front6:1},
- {k:"horrea",type:"horrea",x:-33,z:106,w:26,d:20,rot:3}];
+ {k:"horrea",type:"horrea",x:-33,z:106,w:26,d:20,rot:3}];window.__civic=CIVIC;
 const BLOCKS=CIVIC.map(b=>{const sw=b.rot%2?b.d:b.w,sd=b.rot%2?b.w:b.d;return {b,x0:b.x-sw/2,x1:b.x+sw/2,z0:b.z-sd/2,z1:b.z+sd/2,top:99}});
 function blockedAt(x,z,pad){pad=pad||0;for(const k of BLOCKS)if(x>k.x0-pad&&x<k.x1+pad&&z>k.z0-pad&&z<k.z1+pad)return k;return null}
 const FORUM={x0:30,x1:72,z0:38,z1:68};
@@ -725,7 +725,7 @@ scatter(new THREE.DodecahedronGeometry(1,0),1300,[0xa69a86,0x958a76,0xb4a892],
 scatter(new THREE.CylinderGeometry(.35,.4,5,6).rotateZ(Math.PI/2).translate(0,.3,0),160,[0x6b5440,0x5e4a38],
  (x,y,z,r)=>y>2&&!signClear(x,z)&&fbm(x*.011+3,z*.011-7)>.1,(o,r)=>{o.rotation.x=0;o.rotation.z=0;o.scale.setScalar(.7+r()*.6)},true);
 {const g=new THREE.DodecahedronGeometry(1,0),m=new THREE.MeshPhongMaterial({color:0xa89a80,flatShading:true,shininess:0});
- [[-18,12,4],[-21,4,3.4],[-15,19,3],[-22,-5,2.8],[-17,8,2.2],[-12,22,2.4],[-24,-12,2.6]].forEach(([x,z,s])=>{const r=new THREE.Mesh(g,m);r.position.set(x,heightAt(x,z)-.4*s,z);r.scale.set(s,s*1.5,s);r.rotation.y=x;r.castShadow=r.receiveShadow=true;scene.add(r)})}
+ [[-18,12,4],[-21,4,3.4],[-25,19,3],[-22,-5,2.8],[-17,8,2.2],[-27,25,2.4],[-24,-12,2.6]].forEach(([x,z,s])=>{const r=new THREE.Mesh(g,m);r.position.set(x,heightAt(x,z)-.4*s,z);r.scale.set(s,s*1.5,s);r.rotation.y=x;r.castShadow=r.receiveShadow=true;scene.add(r)})}
 const clouds=[];
 {const g=new THREE.IcosahedronGeometry(1,0),m=new THREE.MeshPhongMaterial({color:0xffffff,flatShading:true,emissive:0x8a95a0,transparent:true,opacity:.95});
  for(let i=0;i<22;i++){const c=new THREE.Group();const n=3+Math.floor(h2(i,2)*4);
@@ -1015,7 +1015,7 @@ function buildCivic(){const gd=new THREE.MeshPhongMaterial({color:0xf4c430,emiss
  for(let i=0;i<CIVIC.length;i++){const b=CIVIC[i],[lo,hi]=footprintY(b),g=new THREE.Group(),base=hi-lo+1;
   const fn=b.type==="temple"?buildTemple:b.type==="basilica"?buildBasilica:b.type==="curia"?buildCuria:buildHorrea;
   const top=fn(b,g,base);g.traverse(o=>{if(o.isMesh&&o.geometry.type!=="PlaneGeometry"){o.castShadow=true;o.receiveShadow=true}});
-  g.position.set(b.x,hi,b.z);g.rotation.y=b.rot*Math.PI/2;scene.add(g);BLOCKS[i].top=hi+top;BLOCKS[i].floor=hi;
+  g.position.set(b.x,hi,b.z);g.rotation.y=b.rot*Math.PI/2;scene.add(g);BLOCKS[i].top=hi+top;BLOCKS[i].floor=hi;b.group=g;b.hi=hi;
   if(b.coin){const coin=new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,.28,28),gd);coin.rotation.x=Math.PI/2;coin.position.set(b.x,hi+top+3,b.z);scene.add(coin);coins.push(coin)}}
  // forum details: rostra and honorary columns
  const st=STONE();const ro=box(10,2.2,4,STONE2());ro.position.set(38,3.4+1.1,48);scene.add(ro);
