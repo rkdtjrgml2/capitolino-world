@@ -842,6 +842,7 @@ const WEAP={
  fist:{dmg:.5,cd:.5,reach:1.9},bite:{dmg:2.2,cd:.6,reach:2.4},kick:{dmg:.8,cd:.8,reach:2.1},rod:{dmg:.4,cd:.6,reach:2},pick:{dmg:1.6,cd:.7,reach:2.4},tusk:{dmg:2.6,cd:.8,reach:2.5},claw:{dmg:4,cd:1,reach:2.9}};
 const iron=phong(0xd0d4da),bronze=phong(0xc99a3e),wood2=phong(0x6b4a2e),leather=phong(0x4a3426);
 function weaponMesh(kind){
+ if(window.__weaponModel){const w=window.__weaponModel(kind);if(w)return w}
  const g=new THREE.Group();const add=(m,x,y,z)=>{m.position.set(x,y,z);m.castShadow=true;g.add(m);return m};
  if(kind==="dagger"){add(box(.07,.12,.05,leather),0,.06,0);add(box(.18,.04,.06,bronze),0,.14,0);add(new THREE.Mesh(new THREE.ConeGeometry(.06,.42,4),iron),0,.36,0)}
  if(kind==="sword"){add(box(.07,.2,.06,leather),0,.1,0);add(new THREE.Mesh(new THREE.SphereGeometry(.06,6,4),bronze),0,-.02,0);add(box(.26,.05,.08,bronze),0,.22,0);
