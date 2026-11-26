@@ -1922,7 +1922,8 @@ function guestLand(){let o={};try{o=JSON.parse(localStorage.getItem(LANDKEY)||"{
   if(AUTH.user&&AUTH.loaded&&p.taken&&!p.own){const t=LT(),a=AT();closeSocial();sbx("land").innerHTML=`<h3>${t.plot} ${p.id}${xBtn}</h3><div class="sub">${a.takenSub}</div>`+(p.sign?`<div class="xfoot"><button class="sbtn gold" data-go>${t.open}</button></div>`:"");$("land").hidden=false;wireClose("land");
    const g=sbx("land").querySelector("[data-go]");if(g)g.onclick=()=>window.open(p.sign.u,"_blank","noopener");return}
   _ol(p,view);if(!AUTH.user||!AUTH.loaded)return;const b=sbx("land"),q=s=>b.querySelector(s),t=LT(),a=AT();
-  if(q("[data-sell]"))q("[data-sell]").remove();
+  if(q("[data-sell]")&&p.pid){const sb0=q("[data-sell]"),orig=sb0.onclick;sb0.onclick=async()=>{sb0.disabled=true;const {error}=await AUTH.sb.rpc("sell_parcel",{p_parcel:p.pid});
+   if(error){sb0.disabled=false;toast(a.fail);return}p.taken=false;orig&&orig();saveSoon()}}
   if(p.own){const c=[...b.querySelectorAll(".cost")].find(e=>e.textContent===t.saved);if(c)c.textContent=a.memberSave}
   if(q("[data-buy]")&&p.pid)q("[data-buy]").onclick=async e=>{const btn=e.currentTarget;if(RES.denarius<p.price){toast(T[lang].noMoney||t.noRes);return}btn.disabled=true;
    const {error}=await AUTH.sb.rpc("buy_parcel",{p_parcel:p.pid});
