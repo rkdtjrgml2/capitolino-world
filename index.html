@@ -2218,7 +2218,7 @@ function drawMe(){const el=$("u2me");if(mode!=="play"){el.hidden=true;return}el.
 /* ---- resource bar with icons, denarius first ---- */
 {const _us=updateStats;updateStats=function(){_us.apply(this,arguments);
  const order=["denarius"].concat(RES_KEYS.filter(k=>k!=="denarius"&&(k!=="gold"||RES.gold>0)));
- $("resBar").innerHTML=order.map(k=>`<span class="r${k==="denarius"?" money":""}${RES[k]||k==="denarius"?"":" z"}" title="${T[lang].res[k]}"><span class="u2i">${ico(k)}</span>${(RES[k]||0).toLocaleString()}</span>`).join("");
+ $("resBar").innerHTML=order.map(k=>`<span class="r${k==="denarius"?" money":""}${RES[k]||k==="denarius"?"":" z"}" data-k="${k}"><span class="u2i">${ico(k)}</span>${(RES[k]||0).toLocaleString()}</span>`).join("");
  drawMe();drawQuest();if(!$("u2store").hidden)renderStore()}}
 
 /* ---- notice log: every toast also lands here ---- */
@@ -2319,6 +2319,43 @@ addEventListener("contextmenu",e=>{if(!$("u2build").hidden&&e.target===renderer.
 /* the bag window gets a shortcut to the personal shop */
 {const _ri=renderInv;renderInv=function(){_ri.apply(this,arguments);if($("inv").hidden||P.kind!=="human")return;const tip=$("invTip");if(!tip||tip.querySelector("[data-myshop]"))return;
  const b=document.createElement("button");b.className="dropb";b.dataset.myshop="1";b.textContent=(ST&&ST().myShop)||"My shop";b.style.marginTop="8px";b.onclick=()=>{toggleInv(false);openMyShopPanel()};tip.appendChild(document.createElement("br"));tip.appendChild(b)}}
+
+/* ---- tooltips: weapon stats and resource names ---- */
+const TIPT={ko:{atk:"공격력",spd:"공격 속도",per:"초당 {n}회",reach:"사거리",dps:"초당 피해",m:"m",held:"손에 든 것",fist:"맨손",
+  sp:{axe:"나무 캐기 2배 빠름",pick:"돌과 광석을 캘 수 있음",rod:"물가에서 낚시",spear:"가장 긴 사거리",dagger:"가장 빠른 공격",longsword:"강하고 긴 칼날",sword:"균형 잡힌 로마 검"}},
+ en:{atk:"Attack",spd:"Speed",per:"{n} per sec",reach:"Reach",dps:"Damage per sec",m:"m",held:"In hand",fist:"Bare hands",
+  sp:{axe:"Chops wood 2x faster",pick:"Mines stone and ore",rod:"Fish at the water",spear:"Longest reach",dagger:"Fastest strikes",longsword:"Strong long blade",sword:"Balanced Roman sword"}},
+ ja:{atk:"攻撃力",spd:"攻撃速度",per:"毎秒{n}回",reach:"射程",dps:"毎秒ダメージ",m:"m",held:"手に持つもの",fist:"素手",
+  sp:{axe:"木を2倍速く切る",pick:"石と鉱石を掘れる",rod:"水辺で釣り",spear:"最長の射程",dagger:"最速の攻撃",longsword:"強く長い刃",sword:"バランスの良いローマの剣"}}};
+const TT=()=>TIPT[lang]||TIPT.en;
+const atkOf=k=>WEAP[k]?Math.round(WEAP[k].dmg*10):0;
+function itemTip(k){const w=WEAP[k];if(!w)return "";const t=TT(),nm=k==="fist"?t.fist:(T[lang].weapons[k]||k);
+ return `<b>${nm}</b><div class="tr"><span>${t.atk}</span><em>${atkOf(k)}</em></div><div class="tr"><span>${t.spd}</span><em>${t.per.replace("{n}",(1/w.cd).toFixed(1))}</em></div><div class="tr"><span>${t.reach}</span><em>${w.reach.toFixed(1)} ${t.m}</em></div><div class="tr"><span>${t.dps}</span><em>${(w.dmg*10/w.cd).toFixed(0)}</em></div>${t.sp[k]?`<div class="sp">${t.sp[k]}</div>`:""}`}
+const tipEl=document.createElement("div");tipEl.id="u2tip";tipEl.hidden=true;document.body.appendChild(tipEl);
+function tipFor(el){if(!el||!el.closest)return "";
+ const r=el.closest("#resBar .r");if(r&&r.dataset.k)return `<div class="tr"><b style="margin:0">${T[lang].res[r.dataset.k]}</b><em>${(RES[r.dataset.k]||0).toLocaleString()}</em></div>`;
+ const hs=el.closest("#hotbar [data-hs]");if(hs){const k=P.slots[+hs.dataset.hs];return k?itemTip(k):""}
+ const bg=el.closest("#invBag [data-bag]");if(bg){const k=P.slots[+bg.dataset.bag];return k?itemTip(k):""}
+ const eq=el.closest("#invEq .cell.on");if(eq&&P.hand)return itemTip(P.hand);
+ const sl=el.closest("#slot");if(sl)return itemTip(P.hand||"fist");
+ const sh=el.closest("#trade .shop [data-b]");if(sh)return itemTip(sh.dataset.b);
+ return ""}
+let tipOn=null;
+addEventListener("mouseover",e=>{const h=tipFor(e.target);if(!h){tipEl.hidden=true;tipOn=null;return}tipEl.innerHTML=h;tipEl.hidden=false;tipOn=e.target},true);
+addEventListener("mousemove",e=>{if(tipEl.hidden)return;const w=tipEl.offsetWidth,hh=tipEl.offsetHeight;let x=e.clientX+16,y=e.clientY+18;if(x+w>innerWidth-8)x=e.clientX-w-12;if(y+hh>innerHeight-8)y=e.clientY-hh-12;tipEl.style.left=x+"px";tipEl.style.top=y+"px"},true);
+addEventListener("mousedown",()=>{tipEl.hidden=true},true);
+/* bag cells and shop show the attack number; the bag shows what is in hand */
+function atkBadge(el,k){if(!el||!WEAP[k]||k==="rod"||el.querySelector(".u2atk"))return;const b=document.createElement("i");b.className="u2atk";b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 19L18 6M14 5h5v5M4 15l5 5"/></svg>'+atkOf(k);el.appendChild(b)}
+{const _ri=renderInv;renderInv=function(){_ri.apply(this,arguments);if($("inv").hidden||P.kind!=="human")return;
+ document.querySelectorAll("#invBag [data-bag]").forEach(c=>atkBadge(c,P.slots[+c.dataset.bag]));
+ const tip=$("invTip");if(tip&&!tip.querySelector(".u2held")){const d=document.createElement("div");d.className="u2held";d.innerHTML=`<small>${TT().held}</small>`+itemTip(P.hand||"fist");tip.prepend(d)}}}
+{const _rt=renderTrade;renderTrade=function(){const r=_rt.apply(this,arguments);document.querySelectorAll("#trade .shop [data-b]").forEach(b=>atkBadge(b,b.dataset.b));return r}}
+{const st=document.createElement("style");st.textContent=`#u2tip{position:fixed;z-index:60;pointer-events:none;min-width:110px;max-width:240px;padding:8px 10px;border-radius:8px;background:linear-gradient(180deg,#f3e7cb,#e3d0a8);border:2px solid #c9a25a;box-shadow:0 6px 16px rgba(0,0,0,.4);color:#3a2b1d;font:12.5px/1.45 "Noto Sans KR",sans-serif}
+#u2tip b{display:block;font-family:Cinzel,Georgia,serif;font-size:13.5px;color:#7d2617;margin-bottom:3px}
+#u2tip .tr{display:flex;justify-content:space-between;gap:14px}#u2tip .tr em{font-style:normal;font-weight:700;color:#3a2b1d}#u2tip .sp{margin-top:4px;color:#5f8f3c;font-weight:700}
+#resBar .r{pointer-events:auto;cursor:help}#slot{pointer-events:auto}
+#invBag .cell,#trade .shop [data-b]{position:relative}.u2atk{position:absolute;top:3px;right:4px;display:flex;align-items:center;gap:2px;font-style:normal;font-size:10.5px;font-weight:700;color:#7d2617;background:rgba(243,231,203,.92);border:1px solid #c9a25a;border-radius:6px;padding:0 4px;line-height:15px;pointer-events:none}#inv .cell .u2atk svg,#trade .shop .u2atk svg,.u2atk svg{width:10px!important;height:10px!important}
+.u2held{margin-bottom:8px;padding:8px 10px;border-radius:8px;background:rgba(201,162,90,.12);border:1px solid rgba(201,162,90,.45);font-size:12px}.u2held small{opacity:.75}.u2held b{display:block;color:#7d2617;font-family:Cinzel,Georgia,serif}.u2held .tr{display:flex;justify-content:space-between}.u2held .tr em{font-style:normal;font-weight:700}.u2held .sp{color:#4f7a2e;font-weight:700;margin-top:2px}`;document.head.appendChild(st)}
 
 /* ---- per frame hooks ---- */
 let u2t=0;
