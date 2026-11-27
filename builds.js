@@ -22,7 +22,7 @@ loader.load("assets/buildings.glb",gl=>{
  gl.scene.traverse(o=>{if(o.isMesh){const arr=Array.isArray(o.material)?o.material:[o.material];
   const conv=arr.map(m=>cache[m.uuid]||(cache[m.uuid]=phong(m)));o.material=Array.isArray(o.material)?conv:conv[0]}});
  for(const k of ["domus","aedes","templum"]){const n=gl.scene.getObjectByName(k);if(!n)continue;
-  const g=new THREE.Group();const c=n.clone(true);c.position.set(0,0,0);g.add(c);LIB[k]=g}
+  const g=new THREE.Group();const c=n.clone(true);c.position.set(0,n.position.y,n.position.z-Math.round(n.position.z/60)*60);g.add(c);LIB[k]=g}
  civic(gl.scene);
  console.log("[builds] ready",Object.keys(LIB).join(","));
  if(window.__rebuildHouses)window.__rebuildHouses()},undefined,e=>console.warn("[builds] load",e));
@@ -31,17 +31,24 @@ loader.load("assets/buildings.glb",gl=>{
 const LOD_FAR=210;
 function civic(scene){const C=window.__civic;if(!C)return;let n=0;
  for(const b of C){const hi=scene.getObjectByName("civic_"+b.k),lo=scene.getObjectByName("civic_"+b.k+"_lod");if(!hi||!b.group)continue;
-  const prep=o=>{const c=o.clone(true);c.position.set(0,0,0);c.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true}});return c};
+  /* keep the height and depth offset the packed file stores on each node (quantized meshes are centered); only the x of the packing slot goes */
+  const prep=o=>{const c=o.clone(true);c.position.set(0,o.position.y,o.position.z-Math.round(o.position.z/60)*60);c.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true}});return c};
   const L=new THREE.LOD();L.addLevel(prep(hi),0);if(lo){const f=prep(lo);f.traverse(m=>{if(m.isMesh)m.castShadow=false});L.addLevel(f,LOD_FAR)}
   L.position.copy(b.group.position);L.rotation.copy(b.group.rotation);L.name="civic3d_"+b.k;
-  b.group.parent.add(L);b.group.visible=false;b.lod=L;n++}
+  /* the model's origin is the foot of its front stairs: set it on the ground in front of the stairs
+     (b.hi is the highest ground under the whole footprint, which left stairs hanging on slopes) */
+  {const hm=window.__gfxHooks&&window.__gfxHooks.heightAt;if(hm){L.updateMatrixWorld(true);const bb=new THREE.Box3().setFromObject(L.levels[0].object);
+   const f=[[0,1],[1,0],[0,-1],[-1,0]][b.rot],ex=f[0]?(f[0]>0?bb.max.x:bb.min.x):b.x,ez=f[1]?(f[1]>0?bb.max.z:bb.min.z):b.z;let s=0,k=0;
+   for(let t=-2;t<=2;t+=.5){s+=hm(ex+(f[1]?t:0),ez+(f[0]?t:0));k++}const y=Math.min(b.hi,s/k);L.position.y=y;b.foot=y}}
+  b.group.parent.add(L);b.group.visible=false;b.lod=L;n++;
+  if(window.__colAdd)window.__colAdd("civic:"+b.k,L.levels[0].object,{vis:L})}
  const H=window.__gfxHooks,R=H&&H.renderer;
  if(R&&n){const cam=H.camera,base=R.render.bind(R);R.render=function(s,c){for(const b of C)if(b.lod)b.lod.update(c||cam);return base(s,c)}}
  /* Forum rostra and honorary columns */
  const D=window.__forumDeco,ro=scene.getObjectByName("civic_rostra"),hc=scene.getObjectByName("civic_honcol");
- const put=(src,x,y,z,parent)=>{const c=src.clone(true);c.position.set(x,y,z);c.rotation.set(0,0,0);c.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true}});parent.add(c);return c};
- if(D&&ro&&D.rostra.parent){const r=D.rostra;put(ro,r.position.x,r.position.y-1.1,r.position.z,r.parent);r.visible=false;n++}
- if(D&&hc)for(const k of D.cols){if(!k.c.parent)continue;put(hc,k.x,k.c.position.y-4,k.z,k.c.parent);k.c.visible=false;k.s.visible=false;n++}
+ const put=(src,x,y,z,parent)=>{const c=src.clone(true);c.position.set(x,y+src.position.y,z+src.position.z-Math.round(src.position.z/60)*60);c.rotation.set(0,0,0);c.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true}});parent.add(c);return c};
+ if(D&&ro&&D.rostra.parent){const r=D.rostra;const c=put(ro,r.position.x,r.position.y-1.1,r.position.z,r.parent);r.visible=false;n++;if(window.__colAdd)window.__colAdd("rostra",c)}
+ if(D&&hc)for(const k of D.cols){if(!k.c.parent)continue;const c=put(hc,k.x,k.c.position.y-4,k.z,k.c.parent);k.c.visible=false;k.s.visible=false;n++;if(window.__colAdd)window.__colAdd("honcol"+k.x,c)}
  window.__civicDbg={count:n};console.log("[builds] civic",n)}
 /* weapons: Quaternius Medieval Weapons (CC0), grip at the origin, blade along +Y */
 const WEAP={};
