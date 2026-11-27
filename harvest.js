@@ -35,7 +35,11 @@ const SFX=(()=>{let ac=null,master=null,nb=null,muted=false;
   pop(i){const f=620*Math.pow(1.06,Math.min(i||0,10));tone({f,f2:f*1.5,type:"triangle",g:.15,d:.09});tone({f:f*2,g:.05,d:.06})},
   creak(){tone({f:190,f2:120,type:"sawtooth",g:.045,d:.7,a:.12});tone({f:95,f2:70,type:"triangle",g:.08,d:.6,a:.1})},
   thud(){tone({f:75,f2:32,g:.9,d:.55});noise({type:"lowpass",f:380,g:.7,d:.6,a:.01});for(let i=0;i<5;i++)noise({at:.05+i*.07,f:1300,q:1,g:.14,d:.12})},
-  splash(){noise({f:1600,f2:450,q:.8,g:.35,d:.3,a:.01})}};
+  splash(){noise({f:1600,f2:450,q:.8,g:.35,d:.3,a:.01})},
+  step(o){const s=o.s,big=o.big;if(s==="stone"){noise({f:(big?900:1400)*v(),q:1.6,g:big?.16:.11,d:.05});noise({type:"lowpass",f:260,g:big?.22:.12,d:.07})}
+   else if(s==="water"){noise({f:900*v(),f2:420,q:.9,g:.12,d:.16,a:.02})}
+   else{noise({type:"lowpass",f:(big?380:520)*v(),g:big?.26:.15,d:.09});noise({f:2600*v(),q:.7,g:.035,d:.06,a:.01})}},
+  land(){noise({type:"lowpass",f:300,g:.35,d:.12});tone({f:80,f2:45,g:.18,d:.1})}};
  return {play(n,a){if(muted||!init()||ac.state!=="running")return;try{LIB[n]&&LIB[n](a)}catch(e){}},
   get muted(){return muted},set muted(m){muted=!!m;try{localStorage.setItem("capSfxMute",m?"1":"0")}catch(e){}}}})();
 window.__sfx=SFX;
@@ -180,10 +184,19 @@ function updTip(){const hv=window.__harvest;const a=H.mode==="play"&&P.kind==="h
  if(!a){tip.hidden=true;return}const c=carcassAt(a);const s=screenOf(c.x,c.y+1.1,c.z);if(!s){tip.hidden=true;return}
  const L=TIP[LANG()]||TIP.en;tip.innerHTML=isTouch?L[2]:`<b>${L[0]}</b>${L[1]}`;tip.hidden=false;tip.style.left=s.x+"px";tip.style.top=s.y+"px"}
 
+/* ---------- footsteps: one soft step per stride, by surface (2026-11-27) ---------- */
+const STRIDE={human:1.5,hare:.9,deer:2.2,boar:1.3,wolf:1.9,bear:2.1};
+let stX=null,stZ=null,stAcc=0,wasAir=false;
+function updSteps(){if(H.mode!=="play"||P.dead||!STRIDE[P.kind]){stX=null;return}
+ if(stX==null){stX=P.x;stZ=P.z;return}const d=Math.hypot(P.x-stX,P.z-stZ);stX=P.x;stZ=P.z;if(d>3){stAcc=0;return}
+ const air=P.jy>0.05;if(wasAir&&!air)SFX.play("land");wasAir=air;if(air)return;
+ stAcc+=d;const L=STRIDE[P.kind];if(stAcc<L)return;stAcc-=L;
+ const surf=P.y<-.3?"water":(H.inForum(P.x,P.z,1)||H.roadDistM(P.x,P.z)<2.4)?"stone":"grass";
+ SFX.play("step",{s:surf,big:P.kind==="bear"||P.kind==="boar"})}
 /* ---------- frame hook ---------- */
 const R=H.renderer,prev=R.render.bind(R);let last=performance.now();
 R.render=function(sc,cam){const now=performance.now(),dt=Math.min(.2,(now-last)/1000);last=now;
- if(sc===scene){try{updPT(dt);updDust(dt);updFall(dt);updShrink(dt);updTip()}catch(e){console.warn("[harvest]",e)}}
+ if(sc===scene){try{updPT(dt);updDust(dt);updSteps();updFall(dt);updShrink(dt);updTip()}catch(e){console.warn("[harvest]",e)}}
  prev(sc,cam)};
 window.__harvestDbg={FALL,PT};console.log("[harvest] ready");
 })();

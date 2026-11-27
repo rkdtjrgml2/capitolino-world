@@ -1554,7 +1554,7 @@ const OPS_T={
   const mm=opsSettings.maintenance_mode===true||opsSettings.maintenance_mode==="true";$("maintT").textContent=t.maintT;$("maintS").textContent=t.maintS;$("maint").hidden=!mm;
   if(opsSettings.min_client_version&&newer(opsSettings.min_client_version,CLIENT_VER)){$("maintT").textContent=t.update;$("maintS").innerHTML=`<button onclick="location.reload()" style="padding:10px 18px;border-radius:6px;border:0;background:var(--gold);color:var(--ink);font:inherit;font-weight:700;cursor:pointer">↻</button>`;$("maint").hidden=false}
   showMotd()});
- CapOps.start({server:server.id,ver:CLIENT_VER,getState:()=>({nickname:(window.__auth&&window.__auth.prof&&window.__auth.prof.display_name)||null,form:mode==="play"?P.kind:who,zone:mode==="play"?lastPlace:"entry"})});
+ CapOps.start({server:server.id,ver:CLIENT_VER,getState:()=>({nickname:(window.__auth&&window.__auth.cit&&window.__auth.prof&&window.__auth.prof.display_name)||null,form:mode==="play"?P.kind:who,zone:mode==="play"?lastPlace:"entry"})});
  const go=$("enterBtn").onclick;$("enterBtn").onclick=e=>{go&&go(e);CapOps.setServer(server.id);showMotd()};
  CapOps.onlineCounts().then(c=>{for(const b of document.querySelectorAll(".srv [data-srv]")){const n=c[b.dataset.srv];if(n)b.title=`${n} ${ot().online}`}}).catch(()=>{});
 })();
@@ -2040,8 +2040,8 @@ setInterval(()=>{if(mode==="play"&&AUTH.loaded&&!document.hidden)AUTH.playAdd+=5
 setInterval(()=>{if(mode==="play")saveNow()},30000);
 document.addEventListener("visibilitychange",()=>{if(document.hidden)saveNow()});
 window.addEventListener("pagehide",()=>{saveNow()});
-{const _go=$("enterBtn").onclick;$("enterBtn").onclick=e=>{const cit=!!(AUTH.user&&AUTH.asCit);AUTH.asCit=false;_go&&_go(e);if(cit)memberEnter();else if(AUTH.wasMember||AUTH.user){AUTH.wasMember=false;RES_KEYS.forEach(k=>RES[k]=0);updateStats();guestLand()}}}
-{const _gh=goHome;goHome=function(){if(AUTH.user&&AUTH.loaded){saveNow();AUTH.wasMember=true}AUTH.loaded=false;return _gh.apply(this,arguments)}}
+{const _go=$("enterBtn").onclick;$("enterBtn").onclick=e=>{const cit=!!(AUTH.user&&AUTH.asCit);AUTH.asCit=false;AUTH.cit=cit;_go&&_go(e);if(cit)memberEnter();else if(AUTH.wasMember||AUTH.user){AUTH.wasMember=false;RES_KEYS.forEach(k=>RES[k]=0);updateStats();guestLand()}}}
+{const _gh=goHome;goHome=function(){if(AUTH.user&&AUTH.loaded){saveNow();AUTH.wasMember=true}AUTH.loaded=false;AUTH.cit=false;return _gh.apply(this,arguments)}}
 $("homeBtn")&&($("homeBtn").onclick=()=>goHome());
 renderAcct();
 
@@ -2053,7 +2053,7 @@ renderAcct();
    Buildings: defaults below, overridable by catalog/buildings.json. */
 {
 const U2T={
- ko:{lvl:"시민",quest:"할 일",q:["나무 10개 모으기","포룸 시장에서 자원 팔기","첫 땅 사기","도무스 짓기","간판에 내 링크 걸기"],qDone:"첫 순환 완료. 이제 원하는 대로 키워 보세요",
+ ko:{wand:"나그네",onl:"접속",onlN:"명",lvl:"시민",quest:"할 일",q:["나무 10개 모으기","포룸 시장에서 자원 팔기","첫 땅 사기","도무스 짓기","간판에 내 링크 걸기"],qDone:"첫 순환 완료. 이제 원하는 대로 키워 보세요",
   log:"알림",bag:"가방",build:"건설",map:"지도",me:"캐릭터",menu:"메뉴",help:"도움말",fb:"건의",
   store:"창고",pub:"호레아 공공창고",home:"내 집 창고",units:"개",putAll:"자원 모두 넣기",takeAll:"모두 꺼내기",storeTip:"누르면 1개, Shift 누르고 누르면 전부 옮깁니다",full:"창고가 가득 찼습니다",
   carried:"들고 있는 자원",nearStore:"I 를 눌러 창고 열기",
@@ -2061,7 +2061,7 @@ const U2T={
   bHint:"카드를 고르고 내 땅 위에서 짓기",noLand:"땅이 없습니다. 가장 가까운 파는 땅까지 약 {d}m",standOn:"내 땅 위에 서 주세요. 가장 가까운 내 땅까지 약 {d}m",
   notCleared:"땅의 나무를 먼저 베어 주세요 ({n}/3)",built:"이미 지었습니다",noRes:"자원이 모자랍니다",ok:"지을 수 있습니다",signOk:"간판을 걸 수 있습니다",
   keysB:"B 닫기 · 우클릭 취소"},
- en:{lvl:"Citizen",quest:"To do",q:["Gather 10 wood","Sell resources at the Forum market","Buy your first land","Build a domus","Hang your link on a sign"],qDone:"First loop done. Grow it your way",
+ en:{wand:"Visitor",onl:"Online",onlN:"",lvl:"Citizen",quest:"To do",q:["Gather 10 wood","Sell resources at the Forum market","Buy your first land","Build a domus","Hang your link on a sign"],qDone:"First loop done. Grow it your way",
   log:"Notices",bag:"Bag",build:"Build",map:"Map",me:"Character",menu:"Menu",help:"Help",fb:"Feedback",
   store:"Storage",pub:"Horrea public storage",home:"Home storage",units:"",putAll:"Store all resources",takeAll:"Take all",storeTip:"Click moves 1, Shift click moves all",full:"Storage is full",
   carried:"Carried resources",nearStore:"Press I to open storage",
@@ -2069,7 +2069,7 @@ const U2T={
   bHint:"Pick a card, then build on your land",noLand:"You have no land. Nearest land for sale about {d}m",standOn:"Stand on your land. Nearest is about {d}m",
   notCleared:"Clear the trees first ({n}/3)",built:"Already built",noRes:"Not enough resources",ok:"Ready to build",signOk:"You can hang a sign",
   keysB:"B close · right click cancel"},
- ja:{lvl:"市民",quest:"やること",q:["木を10本集める","フォルムの市場で売る","最初の土地を買う","ドムスを建てる","看板にリンクを掛ける"],qDone:"最初の一巡が完了。自由に育てましょう",
+ ja:{wand:"旅人",onl:"接続",onlN:"人",lvl:"市民",quest:"やること",q:["木を10本集める","フォルムの市場で売る","最初の土地を買う","ドムスを建てる","看板にリンクを掛ける"],qDone:"最初の一巡が完了。自由に育てましょう",
   log:"お知らせ",bag:"かばん",build:"建設",map:"地図",me:"キャラ",menu:"メニュー",help:"ヘルプ",fb:"要望",
   store:"倉庫",pub:"ホレア公共倉庫",home:"自宅の倉庫",units:"",putAll:"資源をすべて預ける",takeAll:"すべて出す",storeTip:"クリックで1個、Shiftクリックで全部",full:"倉庫がいっぱいです",
   carried:"持っている資源",nearStore:"Iで倉庫を開く",
@@ -2159,6 +2159,8 @@ img.u2it{object-fit:contain;pointer-events:none;filter:drop-shadow(0 1px 1px rgb
 #u2me{position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);left:calc(env(safe-area-inset-left,0px) + 12px);display:flex;gap:10px;align-items:center;padding:6px 14px 6px 6px;z-index:4;pointer-events:none}
 #u2me .pt{width:50px;height:50px;border-radius:50%;border:3px solid var(--brz);display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,#5a4330,#2b2119);font-family:var(--display);font-weight:700;font-size:20px;color:var(--brz-hi)}
 #u2me .pt img{width:100%;height:100%;border-radius:50%}
+#u2me .on{font-size:11px;color:#d9cdb4;margin-top:3px;display:flex;align-items:center;gap:5px;white-space:nowrap}#u2me .on i{width:7px;height:7px;border-radius:50%;background:#5fbf4a;box-shadow:0 0 6px #5fbf4a}
+
 #u2me .nm{font-family:var(--display);font-size:13.5px;color:var(--brz-hi);white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis}
 #u2me .no{font-family:var(--body);font-size:11px;color:#cbbfa6;margin-left:6px}
 #u2me .mt{height:8px;width:150px;border-radius:4px;background:rgba(0,0,0,.55);overflow:hidden;margin-top:5px}#u2me .mt b{display:block;height:100%;background:linear-gradient(90deg,#a8321f,#e0734f);transition:width .2s}
@@ -2250,7 +2252,7 @@ img.u2it{object-fit:contain;pointer-events:none;filter:drop-shadow(0 1px 1px rgb
 
 /* ---- elements ---- */
 const mk=(id,cls,html,parent)=>{const d=document.createElement("div");d.id=id;if(cls)d.className=cls;d.innerHTML=html||"";(parent||$("hud")).appendChild(d);return d};
-mk("u2me","u2wood",`<div class="pt"></div><div><div class="nm"></div><div class="mt"><b></b></div></div>`);
+mk("u2me","u2wood",`<div class="pt"></div><div><div class="nm"></div><div class="mt"><b></b></div><div class="on" hidden></div></div>`);
 mk("u2quest","u2wood","");
 mk("u2log","","");
 const menu=mk("u2menu","","");
@@ -2268,8 +2270,8 @@ drawMenu();
 /* ---- status plate ---- */
 const KIND_INI={human:"",crow:"C",hare:"H",deer:"D",boar:"B",wolf:"W",bear:"U",fish:"F"};
 function drawMe(){const el=$("u2me");if(mode!=="play"){el.hidden=true;return}el.hidden=false;
- const pr=window.__auth&&window.__auth.prof;const kn=(T[lang]&&T[lang][P.kind])||UT().lvl;const own=(pr&&pr.display_name)||"";const nm=own||kn;
- const no=(own?`<span class="no">${kn}</span>`:"")+(pr&&pr.citizen_no?`<span class="no">No.${pr.citizen_no}</span>`:"");
+ const pr=window.__auth&&window.__auth.prof;const kn=(T[lang]&&T[lang][P.kind])||UT().lvl;const cit=!!(window.__auth&&window.__auth.cit);const own=(cit&&pr&&pr.display_name)||"";const nm=own||(cit?kn:(UT().wand+" · "+kn));
+ const no=(own?`<span class="no">${kn}</span>`:"")+(cit&&pr&&pr.citizen_no?`<span class="no">No.${pr.citizen_no}</span>`:"");
  el.querySelector(".nm").innerHTML=String(nm).replace(/</g,"&lt;")+no;
  const pid="portrait_"+P.kind;el.querySelector(".pt").innerHTML=ICON_OK.has(pid)?`<img src="assets/icons/${pid}.webp" alt="">`:(KIND_INI[P.kind]||String(nm).trim().charAt(0).toUpperCase()||"C");
  el.querySelector(".mt b").style.width=Math.max(0,P.hp/P.hpMax*100)+"%"}
@@ -2287,7 +2289,7 @@ function drawLog(){const el=$("u2log");if(!LOG.length||mode!=="play"){el.innerHT
  el.innerHTML=`<div class="h">${UT().log}</div>`+LOG.map(l=>`<span class="${now-l.at>20000?"old":""}">${l.m.replace(/</g,"&lt;")}</span>`).join("")}
 
 /* ---- first loop quest list ---- */
-const QKEY=()=>"cap3d.quest."+server.id;
+const QKEY=()=>"cap3d.quest."+server.id+(AUTH.user&&AUTH.cit?"."+AUTH.user.id:"");
 let QS={};try{QS=JSON.parse(localStorage.getItem(QKEY())||"{}")}catch(e){}
 let qMin=false;
 function questState(){const own=PLOTS.some(p=>p.own);return [QS.w||RES.wood>=10,QS.s||false,QS.l||own,QS.h||PLOTS.some(p=>p.own&&p.house),QS.g||PLOTS.some(p=>p.own&&p.sign)]}
@@ -2303,7 +2305,7 @@ function drawQuest(){const el=$("u2quest");if(mode!=="play"||P.kind!=="human"){e
 
 /* ---- storage beside the bag ---- */
 const HORREA=CIVIC.find(c=>c.k==="horrea");
-const SKEY=w=>"cap3d.store."+w+"."+server.id+"."+(AUTH.user?AUTH.user.id:"guest");
+const SKEY=w=>"cap3d.store."+w+"."+server.id+"."+(AUTH.user&&AUTH.cit?AUTH.user.id:"guest");
 const CAP={pub:600,home:150};
 function loadStash(w){let o={};try{o=JSON.parse(localStorage.getItem(SKEY(w))||"{}")}catch(e){}const r={};RES_KEYS.forEach(k=>{if(k!=="denarius")r[k]=Math.max(0,o[k]|0)});return r}
 function saveStash(w,s){try{localStorage.setItem(SKEY(w),JSON.stringify(s))}catch(e){}}
@@ -2426,6 +2428,40 @@ function renderBuildStatus(){const b=BLD.find(x=>x.id===bSel);const ck=buildChec
  const st=$("u2build").querySelector(".st");if(!st)return;st.querySelector(".dot").style.background=ck.ok?"#4f9a3a":"#b5532f";st.querySelector("span").textContent=ck.msg;st.querySelector("[data-go]").disabled=!ck.ok}
 function u2Refresh(){drawMenu();if(mode==="play"){updateStats();drawLog()}}
 setInterval(()=>{if(mode==="play")drawLog()},5000);
+
+/* ---- online count on the status plate (2026-11-27) ---- */
+let onlineN=null;
+function drawOnline(){const el=$("u2me").querySelector(".on");if(!el)return;if(onlineN==null||mode!=="play"){el.hidden=true;return}const t=UT();el.hidden=false;el.innerHTML=`<i></i>${t.onl} ${onlineN.toLocaleString()}${t.onlN}`}
+async function pollOnline(){if(mode!=="play"||document.hidden||!window.CapOps)return;try{const c=await CapOps.onlineCounts();onlineN=Math.max(1,Number(c[server.id])||0)}catch(e){onlineN=null}drawOnline()}
+setInterval(pollOnline,30000);
+{const _dm=drawMe;drawMe=function(){_dm.apply(this,arguments);drawOnline()}}
+
+/* ---- citizen extra save: hotbar, storage, land work, quest progress (2026-11-27)
+   Server column characters.extra (jsonb) through RPC save_extra. Server copy wins when present;
+   the first time, what this browser already has is uploaded. Visitors never touch it. ---- */
+const XV=1,WEP_OK=k=>k==null||(typeof k==="string"&&!!(T.en.weapons||{})[k]);
+function extraState(){const uid=AUTH.user.id,rd=k=>{try{return JSON.parse(localStorage.getItem(k)||"null")}catch(e){return null}};
+ return {v:XV,slots:P.kind==="human"?P.slots.slice(0,8):null,sel:P.sel|0,stash:{pub:loadStash("pub"),home:loadStash("home")},land:rd(MKEY())||{},quest:QS}}
+let lastX="";
+async function saveExtra(force){const sb=AUTH.sb;if(!sb||!AUTH.user||!AUTH.loaded||!AUTH.cit)return;const x=extraState(),j=JSON.stringify(x);if(!force&&j===lastX)return;
+ try{const {error}=await sb.rpc("save_extra",{p_server:server.id,p_extra:x});if(error)throw error;lastX=j}catch(e){console.warn("extra",e)}}
+{const _sn=saveNow;saveNow=function(){const r=_sn.apply(this,arguments);saveExtra();return r}}
+{const _me=memberEnter;memberEnter=async function(){const sb=AUTH.sb;let x=null;lastX="";
+ if(sb&&AUTH.user){try{const {data,error}=await sb.from("characters").select("extra").eq("user_id",AUTH.user.id).eq("server",server.id).maybeSingle();if(!error&&data&&data.extra&&data.extra.v)x=data.extra}catch(e){}
+  if(x){const uid=AUTH.user.id,wr=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+   if(x.stash){if(x.stash.pub)wr("cap3d.store.pub."+server.id+"."+uid,x.stash.pub);if(x.stash.home)wr("cap3d.store.home."+server.id+"."+uid,x.stash.home)}
+   if(x.land&&typeof x.land==="object")wr(MKEY(),x.land);
+   if(x.quest&&typeof x.quest==="object")wr("cap3d.quest."+server.id+"."+uid,x.quest)}}
+ try{QS=JSON.parse(localStorage.getItem(QKEY())||"{}")||{}}catch(e){QS={}}qSig="";
+ await _me.apply(this,arguments);
+ if(x&&AUTH.loaded&&P.kind==="human"&&Array.isArray(x.slots)){for(let i=0;i<8;i++){const k=x.slots[i]==null?null:x.slots[i];if(WEP_OK(k))P.slots[i]=k}P.sel=Math.min(7,Math.max(0,x.sel|0));refreshHand()}
+ if(AUTH.loaded){pollOnline();setTimeout(()=>saveExtra(true),2000)}}}
+/* visitors: guest quest list, fresh online number */
+{const _eb=$("enterBtn").onclick;$("enterBtn").onclick=function(e){const r=_eb.apply(this,arguments);
+ if(!AUTH.cit){/* a visitor always starts fresh: no quest ticks, empty storage, no land from earlier visits */
+  try{for(const k of [QKEY(),SKEY("pub"),SKEY("home"),LANDKEY])localStorage.removeItem(k)}catch(_){}QS={};qSig="";
+  RES_KEYS.forEach(k=>RES[k]=0);guestLand();updateStats();drawQuest()}
+ pollOnline();return r}}
 window.__ui2={toggleBuild,renderStore,PLOTS,BLD:()=>BLD,ICON_OK:()=>ICON_OK};
 }
 
