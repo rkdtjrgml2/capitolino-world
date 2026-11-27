@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="google" content="notranslate">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>혼자 걷는 로마</title>
+<title>로마의 시작</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Sans+KR:wght@400;600;700&display=swap">
 <style>
@@ -469,7 +469,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--gold-hi);outline-of
 "use strict";
 /* ============ text ============ */
 const T={
- ko:{sub:"혼자 걷는 로마",tag:"돈이라는 말이 태어난 언덕, 카피톨리노에서 시작합니다",
+ ko:{sub:"로마의 시작",tag:"돈이라는 말이 태어난 언덕, 카피톨리노에서 시작합니다",
   human:"사람",crow:"까마귀",deer:"사슴",wolf:"늑대",humanCap:"걷기, 사냥",crowCap:"날기",deerCap:"달리기",serverPick:"국가 서버",whoPick:"나그네로 둘러보기",visNote:"동물이나 사람을 골라 가볍게 돌아다닙니다. 계정에는 저장되지 않습니다",acctPick:"시민으로 입장",google:"Google로 로그인 · 회원가입",acctNote:"회원이 되면 데나리우스, 땅, 간판이 저장됩니다. 로그인은 준비 중이고, 지금은 나그네로 둘러볼 수 있습니다",acctSoon:"로그인은 곧 열립니다. 지금은 나그네로 들어가 주세요",soon:"준비 중",srvOpenNote:"한국어 서버입니다. 미국, 일본 서버도 열려 있습니다",srvSoonNote:"서버는 준비 중입니다",wolfCap:"사냥",hare:"토끼",hareCap:"재빠름",boar:"멧돼지",boarCap:"돌진",bear:"곰",bearCap:"강함",fish:"물고기",fishCap:"강에서만",hintKeyFish:"WASD 헤엄 · Q E 시점 회전 · Shift 빠르게 · 강 안에서만 움직입니다",
   enter:"입장",note:"시제품 0.2 · 지형은 실제 로마의 언덕과 테베레 강 배치를 줄여 손으로 놓은 추정치입니다",
   hintKey:"WASD 이동 · Space 점프 · 클릭 공격 · F 줍기, 채집 · G 버리기 · 1~8 단축 칸 · I 소지품 · M 지도 · H 도움말",hintKeyCrow:"WASD 날기 · Q E 시점 회전 · Space 위로 · C 아래로",hintKeyBeast:"WASD 이동 · Space 점프 · 클릭이나 F 공격 · Q E 시점 회전 · H 도움말",
@@ -483,7 +483,7 @@ const T={
   civic:{iovis:"유피테르 신전",moneta:"유노 모네타 신전 · 조폐소",curia:"쿠리아 · 원로원",aemilia:"바실리카 아이밀리아",iulia:"바실리카 율리아",saturni:"사투르누스 신전 · 국고",horrea:"호레아 · 공공 창고"},
   zones:{mint:"유노 모네타 조폐소",market:"광장 시장",wood:"숲 · 나무",game:"사냥터",fish:"물고기 터",stone:"채석장",iron:"철광",silver:"은광",gold:"금광"},grade:["하급","중급","상급"],danger:"위험",mapTip:"지도를 누르면 넓게 봅니다",
   inv:"소지품",slots:{hand:"손",body:"몸",feet:"발",back:"등"},empty:"빈 칸",bag:"가방",denarius:"데나리우스",bagFull:"가방이 가득 찼습니다",tooFar:"가까이 가서 주우세요",equip:"바꿔 들기",invTip:"가방의 도구를 누르면 손에 듭니다",soonSlot:"방어구는 곧 열립니다",hotbar:"단축 칸",res:{denarius:"데나리우스",food:"식량",wood:"나무",stone:"돌",iron:"철",silver:"은",gold:"금",hide:"가죽"},drop:"버리기",dropped:"버렸습니다",needPick:"곡괭이가 필요합니다",depleted:"다 캤습니다. 잠시 뒤 다시 생깁니다",trade:"광장 상인",sell:"팔기",sellAll:"모두",buy:"사기",noMoney:"데나리우스가 모자랍니다",noItem:"팔 것이 없습니다",bagFull2:"단축 칸이 가득 찼습니다",talk:"상인과 거래",tradeNote:"데나리우스는 광장 상인에게서만 나옵니다. 자원을 팔고 도구를 사세요",cast:"찌를 던졌습니다. 느낌표가 뜨면 클릭",bite:"지금!",miss:"놓쳤습니다",needWater:"물가에서 던지세요",needRod:"낚싯대를 들고 물가에서 F",keys:"<b>조작</b> WASD 이동 · Shift 달리기 · Space 점프 · 왼쪽 클릭 공격 · F 줍기, 채집, 거래 · G 버리기 · 1~8 단축 칸 · I 또는 Tab 소지품 · M 지도 · H 도움말 · Esc 닫기 · Q E 또는 오른쪽 끌기 시점 회전"},
- en:{sub:"Walk Rome Alone",tag:"Start on the Capitoline, the hill where the word money was born",
+ en:{sub:"The Beginning of Rome",tag:"Start on the Capitoline, the hill where the word money was born",
   human:"Human",crow:"Crow",deer:"Deer",wolf:"Wolf",humanCap:"walk, hunt",crowCap:"fly",deerCap:"run",serverPick:"Country server",whoPick:"Look around as a visitor",visNote:"Pick an animal or a person and wander freely. Nothing is saved to an account",acctPick:"Enter as a citizen",google:"Sign in with Google",acctNote:"Members keep their denarii, land and signs. Sign in is coming soon",acctSoon:"Sign in opens soon. Enter as a visitor for now",soon:"coming soon",srvOpenNote:"English server. Korea and Japan are open too",srvSoonNote:"server is coming soon",wolfCap:"hunt",hare:"Hare",hareCap:"quick",boar:"Boar",boarCap:"charge",bear:"Bear",bearCap:"strong",fish:"Fish",fishCap:"river only",hintKeyFish:"WASD swim · Q E turn view · Shift faster · stays in the river",
   enter:"Enter",note:"Prototype 0.2 · Terrain is a hand placed estimate of Rome's real hills and the Tiber",
   hintKey:"WASD move · Space jump · Click attack · F pick up, gather · G drop · 1 to 8 hotbar · I inventory · M map · H help",hintKeyCrow:"WASD fly · Q E turn view · Space up · C down",hintKeyBeast:"WASD move · Space jump · Click or F attack · Q E turn · H help",
@@ -497,7 +497,7 @@ const T={
   civic:{iovis:"Temple of Jupiter",moneta:"Temple of Juno Moneta · Mint",curia:"Curia · Senate",aemilia:"Basilica Aemilia",iulia:"Basilica Julia",saturni:"Temple of Saturn · Treasury",horrea:"Horrea · public granary"},
   zones:{mint:"Mint of Juno Moneta",market:"Market square",wood:"Forest · wood",game:"Hunting ground",fish:"Fishing spot",stone:"Quarry",iron:"Iron mine",silver:"Silver mine",gold:"Gold mine"},grade:["poor","fair","rich"],danger:"danger",mapTip:"Tap the map to zoom out",
   inv:"Inventory",slots:{hand:"Hand",body:"Body",feet:"Feet",back:"Back"},empty:"empty",bag:"Bag",denarius:"denarii",bagFull:"Your bag is full",tooFar:"Walk closer to pick it up",equip:"Equip",invTip:"Tap a tool in the bag to hold it",soonSlot:"armor coming soon",hotbar:"Hotbar",res:{denarius:"denarii",food:"food",wood:"wood",stone:"stone",iron:"iron",silver:"silver",gold:"gold",hide:"hide"},drop:"Drop",dropped:"Dropped",needPick:"You need a pickaxe",depleted:"Mined out. It comes back in a while",trade:"Market trader",sell:"Sell",sellAll:"All",buy:"Buy",noMoney:"Not enough denarii",noItem:"Nothing to sell",bagFull2:"Hotbar is full",talk:"Trade",tradeNote:"Denarii only come from the market traders. Sell resources, buy tools",cast:"Line cast. Click when the ! appears",bite:"Now!",miss:"It got away",needWater:"Cast from the water edge",needRod:"Hold a fishing rod by water and press F",keys:"<b>Controls</b> WASD move · Shift run · Space jump · Left click attack · F pick up, gather, trade · G drop · 1 to 8 hotbar · I or Tab inventory · M map · H help · Esc close · Q E or drag to turn"},
- ja:{sub:"ひとりで歩くローマ",tag:"お金という言葉が生まれた丘、カピトリーノから始まります",
+ ja:{sub:"ローマのはじまり",tag:"お金という言葉が生まれた丘、カピトリーノから始まります",
   human:"人",crow:"カラス",deer:"シカ",wolf:"オオカミ",humanCap:"歩く、狩る",crowCap:"飛ぶ",deerCap:"走る",serverPick:"国別サーバー",whoPick:"旅人として見て回る",visNote:"動物か人を選んで気軽に歩き回れます。アカウントには保存されません",acctPick:"市民として入る",google:"Googleでログイン・新規登録",acctNote:"会員になるとデナリウス、土地、看板が保存されます。ログインは準備中です。今は旅人として見て回れます",acctSoon:"ログインはまもなく開きます。今は旅人として入ってください",soon:"準備中",srvOpenNote:"日本語サーバーです。韓国、アメリカも開いています",srvSoonNote:"サーバーは準備中です",wolfCap:"狩る",hare:"ウサギ",hareCap:"すばやい",boar:"イノシシ",boarCap:"突進",bear:"クマ",bearCap:"強い",fish:"魚",fishCap:"川の中だけ",hintKeyFish:"WASD 泳ぐ · Q E 視点回転 · Shift 速く · 川の中だけ動けます",
   enter:"入場",note:"試作 0.2 · 地形は実際のローマの丘とテヴェレ川の配置を縮めて手で置いた推定です",
   hintKey:"WASD 移動 · Space ジャンプ · クリック 攻撃 · F 拾う・採集 · G 捨てる · 1〜8 ホットバー · I 持ち物 · M 地図 · H ヘルプ",hintKeyCrow:"WASD 飛ぶ · Q E 視点回転 · Space 上へ · C 下へ",hintKeyBeast:"WASD 移動 · Space ジャンプ · クリックか F 攻撃 · Q E 視点回転 · H ヘルプ",
