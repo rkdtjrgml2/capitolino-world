@@ -1,0 +1,6 @@
+sfx.mp3 packs clips from two Kenney packs, both CC0 1.0 (public domain):
+  Impact Sounds (footstep_grass, footstep_concrete, footstep_wood, footstep_snow,
+  impactWood_heavy, impactMining, impactPunch_medium, impactMetal_light,
+  impactGeneric_light, impactSoft_medium)
+  Interface Sounds (click1, switch2)
+https://kenney.nl  Ambient sounds are synthesized in audio.js.

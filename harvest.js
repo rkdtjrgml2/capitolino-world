@@ -37,7 +37,9 @@ const SFX=(()=>{let ac=null,master=null,nb=null,muted=false;
   thud(){tone({f:75,f2:32,g:.9,d:.55});noise({type:"lowpass",f:380,g:.7,d:.6,a:.01});for(let i=0;i<5;i++)noise({at:.05+i*.07,f:1300,q:1,g:.14,d:.12})},
   splash(){noise({f:1600,f2:450,q:.8,g:.35,d:.3,a:.01})}};
  return {play(n,a){if(muted||!init()||ac.state!=="running")return;try{LIB[n]&&LIB[n](a)}catch(e){}},
-  get muted(){return muted},set muted(m){muted=!!m;try{localStorage.setItem("capSfxMute",m?"1":"0")}catch(e){}}}})();
+  get muted(){return muted},set muted(m){muted=!!m;try{localStorage.setItem("capSfxMute",m?"1":"0")}catch(e){}},
+  /* for audio.js: sampled layers, footsteps and ambience share this context and master */
+  _ctx:init,_out(){init();return master},_noise(){init();return nb},_lib:LIB}})();
 window.__sfx=SFX;
 const later=(ms,f)=>setTimeout(()=>{try{f()}catch(e){console.warn("[harvest]",e)}},ms);
 
