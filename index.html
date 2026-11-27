@@ -1563,7 +1563,7 @@ const OPS_T={
 const SOC_T={
  ko:{talk:"대화",trade:"거래 신청",info:"정보",shop:"상점 보기",close:"닫기",wanderer:"나그네",shopOpen:"개인 상점 열림",accepted:"님이 거래를 수락했습니다",
   xTitle:"거래",me:"나",them:"상대",give:"내가 줄 것",get:"받을 것",theirStock:"상대 소지품 (눌러서 요청)",lock:"확인",locked:"확인됨",swap:"교환",cancel:"취소",
-  fair:"좋습니다. 이대로 하죠",unfair:"조금 더 주시면 좋겠습니다",empty:"주고받을 것을 올려 주세요",done:"교환했습니다",bagFull:"단축 칸이 가득 찼습니다",
+  fair:"좋습니다. 이대로 하죠",unfair:"조금 더 주시면 좋겠습니다",tooMuch:"그 값으로는 못 쳐 드려요. 가치 {n}까지는 드릴 수 있습니다",nothing:"그건 그냥 드릴 수 없어요. 무언가 올려 주세요",near:"거의 맞았어요. 조금만 더 얹어 주세요",empty:"주고받을 것을 올려 주세요",done:"교환했습니다",bagFull:"단축 칸이 가득 찼습니다",
   value:"가치",myShop:"내 상점 열기",shopName:"상점 이름",shopDefault:"나그네의 가게",price:"값",qty:"수량",list:"올리기",openShop:"상점 열기",closeShop:"상점 닫기",
   shopHint:"상점을 여는 동안은 움직일 수 없습니다. 지나가는 시민이 사 갈 수 있습니다",shopNothing:"올린 물건이 없습니다",sold:"님이 샀습니다",buy:"사기",noMoney:"데나리우스가 모자랍니다",
   soldOut:"다 팔렸습니다",
@@ -1574,7 +1574,7 @@ const SOC_T={
   lines:["어서 오세요, 나그네님. 포룸은 늘 붐비지요","북쪽 숲에서 나무를 베면 상인이 값을 쳐 줍니다","좋은 광맥일수록 멀고 늑대가 많답니다","유피테르 신전은 언덕 꼭대기에 있어요. 경치가 좋지요","티베리스 강가에서 낚시를 해 보세요. 찌가 흔들리면 바로 당기세요","거래하고 싶으면 거래 신청을 눌러 주세요","땅을 살 수 있게 되면 언덕 위 자리가 비쌀 겁니다"]},
  en:{talk:"Talk",trade:"Request trade",info:"Info",shop:"View shop",close:"Close",wanderer:"Visitor",shopOpen:"Shop open",accepted:" accepted the trade",
   xTitle:"Trade",me:"You",them:"Them",give:"You give",get:"You get",theirStock:"Their items (tap to ask)",lock:"Confirm",locked:"Confirmed",swap:"Trade",cancel:"Cancel",
-  fair:"Fair enough. Deal",unfair:"A little more, please",empty:"Add something to trade",done:"Trade complete",bagFull:"Your hotbar is full",
+  fair:"Fair enough. Deal",unfair:"A little more, please",tooMuch:"I can't pay that much for it. I can go up to {n} in value",nothing:"I can't just give that away. Put something up",near:"Almost there. Add a little more",empty:"Add something to trade",done:"Trade complete",bagFull:"Your hotbar is full",
   value:"value",myShop:"Open my shop",shopName:"Shop name",shopDefault:"Visitor's stall",price:"Price",qty:"Qty",list:"List",openShop:"Open shop",closeShop:"Close shop",
   shopHint:"You cannot move while your shop is open. Passing citizens may buy",shopNothing:"Nothing listed",sold:" bought",buy:"Buy",noMoney:"Not enough denarii",soldOut:"Sold out",
   sys:"Menu",resume:"Resume",settings:"Settings",keys:"Controls",feedback:"Send feedback",home:"Back to start",quality:"Graphics",high:"High",mid:"Medium",low:"Low",tags:"Name tags",snd:"Sound effects",on:"On",off:"Off",
@@ -1584,7 +1584,7 @@ const SOC_T={
   lines:["Welcome, traveler. The Forum is always busy","Chop wood in the northern forest and the merchants will pay","The richer the vein, the farther away and the more wolves","Jupiter's temple sits on the hilltop. Lovely view","Try fishing on the Tiber. Pull as soon as the float bobs","Want to trade? Press Request trade","When land goes on sale, hilltop plots will cost the most"]},
  ja:{talk:"話す",trade:"取引を申し込む",info:"情報",shop:"店を見る",close:"閉じる",wanderer:"旅人",shopOpen:"個人商店 営業中",accepted:"が取引を受けました",
   xTitle:"取引",me:"自分",them:"相手",give:"渡すもの",get:"受け取るもの",theirStock:"相手の持ち物（押して要求）",lock:"確認",locked:"確認済み",swap:"交換",cancel:"取消",
-  fair:"いいでしょう。これで",unfair:"もう少しいただけますか",empty:"取引するものを置いてください",done:"交換しました",bagFull:"ショートカットがいっぱいです",
+  fair:"いいでしょう。これで",unfair:"もう少しいただけますか",tooMuch:"その値では引き取れません。価値{n}までなら出せます",nothing:"ただでは渡せません。何か出してください",near:"もう少しです。少しだけ足してください",empty:"取引するものを置いてください",done:"交換しました",bagFull:"ショートカットがいっぱいです",
   value:"価値",myShop:"自分の店を開く",shopName:"店の名前",shopDefault:"旅人の店",price:"値段",qty:"数",list:"出品",openShop:"開店",closeShop:"閉店",
   shopHint:"開店中は動けません。通りがかりの市民が買うことがあります",shopNothing:"出品がありません",sold:"が買いました",buy:"買う",noMoney:"デナリウスが足りません",soldOut:"売り切れ",
   sys:"メニュー",resume:"続ける",settings:"設定",keys:"操作",feedback:"ご意見",home:"最初の画面へ",quality:"画質",high:"高",mid:"中",low:"低",tags:"名前表示",snd:"効果音",on:"オン",off:"オフ",
@@ -1703,7 +1703,7 @@ function renderX(){const x=UI.x,t=ST(),R=T[lang].res;if(!x)return;const n=x.n;
  b.querySelectorAll("[data-gi]").forEach(e=>e.onclick=()=>{const i=+e.dataset.gi,j=x.giveItems.indexOf(i);if(j<0)x.giveItems.push(i);else x.giveItems.splice(j,1);xChanged()});
  b.querySelectorAll("[data-ri]").forEach(e=>e.onclick=()=>{const i=+e.dataset.ri,j=x.getItems.indexOf(i);if(j<0)x.getItems.push(i);else x.getItems.splice(j,1);xChanged()});
  b.querySelector("[data-lock]").onclick=()=>{const g=xValue("give"),r=xValue("get");if(!g&&!r){x.say=ST().empty;renderX();return}x.myOk=true;renderX();
-  setTimeout(()=>{if(UI.x!==x||!x.myOk)return;if(g>=Math.ceil(r*1.1)||(r===0&&g>0)){x.theirOk=true;x.say=ST().fair}else{x.say=ST().unfair}renderX()},700)};
+  setTimeout(()=>{if(UI.x!==x||!x.myOk)return;if(g>=Math.ceil(r*1.1)||(r===0&&g>0)){x.theirOk=true;x.say=ST().fair}else{const t=ST(),cap=Math.floor(g/1.1);x.say=g<=0?t.nothing:g>=r?t.near:cap>0?t.tooMuch.replace("{n}",cap):t.nothing}renderX()},700)};
  b.querySelector("[data-swap]").onclick=doX}
 function doX(){const x=UI.x,n=x.n,t=ST();if(!x.myOk||!x.theirOk)return;
  const free=P.slots.filter((k,i)=>!k||x.giveItems.includes(i)).length;if(x.getItems.length>free){toast(t.bagFull);return}
