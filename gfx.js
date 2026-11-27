@@ -135,6 +135,7 @@ function humanAnim(I,isPlayer,npc){
     if(swim)play(I,s>.08?"Swim":"SwimIdle",.25);
     else if(P.jy>.15)play(I,"JumpLoop",.12,false,1.2);
     else if(s<.06)play(I,P.hand&&P.hand!=="rod"&&BLADE[P.hand]?"SwordIdle":"Idle",.25);
+    else if(P.walk&&I.acts.Walk)play(I,"Walk",.2,false,1.75);
     else if(s<1.05)play(I,"Run",.18,false,Math.max(.75,s*1.05));
     else play(I,"Sprint",.18,false,Math.max(.8,s*.8));
    }

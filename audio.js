@@ -123,7 +123,7 @@ function tick(){requestAnimationFrame(tick);const now=performance.now(),dt=Math.
    /* lock steps to the animation: two contacts per cycle for two legs, four for four legs */
    const n=/swim/i.test(clip.name)?1:(kind==="human"||kind==="crow"||kind==="hare")?2:4;
    const idx=Math.floor((act.time/clip.duration)*n+.15)%n;const run=/run|sprint|gallop/i.test(clip.name)&&kind!=="human"||/sprint/i.test(clip.name);
-   if(lastIdx>=0&&idx!==lastIdx)step(kind,run,n===4&&idx%2?.7:1);lastIdx=idx;acc=0}
+   if(lastIdx>=0&&idx!==lastIdx)step(kind,run,(n===4&&idx%2?.7:1)*(kind==="human"&&/walk/i.test(clip.name)?.7:1));lastIdx=idx;acc=0}
   else{lastIdx=-1;
    if(!inAir&&d>0&&dt>0){const sp=d/dt,gt=GAIT[kind]||GAIT.human;const cad=gt.cad*(.85+Math.min(.5,sp*.04));
     acc+=d;if(acc>=Math.max(.3,sp/cad)){acc=0;step(kind,false)}}

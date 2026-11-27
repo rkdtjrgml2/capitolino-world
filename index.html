@@ -1203,6 +1203,7 @@ addEventListener("keydown",e=>{if(mode!=="play")return;keys[e.code]=true;if(["Sp
  else if(c==="KeyR")tryPick();
  else if(c==="KeyF"){if(!tryPick()&&!openTrade()&&!useItem()&&!gather())attack()}
  else if(c==="KeyG")dropHeld();
+ else if(c==="KeyZ")P.walkT=!P.walkT;
  else if(c==="Space"&&P.kind!=="crow"&&P.kind!=="fish"){if(P.jy<=0.01&&!P.dead)P.vy=P.kind==="human"?7.5:8.5}});
 addEventListener("keyup",e=>{keys[e.code]=false});
 addEventListener("blur",()=>{for(const k in keys)keys[k]=false});
@@ -1413,10 +1414,12 @@ function updatePlayer(dt){
   if(keys.KeyQ)cam.yaw+=dt*2;if(keys.KeyE)cam.yaw-=dt*2}
  const L=Math.hypot(ix,iy);if(L>1){ix/=L;iy/=L}
  const run=(keys.ShiftLeft||keys.ShiftRight||(joy.id!==null&&Math.hypot(joy.x,joy.y)>.95))?1.8:1;
+ /* walking: Z toggles it, a gentle push on the joystick walks too; only people have a true walk */
+ const walk=P.kind==="human"&&run===1&&(P.walkT||(joy.id!==null&&Math.hypot(joy.x,joy.y)<.55));
  const fx=-Math.sin(cam.yaw),fz=-Math.cos(cam.yaw),rx=Math.cos(cam.yaw),rz=-Math.sin(cam.yaw);
  let mx=fx*iy+rx*ix,mz=fz*iy+rz*ix;const mag=Math.min(1,Math.hypot(mx,mz));
  const gh=groundAt(P.x,P.z);
- let sp=SPEED[P.kind]*(P.kind==="crow"?1:run);
+ let sp=SPEED[P.kind]*(P.kind==="crow"?1:run)*(walk?.26/Math.max(.35,joy.id!==null?mag:1):1);P.walk=walk;
  const swimming=P.kind!=="crow"&&P.kind!=="fish"&&gh<-.5;if(swimming)sp*=.45;
  let nx=P.x+mx*sp*dt,nz=P.z+mz*sp*dt;nx=Math.max(CX-HALF,Math.min(CX+HALF,nx));nz=Math.max(CZ-HALF,Math.min(CZ+HALF,nz));
  if(P.kind==="fish"){if(heightAt(nx,nz)>-1.1){if(heightAt(nx,P.z)<=-1.1)nz=P.z;else if(heightAt(P.x,nz)<=-1.1)nx=P.x;else{nx=P.x;nz=P.z}}}
@@ -1569,7 +1572,7 @@ const SOC_T={
   soldOut:"다 팔렸습니다",
   sys:"메뉴",resume:"계속하기",settings:"설정",keys:"단축키",feedback:"건의 보내기",home:"처음 화면으로",quality:"그래픽 품질",high:"높음",mid:"보통",low:"낮음",tags:"이름표 표시",snd:"효과음",on:"켜기",off:"끄기",
   me2:"내 정보",form:"모습",hp:"체력",worth:"재산 가치",held:"손에 든 것",none:"없음",
-  keyRows:[["WASD, 방향키","이동"],["Shift","달리기"],["Space","점프, 까마귀는 날기"],["Q E, 마우스 끌기","시점 회전"],["휠","시점 거리"],["F, 클릭","상호작용 (줍기, 대화, 채집, 공격)"],["1~8","단축 칸 선택"],["I, Tab","소지품"],["G","들고 있는 것 버리기"],["B","내 상점"],["C","내 정보"],["M","지도"],["H","도움말"],["Esc","창 닫기, 메뉴"]],
+  keyRows:[["WASD, 방향키","이동"],["Shift","달리기"],["Z","걷기 켜고 끄기"],["Space","점프, 까마귀는 날기"],["Q E, 마우스 끌기","시점 회전"],["휠","시점 거리"],["F, 클릭","상호작용 (줍기, 대화, 채집, 공격)"],["1~8","단축 칸 선택"],["I, Tab","소지품"],["G","들고 있는 것 버리기"],["B","내 상점"],["C","내 정보"],["M","지도"],["H","도움말"],["Esc","창 닫기, 메뉴"]],
   roles:{marcus:"벌목꾼",julia:"사냥꾼",lucius:"광부",claudia:"상인",gaius:"어부",flavia:"순례자"},
   lines:["어서 오세요, 나그네님. 포룸은 늘 붐비지요","북쪽 숲에서 나무를 베면 상인이 값을 쳐 줍니다","좋은 광맥일수록 멀고 늑대가 많답니다","유피테르 신전은 언덕 꼭대기에 있어요. 경치가 좋지요","티베리스 강가에서 낚시를 해 보세요. 찌가 흔들리면 바로 당기세요","거래하고 싶으면 거래 신청을 눌러 주세요","땅을 살 수 있게 되면 언덕 위 자리가 비쌀 겁니다"]},
  en:{talk:"Talk",trade:"Request trade",info:"Info",shop:"View shop",close:"Close",wanderer:"Visitor",shopOpen:"Shop open",accepted:" accepted the trade",
@@ -1579,7 +1582,7 @@ const SOC_T={
   shopHint:"You cannot move while your shop is open. Passing citizens may buy",shopNothing:"Nothing listed",sold:" bought",buy:"Buy",noMoney:"Not enough denarii",soldOut:"Sold out",
   sys:"Menu",resume:"Resume",settings:"Settings",keys:"Controls",feedback:"Send feedback",home:"Back to start",quality:"Graphics",high:"High",mid:"Medium",low:"Low",tags:"Name tags",snd:"Sound effects",on:"On",off:"Off",
   me2:"Character",form:"Form",hp:"HP",worth:"Net worth",held:"Holding",none:"Nothing",
-  keyRows:[["WASD, arrows","Move"],["Shift","Run"],["Space","Jump, crows fly"],["Q E, drag","Turn view"],["Wheel","Zoom"],["F, click","Interact (pick up, talk, gather, attack)"],["1 to 8","Hotbar slot"],["I, Tab","Inventory"],["G","Drop held item"],["B","My shop"],["C","Character"],["M","Map"],["H","Help"],["Esc","Close, menu"]],
+  keyRows:[["WASD, arrows","Move"],["Shift","Run"],["Z","Walk on or off"],["Space","Jump, crows fly"],["Q E, drag","Turn view"],["Wheel","Zoom"],["F, click","Interact (pick up, talk, gather, attack)"],["1 to 8","Hotbar slot"],["I, Tab","Inventory"],["G","Drop held item"],["B","My shop"],["C","Character"],["M","Map"],["H","Help"],["Esc","Close, menu"]],
   roles:{marcus:"Woodcutter",julia:"Hunter",lucius:"Miner",claudia:"Merchant",gaius:"Fisher",flavia:"Pilgrim"},
   lines:["Welcome, traveler. The Forum is always busy","Chop wood in the northern forest and the merchants will pay","The richer the vein, the farther away and the more wolves","Jupiter's temple sits on the hilltop. Lovely view","Try fishing on the Tiber. Pull as soon as the float bobs","Want to trade? Press Request trade","When land goes on sale, hilltop plots will cost the most"]},
  ja:{talk:"話す",trade:"取引を申し込む",info:"情報",shop:"店を見る",close:"閉じる",wanderer:"旅人",shopOpen:"個人商店 営業中",accepted:"が取引を受けました",
@@ -1589,7 +1592,7 @@ const SOC_T={
   shopHint:"開店中は動けません。通りがかりの市民が買うことがあります",shopNothing:"出品がありません",sold:"が買いました",buy:"買う",noMoney:"デナリウスが足りません",soldOut:"売り切れ",
   sys:"メニュー",resume:"続ける",settings:"設定",keys:"操作",feedback:"ご意見",home:"最初の画面へ",quality:"画質",high:"高",mid:"中",low:"低",tags:"名前表示",snd:"効果音",on:"オン",off:"オフ",
   me2:"自分の情報",form:"姿",hp:"体力",worth:"財産価値",held:"手に持つもの",none:"なし",
-  keyRows:[["WASD、矢印","移動"],["Shift","走る"],["Space","ジャンプ、カラスは飛ぶ"],["Q E、ドラッグ","視点回転"],["ホイール","距離"],["F、クリック","操作（拾う、話す、採集、攻撃）"],["1〜8","ショートカット"],["I、Tab","持ち物"],["G","持ち物を捨てる"],["B","自分の店"],["C","自分の情報"],["M","地図"],["H","ヘルプ"],["Esc","閉じる、メニュー"]],
+  keyRows:[["WASD、矢印","移動"],["Shift","走る"],["Z","歩く 切り替え"],["Space","ジャンプ、カラスは飛ぶ"],["Q E、ドラッグ","視点回転"],["ホイール","距離"],["F、クリック","操作（拾う、話す、採集、攻撃）"],["1〜8","ショートカット"],["I、Tab","持ち物"],["G","持ち物を捨てる"],["B","自分の店"],["C","自分の情報"],["M","地図"],["H","ヘルプ"],["Esc","閉じる、メニュー"]],
   roles:{marcus:"木こり",julia:"狩人",lucius:"鉱夫",claudia:"商人",gaius:"漁師",flavia:"巡礼者"},
   lines:["ようこそ旅人さん。フォルムはいつもにぎやかです","北の森で木を切れば商人が買ってくれます","良い鉱脈ほど遠くて狼が多いですよ","ユピテル神殿は丘の上。眺めがいいです","テヴェレ川で釣りをどうぞ。浮きが動いたらすぐ引いて","取引したいときは取引を申し込むを押してください","土地が売りに出たら丘の上が一番高くなるでしょう"]}};
 const ST=()=>SOC_T[lang]||SOC_T.en;
