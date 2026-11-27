@@ -1570,7 +1570,7 @@ const OPS_T={
   const mm=opsSettings.maintenance_mode===true||opsSettings.maintenance_mode==="true";$("maintT").textContent=t.maintT;$("maintS").textContent=t.maintS;$("maint").hidden=!mm;
   if(opsSettings.min_client_version&&newer(opsSettings.min_client_version,CLIENT_VER)){$("maintT").textContent=t.update;$("maintS").innerHTML=`<button onclick="location.reload()" style="padding:10px 18px;border-radius:6px;border:0;background:var(--gold);color:var(--ink);font:inherit;font-weight:700;cursor:pointer">↻</button>`;$("maint").hidden=false}
   showMotd()});
- CapOps.start({server:server.id,ver:CLIENT_VER,getState:()=>({nickname:(window.__auth&&window.__auth.prof&&window.__auth.prof.display_name)||null,form:mode==="play"?P.kind:who,zone:mode==="play"?lastPlace:"entry"})});
+ CapOps.start({server:server.id,ver:CLIENT_VER,getState:()=>({nickname:(window.__auth&&window.__auth.cit&&window.__auth.prof&&window.__auth.prof.display_name)||null,form:mode==="play"?P.kind:who,zone:mode==="play"?lastPlace:"entry"})});
  const go=$("enterBtn").onclick;$("enterBtn").onclick=e=>{go&&go(e);CapOps.setServer(server.id);showMotd()};
  CapOps.onlineCounts().then(c=>{for(const b of document.querySelectorAll(".srv [data-srv]")){const n=c[b.dataset.srv];if(n)b.title=`${n} ${ot().online}`}}).catch(()=>{});
 })();
@@ -1579,7 +1579,7 @@ const OPS_T={
 const SOC_T={
  ko:{talk:"대화",trade:"거래 신청",info:"정보",shop:"상점 보기",close:"닫기",wanderer:"나그네",shopOpen:"개인 상점 열림",accepted:"님이 거래를 수락했습니다",
   xTitle:"거래",me:"나",them:"상대",give:"내가 줄 것",get:"받을 것",theirStock:"상대 소지품 (눌러서 요청)",lock:"확인",locked:"확인됨",swap:"교환",cancel:"취소",
-  fair:"좋습니다. 이대로 하죠",unfair:"조금 더 주시면 좋겠습니다",empty:"주고받을 것을 올려 주세요",done:"교환했습니다",bagFull:"단축 칸이 가득 찼습니다",
+  fair:"좋습니다. 이대로 하죠",unfair:"조금 더 주시면 좋겠습니다",tooMuch:"그 값으로는 못 쳐 드려요",upTo:". 가치 {n}까지는 드릴 수 있습니다",nothing:"그건 그냥 드릴 수 없어요. 무언가 올려 주세요",near:"거의 맞았어요. 조금만 더 얹어 주세요",empty:"주고받을 것을 올려 주세요",done:"교환했습니다",bagFull:"단축 칸이 가득 찼습니다",
   value:"가치",myShop:"내 상점 열기",shopName:"상점 이름",shopDefault:"나그네의 가게",price:"값",qty:"수량",list:"올리기",openShop:"상점 열기",closeShop:"상점 닫기",
   shopHint:"상점을 여는 동안은 움직일 수 없습니다. 지나가는 시민이 사 갈 수 있습니다",shopNothing:"올린 물건이 없습니다",sold:"님이 샀습니다",buy:"사기",noMoney:"데나리우스가 모자랍니다",
   soldOut:"다 팔렸습니다",
@@ -1590,7 +1590,7 @@ const SOC_T={
   lines:["어서 오세요, 나그네님. 포룸은 늘 붐비지요","북쪽 숲에서 나무를 베면 상인이 값을 쳐 줍니다","좋은 광맥일수록 멀고 늑대가 많답니다","유피테르 신전은 언덕 꼭대기에 있어요. 경치가 좋지요","티베리스 강가에서 낚시를 해 보세요. 찌가 흔들리면 바로 당기세요","거래하고 싶으면 거래 신청을 눌러 주세요","땅을 살 수 있게 되면 언덕 위 자리가 비쌀 겁니다"]},
  en:{talk:"Talk",trade:"Request trade",info:"Info",shop:"View shop",close:"Close",wanderer:"Visitor",shopOpen:"Shop open",accepted:" accepted the trade",
   xTitle:"Trade",me:"You",them:"Them",give:"You give",get:"You get",theirStock:"Their items (tap to ask)",lock:"Confirm",locked:"Confirmed",swap:"Trade",cancel:"Cancel",
-  fair:"Fair enough. Deal",unfair:"A little more, please",empty:"Add something to trade",done:"Trade complete",bagFull:"Your hotbar is full",
+  fair:"Fair enough. Deal",unfair:"A little more, please",tooMuch:"I can't pay that much for it",upTo:". I can go up to {n} in value",nothing:"I can't just give that away. Put something up",near:"Almost there. Add a little more",empty:"Add something to trade",done:"Trade complete",bagFull:"Your hotbar is full",
   value:"value",myShop:"Open my shop",shopName:"Shop name",shopDefault:"Visitor's stall",price:"Price",qty:"Qty",list:"List",openShop:"Open shop",closeShop:"Close shop",
   shopHint:"You cannot move while your shop is open. Passing citizens may buy",shopNothing:"Nothing listed",sold:" bought",buy:"Buy",noMoney:"Not enough denarii",soldOut:"Sold out",
   sys:"Menu",resume:"Resume",settings:"Settings",keys:"Controls",feedback:"Send feedback",home:"Back to start",quality:"Graphics",high:"High",mid:"Medium",low:"Low",tags:"Name tags",snd:"Sound effects",on:"On",off:"Off",
@@ -1600,7 +1600,7 @@ const SOC_T={
   lines:["Welcome, traveler. The Forum is always busy","Chop wood in the northern forest and the merchants will pay","The richer the vein, the farther away and the more wolves","Jupiter's temple sits on the hilltop. Lovely view","Try fishing on the Tiber. Pull as soon as the float bobs","Want to trade? Press Request trade","When land goes on sale, hilltop plots will cost the most"]},
  ja:{talk:"話す",trade:"取引を申し込む",info:"情報",shop:"店を見る",close:"閉じる",wanderer:"旅人",shopOpen:"個人商店 営業中",accepted:"が取引を受けました",
   xTitle:"取引",me:"自分",them:"相手",give:"渡すもの",get:"受け取るもの",theirStock:"相手の持ち物（押して要求）",lock:"確認",locked:"確認済み",swap:"交換",cancel:"取消",
-  fair:"いいでしょう。これで",unfair:"もう少しいただけますか",empty:"取引するものを置いてください",done:"交換しました",bagFull:"ショートカットがいっぱいです",
+  fair:"いいでしょう。これで",unfair:"もう少しいただけますか",tooMuch:"その値では引き取れません",upTo:"。価値{n}までなら出せます",nothing:"ただでは渡せません。何か出してください",near:"もう少しです。少しだけ足してください",empty:"取引するものを置いてください",done:"交換しました",bagFull:"ショートカットがいっぱいです",
   value:"価値",myShop:"自分の店を開く",shopName:"店の名前",shopDefault:"旅人の店",price:"値段",qty:"数",list:"出品",openShop:"開店",closeShop:"閉店",
   shopHint:"開店中は動けません。通りがかりの市民が買うことがあります",shopNothing:"出品がありません",sold:"が買いました",buy:"買う",noMoney:"デナリウスが足りません",soldOut:"売り切れ",
   sys:"メニュー",resume:"続ける",settings:"設定",keys:"操作",feedback:"ご意見",home:"最初の画面へ",quality:"画質",high:"高",mid:"中",low:"低",tags:"名前表示",snd:"効果音",on:"オン",off:"オフ",
@@ -1719,7 +1719,7 @@ function renderX(){const x=UI.x,t=ST(),R=T[lang].res;if(!x)return;const n=x.n;
  b.querySelectorAll("[data-gi]").forEach(e=>e.onclick=()=>{const i=+e.dataset.gi,j=x.giveItems.indexOf(i);if(j<0)x.giveItems.push(i);else x.giveItems.splice(j,1);xChanged()});
  b.querySelectorAll("[data-ri]").forEach(e=>e.onclick=()=>{const i=+e.dataset.ri,j=x.getItems.indexOf(i);if(j<0)x.getItems.push(i);else x.getItems.splice(j,1);xChanged()});
  b.querySelector("[data-lock]").onclick=()=>{const g=xValue("give"),r=xValue("get");if(!g&&!r){x.say=ST().empty;renderX();return}x.myOk=true;renderX();
-  setTimeout(()=>{if(UI.x!==x||!x.myOk)return;if(g>=Math.ceil(r*1.1)||(r===0&&g>0)){x.theirOk=true;x.say=ST().fair}else{x.say=ST().unfair}renderX()},700)};
+  setTimeout(()=>{if(UI.x!==x||!x.myOk)return;if(g>=Math.ceil(r*1.1)||(r===0&&g>0)){x.theirOk=true;x.say=ST().fair}else{const t=ST(),cap=Math.floor(g/1.1);x.say=g<=0?t.nothing:g>=r?t.near:t.tooMuch+(cap>0?t.upTo.replace("{n}",cap):"")}renderX()},700)};
  b.querySelector("[data-swap]").onclick=doX}
 function doX(){const x=UI.x,n=x.n,t=ST();if(!x.myOk||!x.theirOk)return;
  const free=P.slots.filter((k,i)=>!k||x.giveItems.includes(i)).length;if(x.getItems.length>free){toast(t.bagFull);return}
@@ -2056,8 +2056,8 @@ setInterval(()=>{if(mode==="play"&&AUTH.loaded&&!document.hidden)AUTH.playAdd+=5
 setInterval(()=>{if(mode==="play")saveNow()},30000);
 document.addEventListener("visibilitychange",()=>{if(document.hidden)saveNow()});
 window.addEventListener("pagehide",()=>{saveNow()});
-{const _go=$("enterBtn").onclick;$("enterBtn").onclick=e=>{const cit=!!(AUTH.user&&AUTH.asCit);AUTH.asCit=false;_go&&_go(e);if(cit)memberEnter();else if(AUTH.wasMember||AUTH.user){AUTH.wasMember=false;RES_KEYS.forEach(k=>RES[k]=0);updateStats();guestLand()}}}
-{const _gh=goHome;goHome=function(){if(AUTH.user&&AUTH.loaded){saveNow();AUTH.wasMember=true}AUTH.loaded=false;return _gh.apply(this,arguments)}}
+{const _go=$("enterBtn").onclick;$("enterBtn").onclick=e=>{const cit=!!(AUTH.user&&AUTH.asCit);AUTH.asCit=false;AUTH.cit=cit;_go&&_go(e);if(cit)memberEnter();else if(AUTH.wasMember||AUTH.user){AUTH.wasMember=false;RES_KEYS.forEach(k=>RES[k]=0);updateStats();guestLand()}}}
+{const _gh=goHome;goHome=function(){if(AUTH.user&&AUTH.loaded){saveNow();AUTH.wasMember=true}AUTH.loaded=false;AUTH.cit=false;return _gh.apply(this,arguments)}}
 $("homeBtn")&&($("homeBtn").onclick=()=>goHome());
 renderAcct();
 
@@ -2069,7 +2069,7 @@ renderAcct();
    Buildings: defaults below, overridable by catalog/buildings.json. */
 {
 const U2T={
- ko:{lvl:"시민",quest:"할 일",q:["나무 10개 모으기","포룸 시장에서 자원 팔기","첫 땅 사기","도무스 짓기","간판에 내 링크 걸기"],qDone:"첫 순환 완료. 이제 원하는 대로 키워 보세요",
+ ko:{wand:"나그네",onl:"접속",onlN:"명",lvl:"시민",quest:"할 일",q:["나무 10개 모으기","포룸 시장에서 자원 팔기","첫 땅 사기","도무스 짓기","간판에 내 링크 걸기"],qDone:"첫 순환 완료. 이제 원하는 대로 키워 보세요",
   log:"알림",bag:"가방",build:"건설",map:"지도",me:"캐릭터",menu:"메뉴",help:"도움말",fb:"건의",
   store:"창고",pub:"호레아 공공창고",home:"내 집 창고",units:"개",putAll:"자원 모두 넣기",takeAll:"모두 꺼내기",storeTip:"누르면 1개, Shift 누르고 누르면 전부 옮깁니다",full:"창고가 가득 찼습니다",
   carried:"들고 있는 자원",nearStore:"I 를 눌러 창고 열기",
@@ -2077,7 +2077,7 @@ const U2T={
   bHint:"카드를 고르고 내 땅 위에서 짓기",noLand:"땅이 없습니다. 가장 가까운 파는 땅까지 약 {d}m",standOn:"내 땅 위에 서 주세요. 가장 가까운 내 땅까지 약 {d}m",
   notCleared:"땅의 나무를 먼저 베어 주세요 ({n}/3)",built:"이미 지었습니다",noRes:"자원이 모자랍니다",ok:"지을 수 있습니다",signOk:"간판을 걸 수 있습니다",
   keysB:"B 닫기 · 우클릭 취소"},
- en:{lvl:"Citizen",quest:"To do",q:["Gather 10 wood","Sell resources at the Forum market","Buy your first land","Build a domus","Hang your link on a sign"],qDone:"First loop done. Grow it your way",
+ en:{wand:"Visitor",onl:"Online",onlN:"",lvl:"Citizen",quest:"To do",q:["Gather 10 wood","Sell resources at the Forum market","Buy your first land","Build a domus","Hang your link on a sign"],qDone:"First loop done. Grow it your way",
   log:"Notices",bag:"Bag",build:"Build",map:"Map",me:"Character",menu:"Menu",help:"Help",fb:"Feedback",
   store:"Storage",pub:"Horrea public storage",home:"Home storage",units:"",putAll:"Store all resources",takeAll:"Take all",storeTip:"Click moves 1, Shift click moves all",full:"Storage is full",
   carried:"Carried resources",nearStore:"Press I to open storage",
@@ -2085,7 +2085,7 @@ const U2T={
   bHint:"Pick a card, then build on your land",noLand:"You have no land. Nearest land for sale about {d}m",standOn:"Stand on your land. Nearest is about {d}m",
   notCleared:"Clear the trees first ({n}/3)",built:"Already built",noRes:"Not enough resources",ok:"Ready to build",signOk:"You can hang a sign",
   keysB:"B close · right click cancel"},
- ja:{lvl:"市民",quest:"やること",q:["木を10本集める","フォルムの市場で売る","最初の土地を買う","ドムスを建てる","看板にリンクを掛ける"],qDone:"最初の一巡が完了。自由に育てましょう",
+ ja:{wand:"旅人",onl:"接続",onlN:"人",lvl:"市民",quest:"やること",q:["木を10本集める","フォルムの市場で売る","最初の土地を買う","ドムスを建てる","看板にリンクを掛ける"],qDone:"最初の一巡が完了。自由に育てましょう",
   log:"お知らせ",bag:"かばん",build:"建設",map:"地図",me:"キャラ",menu:"メニュー",help:"ヘルプ",fb:"要望",
   store:"倉庫",pub:"ホレア公共倉庫",home:"自宅の倉庫",units:"",putAll:"資源をすべて預ける",takeAll:"すべて出す",storeTip:"クリックで1個、Shiftクリックで全部",full:"倉庫がいっぱいです",
   carried:"持っている資源",nearStore:"Iで倉庫を開く",
@@ -2175,6 +2175,8 @@ img.u2it{object-fit:contain;pointer-events:none;filter:drop-shadow(0 1px 1px rgb
 #u2me{position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);left:calc(env(safe-area-inset-left,0px) + 12px);display:flex;gap:10px;align-items:center;padding:6px 14px 6px 6px;z-index:4;pointer-events:none}
 #u2me .pt{width:50px;height:50px;border-radius:50%;border:3px solid var(--brz);display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,#5a4330,#2b2119);font-family:var(--display);font-weight:700;font-size:20px;color:var(--brz-hi)}
 #u2me .pt img{width:100%;height:100%;border-radius:50%}
+#u2me .on{font-size:11px;color:#d9cdb4;margin-top:3px;display:flex;align-items:center;gap:5px;white-space:nowrap}#u2me .on i{width:7px;height:7px;border-radius:50%;background:#5fbf4a;box-shadow:0 0 6px #5fbf4a}
+
 #u2me .nm{font-family:var(--display);font-size:13.5px;color:var(--brz-hi);white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis}
 #u2me .no{font-family:var(--body);font-size:11px;color:#cbbfa6;margin-left:6px}
 #u2me .mt{height:8px;width:150px;border-radius:4px;background:rgba(0,0,0,.55);overflow:hidden;margin-top:5px}#u2me .mt b{display:block;height:100%;background:linear-gradient(90deg,#a8321f,#e0734f);transition:width .2s}
@@ -2266,7 +2268,7 @@ img.u2it{object-fit:contain;pointer-events:none;filter:drop-shadow(0 1px 1px rgb
 
 /* ---- elements ---- */
 const mk=(id,cls,html,parent)=>{const d=document.createElement("div");d.id=id;if(cls)d.className=cls;d.innerHTML=html||"";(parent||$("hud")).appendChild(d);return d};
-mk("u2me","u2wood",`<div class="pt"></div><div><div class="nm"></div><div class="mt"><b></b></div></div>`);
+mk("u2me","u2wood",`<div class="pt"></div><div><div class="nm"></div><div class="mt"><b></b></div><div class="on" hidden></div></div>`);
 mk("u2quest","u2wood","");
 mk("u2log","","");
 const menu=mk("u2menu","","");
@@ -2284,8 +2286,8 @@ drawMenu();
 /* ---- status plate ---- */
 const KIND_INI={human:"",crow:"C",hare:"H",deer:"D",boar:"B",wolf:"W",bear:"U",fish:"F"};
 function drawMe(){const el=$("u2me");if(mode!=="play"){el.hidden=true;return}el.hidden=false;
- const pr=window.__auth&&window.__auth.prof;const kn=(T[lang]&&T[lang][P.kind])||UT().lvl;const own=(pr&&pr.display_name)||"";const nm=own||kn;
- const no=(own?`<span class="no">${kn}</span>`:"")+(pr&&pr.citizen_no?`<span class="no">No.${pr.citizen_no}</span>`:"");
+ const pr=window.__auth&&window.__auth.prof;const kn=(T[lang]&&T[lang][P.kind])||UT().lvl;const cit=!!(window.__auth&&window.__auth.cit);const own=(cit&&pr&&pr.display_name)||"";const nm=own||(cit?kn:(UT().wand+" · "+kn));
+ const no=(own?`<span class="no">${kn}</span>`:"")+(cit&&pr&&pr.citizen_no?`<span class="no">No.${pr.citizen_no}</span>`:"");
  el.querySelector(".nm").innerHTML=String(nm).replace(/</g,"&lt;")+no;
  const pid="portrait_"+P.kind;el.querySelector(".pt").innerHTML=ICON_OK.has(pid)?`<img src="assets/icons/${pid}.webp" alt="">`:(KIND_INI[P.kind]||String(nm).trim().charAt(0).toUpperCase()||"C");
  el.querySelector(".mt b").style.width=Math.max(0,P.hp/P.hpMax*100)+"%"}
@@ -2303,7 +2305,7 @@ function drawLog(){const el=$("u2log");if(!LOG.length||mode!=="play"){el.innerHT
  el.innerHTML=`<div class="h">${UT().log}</div>`+LOG.map(l=>`<span class="${now-l.at>20000?"old":""}">${l.m.replace(/</g,"&lt;")}</span>`).join("")}
 
 /* ---- first loop quest list ---- */
-const QKEY=()=>"cap3d.quest."+server.id;
+const QKEY=()=>"cap3d.quest."+server.id+(AUTH.user&&AUTH.cit?"."+AUTH.user.id:"");
 let QS={};try{QS=JSON.parse(localStorage.getItem(QKEY())||"{}")}catch(e){}
 let qMin=false;
 function questState(){const own=PLOTS.some(p=>p.own);return [QS.w||RES.wood>=10,QS.s||false,QS.l||own,QS.h||PLOTS.some(p=>p.own&&p.house),QS.g||PLOTS.some(p=>p.own&&p.sign)]}
@@ -2319,7 +2321,7 @@ function drawQuest(){const el=$("u2quest");if(mode!=="play"||P.kind!=="human"){e
 
 /* ---- storage beside the bag ---- */
 const HORREA=CIVIC.find(c=>c.k==="horrea");
-const SKEY=w=>"cap3d.store."+w+"."+server.id+"."+(AUTH.user?AUTH.user.id:"guest");
+const SKEY=w=>"cap3d.store."+w+"."+server.id+"."+(AUTH.user&&AUTH.cit?AUTH.user.id:"guest");
 const CAP={pub:600,home:150};
 function loadStash(w){let o={};try{o=JSON.parse(localStorage.getItem(SKEY(w))||"{}")}catch(e){}const r={};RES_KEYS.forEach(k=>{if(k!=="denarius")r[k]=Math.max(0,o[k]|0)});return r}
 function saveStash(w,s){try{localStorage.setItem(SKEY(w),JSON.stringify(s))}catch(e){}}
@@ -2442,9 +2444,43 @@ function renderBuildStatus(){const b=BLD.find(x=>x.id===bSel);const ck=buildChec
  const st=$("u2build").querySelector(".st");if(!st)return;st.querySelector(".dot").style.background=ck.ok?"#4f9a3a":"#b5532f";st.querySelector("span").textContent=ck.msg;st.querySelector("[data-go]").disabled=!ck.ok}
 function u2Refresh(){drawMenu();if(mode==="play"){updateStats();drawLog()}}
 setInterval(()=>{if(mode==="play")drawLog()},5000);
+
+/* ---- online count on the status plate (2026-11-27) ---- */
+let onlineN=null;
+function drawOnline(){const el=$("u2me").querySelector(".on");if(!el)return;if(onlineN==null||mode!=="play"){el.hidden=true;return}const t=UT();el.hidden=false;el.innerHTML=`<i></i>${t.onl} ${onlineN.toLocaleString()}${t.onlN}`}
+async function pollOnline(){if(mode!=="play"||document.hidden||!window.CapOps)return;try{const c=await CapOps.onlineCounts();onlineN=Math.max(1,Number(c[server.id])||0)}catch(e){onlineN=null}drawOnline()}
+setInterval(pollOnline,30000);
+{const _dm=drawMe;drawMe=function(){_dm.apply(this,arguments);drawOnline()}}
+
+/* ---- citizen extra save: hotbar, storage, land work, quest progress (2026-11-27)
+   Server column characters.extra (jsonb) through RPC save_extra. Server copy wins when present;
+   the first time, what this browser already has is uploaded. Visitors never touch it. ---- */
+const XV=1,WEP_OK=k=>k==null||(typeof k==="string"&&!!(T.en.weapons||{})[k]);
+function extraState(){const uid=AUTH.user.id,rd=k=>{try{return JSON.parse(localStorage.getItem(k)||"null")}catch(e){return null}};
+ return {v:XV,slots:P.kind==="human"?P.slots.slice(0,8):null,sel:P.sel|0,stash:{pub:loadStash("pub"),home:loadStash("home")},land:rd(MKEY())||{},quest:QS}}
+let lastX="";
+async function saveExtra(force){const sb=AUTH.sb;if(!sb||!AUTH.user||!AUTH.loaded||!AUTH.cit)return;const x=extraState(),j=JSON.stringify(x);if(!force&&j===lastX)return;
+ try{const {error}=await sb.rpc("save_extra",{p_server:server.id,p_extra:x});if(error)throw error;lastX=j}catch(e){console.warn("extra",e)}}
+{const _sn=saveNow;saveNow=function(){const r=_sn.apply(this,arguments);saveExtra();return r}}
+{const _me=memberEnter;memberEnter=async function(){const sb=AUTH.sb;let x=null;lastX="";
+ if(sb&&AUTH.user){try{const {data,error}=await sb.from("characters").select("extra").eq("user_id",AUTH.user.id).eq("server",server.id).maybeSingle();if(!error&&data&&data.extra&&data.extra.v)x=data.extra}catch(e){}
+  if(x){const uid=AUTH.user.id,wr=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+   if(x.stash){if(x.stash.pub)wr("cap3d.store.pub."+server.id+"."+uid,x.stash.pub);if(x.stash.home)wr("cap3d.store.home."+server.id+"."+uid,x.stash.home)}
+   if(x.land&&typeof x.land==="object")wr(MKEY(),x.land);
+   if(x.quest&&typeof x.quest==="object")wr("cap3d.quest."+server.id+"."+uid,x.quest)}}
+ try{QS=JSON.parse(localStorage.getItem(QKEY())||"{}")||{}}catch(e){QS={}}qSig="";
+ await _me.apply(this,arguments);
+ if(x&&AUTH.loaded&&P.kind==="human"&&Array.isArray(x.slots)){for(let i=0;i<8;i++){const k=x.slots[i]==null?null:x.slots[i];if(WEP_OK(k))P.slots[i]=k}P.sel=Math.min(7,Math.max(0,x.sel|0));refreshHand()}
+ if(AUTH.loaded){pollOnline();setTimeout(()=>saveExtra(true),2000)}}}
+/* visitors: guest quest list, fresh online number */
+{const _eb=$("enterBtn").onclick;$("enterBtn").onclick=function(e){const r=_eb.apply(this,arguments);
+ if(!AUTH.cit){/* a visitor always starts fresh: no quest ticks, empty storage, no land from earlier visits */
+  try{for(const k of [QKEY(),SKEY("pub"),SKEY("home"),LANDKEY])localStorage.removeItem(k)}catch(_){}QS={};qSig="";
+  RES_KEYS.forEach(k=>RES[k]=0);guestLand();updateStats();drawQuest()}
+ pollOnline();return r}}
 window.__ui2={toggleBuild,renderStore,PLOTS,BLD:()=>BLD,ICON_OK:()=>ICON_OK};
 }
 
 })();
 </script>
-<script src="collide.js"></script><script src="gfx.js"></script><script src="nature.js"></script><script src="world.js"></script><script src="builds.js"></script><script src="harvest.js"></script>
+<script src="collide.js"></script><script src="gfx.js"></script><script src="nature.js"></script><script src="world.js"></script><script src="builds.js"></script><script src="harvest.js"></script><script src="audio.js"></script>
