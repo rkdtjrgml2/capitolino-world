@@ -41,7 +41,9 @@ const SFX=(()=>{let ac=null,master=null,nb=null,muted=false;
    else{noise({type:"lowpass",f:(big?380:520)*v(),g:big?.26:.15,d:.09});noise({f:2600*v(),q:.7,g:.035,d:.06,a:.01})}},
   land(){noise({type:"lowpass",f:300,g:.35,d:.12});tone({f:80,f2:45,g:.18,d:.1})}};
  return {play(n,a){if(muted||!init()||ac.state!=="running")return;try{LIB[n]&&LIB[n](a)}catch(e){}},
-  get muted(){return muted},set muted(m){muted=!!m;try{localStorage.setItem("capSfxMute",m?"1":"0")}catch(e){}}}})();
+  get muted(){return muted},set muted(m){muted=!!m;try{localStorage.setItem("capSfxMute",m?"1":"0")}catch(e){}},
+  /* for audio.js: sampled layers, footsteps and ambience share this context and master */
+  _ctx:init,_out(){init();return master},_noise(){init();return nb},_lib:LIB}})();
 window.__sfx=SFX;
 const later=(ms,f)=>setTimeout(()=>{try{f()}catch(e){console.warn("[harvest]",e)}},ms);
 
@@ -184,19 +186,11 @@ function updTip(){const hv=window.__harvest;const a=H.mode==="play"&&P.kind==="h
  if(!a){tip.hidden=true;return}const c=carcassAt(a);const s=screenOf(c.x,c.y+1.1,c.z);if(!s){tip.hidden=true;return}
  const L=TIP[LANG()]||TIP.en;tip.innerHTML=isTouch?L[2]:`<b>${L[0]}</b>${L[1]}`;tip.hidden=false;tip.style.left=s.x+"px";tip.style.top=s.y+"px"}
 
-/* ---------- footsteps: one soft step per stride, by surface (2026-11-27) ---------- */
-const STRIDE={human:1.5,hare:.9,deer:2.2,boar:1.3,wolf:1.9,bear:2.1};
-let stX=null,stZ=null,stAcc=0,wasAir=false;
-function updSteps(){if(H.mode!=="play"||P.dead||!STRIDE[P.kind]){stX=null;return}
- if(stX==null){stX=P.x;stZ=P.z;return}const d=Math.hypot(P.x-stX,P.z-stZ);stX=P.x;stZ=P.z;if(d>3){stAcc=0;return}
- const air=P.jy>0.05;if(wasAir&&!air)SFX.play("land");wasAir=air;if(air)return;
- stAcc+=d;const L=STRIDE[P.kind];if(stAcc<L)return;stAcc-=L;
- const surf=P.y<-.3?"water":(H.inForum(P.x,P.z,1)||H.roadDistM(P.x,P.z)<2.4)?"stone":"grass";
- SFX.play("step",{s:surf,big:P.kind==="bear"||P.kind==="boar"})}
+/* footsteps and landing live in audio.js (sampled, locked to the walk animation) */
 /* ---------- frame hook ---------- */
 const R=H.renderer,prev=R.render.bind(R);let last=performance.now();
 R.render=function(sc,cam){const now=performance.now(),dt=Math.min(.2,(now-last)/1000);last=now;
- if(sc===scene){try{updPT(dt);updDust(dt);updSteps();updFall(dt);updShrink(dt);updTip()}catch(e){console.warn("[harvest]",e)}}
+ if(sc===scene){try{updPT(dt);updDust(dt);updFall(dt);updShrink(dt);updTip()}catch(e){console.warn("[harvest]",e)}}
  prev(sc,cam)};
 window.__harvestDbg={FALL,PT};console.log("[harvest] ready");
 })();
