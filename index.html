@@ -598,6 +598,7 @@ const CIVIC=[
  {k:"saturni",type:"temple",x:30,z:62,w:10,d:15,col:8,rot:1,roof:0xb5552f,front6:1},
  {k:"horrea",type:"horrea",x:-33,z:106,w:26,d:20,rot:3}];window.__civic=CIVIC;
 const BLOCKS=CIVIC.map(b=>{const sw=b.rot%2?b.d:b.w,sd=b.rot%2?b.w:b.d;return {b,x0:b.x-sw/2,x1:b.x+sw/2,z0:b.z-sd/2,z1:b.z+sd/2,top:99}});
+function colAdd(k,o,opt){if(window.__colAdd)window.__colAdd(k,o,opt);else (window.__colQ=window.__colQ||[]).push([k,o,opt])}
 function blockedAt(x,z,pad){pad=pad||0;for(const k of BLOCKS)if(x>k.x0-pad&&x<k.x1+pad&&z>k.z0-pad&&z<k.z1+pad)return k;return null}
 const FORUM={x0:30,x1:72,z0:38,z1:68};
 function inForum(X,Z,pad){pad=pad||0;return X>FORUM.x0-pad&&X<FORUM.x1+pad&&Z>FORUM.z0-pad&&Z<FORUM.z1+pad}
@@ -757,12 +758,12 @@ scatter(new THREE.IcosahedronGeometry(1,0).scale(1.2,.7,1.2).translate(0,.5,0),3
  (x,y,z,r)=>y>1.4&&!signClear(x,z)&&r()<.6,(o,r)=>o.scale.setScalar(.6+r()*1.1),true);
 scatter(new THREE.CylinderGeometry(.03,.06,2.2,3).translate(0,1.1,0),4500,[0x94a24a,0xa8ac56,0x7a923c],
  (x,y,z,r)=>y>-.6&&y<1.4&&riverDist(x,z)<40,(o,r)=>{o.scale.set(1,.6+r()*.8,1);o.rotation.z=(r()-.5)*.4});
-scatter(new THREE.DodecahedronGeometry(1,0),1300,[0xa69a86,0x958a76,0xb4a892],
- (x,y,z,r)=>y>2&&(y>10||r()<.25)&&!signClear(x,z),(o,r)=>{o.scale.set(.5+r()*1.6,.35+r()*.9,.5+r()*1.6);o.position.y-=.25},true);
-scatter(new THREE.CylinderGeometry(.35,.4,5,6).rotateZ(Math.PI/2).translate(0,.3,0),160,[0x6b5440,0x5e4a38],
- (x,y,z,r)=>y>2&&!signClear(x,z)&&fbm(x*.011+3,z*.011-7)>.1,(o,r)=>{o.rotation.x=0;o.rotation.z=0;o.scale.setScalar(.7+r()*.6)},true);
+colAdd("rocks",scatter(new THREE.DodecahedronGeometry(1,0),1300,[0xa69a86,0x958a76,0xb4a892],
+ (x,y,z,r)=>y>2&&(y>10||r()<.25)&&!signClear(x,z),(o,r)=>{o.scale.set(.5+r()*1.6,.35+r()*.9,.5+r()*1.6);o.position.y-=.25},true));
+colAdd("logs",scatter(new THREE.CylinderGeometry(.35,.4,5,6).rotateZ(Math.PI/2).translate(0,.3,0),160,[0x6b5440,0x5e4a38],
+ (x,y,z,r)=>y>2&&!signClear(x,z)&&fbm(x*.011+3,z*.011-7)>.1,(o,r)=>{o.rotation.x=0;o.rotation.z=0;o.scale.setScalar(.7+r()*.6)},true));
 {const g=new THREE.DodecahedronGeometry(1,0),m=new THREE.MeshPhongMaterial({color:0xa89a80,flatShading:true,shininess:0});
- [[-18,12,4],[-21,4,3.4],[-25,19,3],[-22,-5,2.8],[-17,8,2.2],[-27,25,2.4],[-24,-12,2.6]].forEach(([x,z,s])=>{const r=new THREE.Mesh(g,m);r.position.set(x,heightAt(x,z)-.4*s,z);r.scale.set(s,s*1.5,s);r.rotation.y=x;r.castShadow=r.receiveShadow=true;scene.add(r)})}
+ [[-18,12,4],[-21,4,3.4],[-25,19,3],[-22,-5,2.8],[-17,8,2.2],[-27,25,2.4],[-24,-12,2.6]].forEach(([x,z,s])=>{const r=new THREE.Mesh(g,m);r.position.set(x,heightAt(x,z)-.4*s,z);r.scale.set(s,s*1.5,s);r.rotation.y=x;r.castShadow=r.receiveShadow=true;scene.add(r);colAdd("bigrock"+x,r)})}
 const clouds=[];
 {const g=new THREE.IcosahedronGeometry(1,0),m=new THREE.MeshPhongMaterial({color:0xffffff,flatShading:true,emissive:0x8a95a0,transparent:true,opacity:.95});
  for(let i=0;i<22;i++){const c=new THREE.Group();const n=3+Math.floor(h2(i,2)*4);
@@ -998,7 +999,7 @@ function buildSign(s){
  const [sx,sz]=s.at;g.position.set(sx,heightAt(sx,sz)-.15,sz);
  g.rotation.y=Math.atan2(SPAWN[0]-sx,SPAWN[1]-3-sz);
  g.traverse(o=>{o.userData.sign=s;if(o.isMesh&&o!==mk&&o!==halo)o.castShadow=true});
- scene.add(g);s.group=g;s.panel=panel;s.marker=mk;s.halo=halo;signObjs.push(g);
+ scene.add(g);colAdd("sign"+sx+","+sz,g);s.group=g;s.panel=panel;s.marker=mk;s.halo=halo;signObjs.push(g);
  s.preview=cv.toDataURL("image/jpeg",.86);
 }
 
@@ -1052,11 +1053,11 @@ function buildCivic(){const gd=new THREE.MeshPhongMaterial({color:0xf4c430,emiss
  for(let i=0;i<CIVIC.length;i++){const b=CIVIC[i],[lo,hi]=footprintY(b),g=new THREE.Group(),base=hi-lo+1;
   const fn=b.type==="temple"?buildTemple:b.type==="basilica"?buildBasilica:b.type==="curia"?buildCuria:buildHorrea;
   const top=fn(b,g,base);g.traverse(o=>{if(o.isMesh&&o.geometry.type!=="PlaneGeometry"){o.castShadow=true;o.receiveShadow=true}});
-  g.position.set(b.x,hi,b.z);g.rotation.y=b.rot*Math.PI/2;scene.add(g);BLOCKS[i].top=hi+top;BLOCKS[i].floor=hi;b.group=g;b.hi=hi;
+  g.position.set(b.x,hi,b.z);g.rotation.y=b.rot*Math.PI/2;scene.add(g);BLOCKS[i].top=hi+top;BLOCKS[i].floor=hi;b.group=g;b.hi=hi;colAdd("civic:"+b.k,g);
   if(b.coin){const coin=new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,.28,28),gd);coin.rotation.x=Math.PI/2;coin.position.set(b.x,hi+top+3,b.z);scene.add(coin);coins.push(coin)}}
  // forum details: rostra and honorary columns
- const st=STONE();const ro=box(10,2.2,4,STONE2());ro.position.set(38,3.4+1.1,48);scene.add(ro);const deco=window.__forumDeco={rostra:ro,cols:[]};
- for(const [x,z] of [[45,42],[52,42],[59,42],[66,42]]){const c=new THREE.Mesh(new THREE.CylinderGeometry(.45,.5,8,10),st);c.position.set(x,3.4+4,z);c.castShadow=true;scene.add(c);
+ const st=STONE();const ro=box(10,2.2,4,STONE2());ro.position.set(38,3.4+1.1,48);scene.add(ro);colAdd("rostra",ro);const deco=window.__forumDeco={rostra:ro,cols:[]};
+ for(const [x,z] of [[45,42],[52,42],[59,42],[66,42]]){const c=new THREE.Mesh(new THREE.CylinderGeometry(.45,.5,8,10),st);c.position.set(x,3.4+4,z);c.castShadow=true;scene.add(c);colAdd("honcol"+x,c);
   const s=new THREE.Mesh(new THREE.IcosahedronGeometry(.6,0),new THREE.MeshPhongMaterial({color:0xd9b04a,flatShading:true,emissive:0x3a2a00}));s.position.set(x,3.4+8.6,z);scene.add(s);deco.cols.push({c,s,x,z})}}
 
 /* ============ resource landmarks (visual only in 0.2) ============ */
@@ -1066,26 +1067,26 @@ const ripples=[],coins=[],NODES=[],STALLS=[];
  const FLAG={iron:0xb4532f,silver:0xdfe7ee,gold:0xf4c430,stone:0xefe6cf,wood:0x3f8a2c,game:0xa4482f,fish:0x1f9bb8};
  function flagPole(x,z,col,tall){const g=new THREE.Group();const pole=box(.22,tall,.22,phong(0x5a4330));pole.position.y=tall/2;
   const fl=new THREE.Mesh(new THREE.PlaneGeometry(2.6,1.5,6,1),new THREE.MeshPhongMaterial({color:col,side:THREE.DoubleSide,flatShading:true,emissive:col,emissiveIntensity:.25}));
-  fl.position.set(1.35,tall-.9,0);g.add(pole,fl);g.position.set(x,heightAt(x,z),z);scene.add(g);ripples.push({flag:fl,base:fl.geometry.attributes.position.array.slice()});return g}
+  fl.position.set(1.35,tall-.9,0);g.add(pole,fl);g.position.set(x,heightAt(x,z),z);scene.add(g);colAdd("flag"+x+","+z,pole,{vis:g});ripples.push({flag:fl,base:fl.geometry.attributes.position.array.slice()});return g}
  const oreGeo=new THREE.DodecahedronGeometry(1,0);
  for(const zn of ZONES){const [x,z]=gp2(zn.x,zn.z);
   if(zn.k==="iron"||zn.k==="silver"||zn.k==="gold"){
    const col=FLAG[zn.k],mat=new THREE.MeshPhongMaterial({color:col,flatShading:true,shininess:zn.k==="iron"?6:80,specular:0xffffff,emissive:zn.k==="gold"?0x5a3c00:0x000000});
    const rockM=phong(0x8d8272);const n=8+zn.g*7;
    for(let i=0;i<n;i++){const a=h2(i,zn.x)*6.28,d=3+h2(zn.z,i)*zn.r*G*.45;const ox=x+Math.cos(a)*d,oz=z+Math.sin(a)*d;
-    const r=new THREE.Mesh(oreGeo,rockM);const node={x:ox,z:oz,res:zn.k,g:zn.g,meshes:[r],hp:6,down:0};NODES.push(node);r.scale.set(1.4+h2(i,3)*2,1+h2(i,4)*1.4,1.4+h2(i,5)*2);r.position.set(ox,heightAt(ox,oz)+.2,oz);r.rotation.y=a;r.castShadow=true;scene.add(r);
+    const r=new THREE.Mesh(oreGeo,rockM);const node={x:ox,z:oz,res:zn.k,g:zn.g,meshes:[r],hp:6,down:0};NODES.push(node);r.scale.set(1.4+h2(i,3)*2,1+h2(i,4)*1.4,1.4+h2(i,5)*2);r.position.set(ox,heightAt(ox,oz)+.2,oz);r.rotation.y=a;r.castShadow=true;scene.add(r);colAdd("ore"+ox+","+oz,r);
     for(let j=0;j<3;j++){const o=new THREE.Mesh(oreGeo,mat);node.meshes.push(o);o.scale.setScalar(.35+h2(i,j+9)*.35);o.position.set(ox+(h2(i,j)-.5)*2.4,r.position.y+.8+h2(j,i)*.6,oz+(h2(j,i+2)-.5)*2.4);scene.add(o)}}
    // timber mine mouth
    const tm=phong(0x6b4a30),dark=new THREE.MeshBasicMaterial({color:0x120d08});const m=new THREE.Group();
    const l=box(.5,4,.5,tm),r2=box(.5,4,.5,tm),top=box(4.6,.6,.7,tm),hole=new THREE.Mesh(new THREE.PlaneGeometry(3.4,3.6),dark);
    l.position.set(-1.9,2,0);r2.position.set(1.9,2,0);top.position.set(0,4.1,0);hole.position.set(0,1.8,-.1);m.add(l,r2,top,hole);
-   const mx=x+zn.r*G*.18,mz=z-zn.r*G*.18;m.position.set(mx,heightAt(mx,mz),mz);m.rotation.y=Math.atan2(-mx,-mz);scene.add(m);
+   const mx=x+zn.r*G*.18,mz=z-zn.r*G*.18;m.position.set(mx,heightAt(mx,mz),mz);m.rotation.y=Math.atan2(-mx,-mz);scene.add(m);colAdd("mine"+mx,m);
    flagPole(x-4,z+4,col,9+zn.g*3);
    if(zn.g===2){const cr=new THREE.Mesh(new THREE.OctahedronGeometry(1.6,0),new THREE.MeshPhongMaterial({color:col,emissive:col,emissiveIntensity:.6,flatShading:true}));
     cr.position.set(x,heightAt(x,z)+14,z);scene.add(cr);coins.push(cr)}
   }else if(zn.k==="stone"){const sm=phong(0xe6dcc2);
    for(let i=0;i<16;i++){const a=h2(i,7)*6.28,d=2+h2(i,8)*16;const ox=x+Math.cos(a)*d,oz=z+Math.sin(a)*d;const b=box(1.4+h2(i,1)*1.6,1+h2(i,2),1.2+h2(i,3)*1.2,sm);
-    b.position.set(ox,heightAt(ox,oz)+.5,oz);b.rotation.y=a;scene.add(b);NODES.push({x:ox,z:oz,res:"stone",g:zn.g,meshes:[b],hp:5,down:0})}flagPole(x-3,z+3,FLAG.stone,9)}
+    b.position.set(ox,heightAt(ox,oz)+.5,oz);b.rotation.y=a;scene.add(b);colAdd("stone"+ox+","+oz,b);NODES.push({x:ox,z:oz,res:"stone",g:zn.g,meshes:[b],hp:5,down:0})}flagPole(x-3,z+3,FLAG.stone,9)}
   else if(zn.k==="fish"){for(let i=0;i<3;i++){const rg=new THREE.Mesh(new THREE.RingGeometry(.8,1.05,24),new THREE.MeshBasicMaterial({color:0xe8fbff,transparent:true,opacity:.6,depthWrite:false}));
     rg.rotation.x=-Math.PI/2;const ox=x+(h2(i,zn.z)-.5)*14,oz=z+(h2(zn.x,i)-.5)*14;rg.position.set(ox,.12,oz);scene.add(rg);ripples.push({ring:rg,ph:i*1.3})}
    const fish=new THREE.Mesh(new THREE.ConeGeometry(.28,1.2,5).rotateZ(Math.PI/2),phong(0x9fb6c0));fish.position.set(x,-.5,z);scene.add(fish);ripples.push({fish,x,z,ph:h2(x,z)*9})}
@@ -1093,16 +1094,17 @@ const ripples=[],coins=[],NODES=[],STALLS=[];
  }
  buildCivic();
  // market stalls on the Forum
- {const [x,z]=gp2(22,24);const cols=[0xb83a26,0xe7c987,0x2f78cf,0x3f8a2c,0xa98ae0,0xefe7d6];
-  for(let i=0;i<8;i++){const a=i/8*6.28,d=14;const sx=x+Math.cos(a)*d,sz=z+Math.sin(a)*d,sy=heightAt(sx,sz);const g=new THREE.Group();
+ {/* ring in the open middle of the Forum, clear of the temple, curia and basilica stairs and the rostra */
+  const x=55,z=54;const cols=[0xb83a26,0xe7c987,0x2f78cf,0x3f8a2c,0xa98ae0,0xefe7d6];
+  for(let i=0;i<8;i++){const a=(i+.5)/8*6.28,d=9;const sx=x+Math.cos(a)*d,sz=z+Math.sin(a)*d,sy=heightAt(sx,sz);const g=new THREE.Group();
    for(const [px,pz] of [[-1.3,-1],[1.3,-1],[-1.3,1],[1.3,1]]){const p=box(.15,2.4,.15,phong(0x6b4a30));p.position.set(px,1.2,pz);g.add(p)}
    const aw=box(3.2,.15,2.6,phong(cols[i%6]));aw.position.y=2.5;aw.rotation.x=.15;g.add(aw);const tb=box(2.6,.8,1,phong(0x8a6a48));tb.position.set(0,.4,.6);g.add(tb);
-   g.position.set(sx,sy,sz);g.rotation.y=-a+Math.PI/2;scene.add(g);STALLS.push([sx,sz])}}
+   g.position.set(sx,sy,sz);g.rotation.y=-a+Math.PI/2;scene.add(g);colAdd("stall"+i,g);STALLS.push([sx,sz])}}
  // stone bridge to Insula Tiberina and the west bank
  {const bm=phong(0xcfc4ac);for(const [ax,bx] of [[-22,-66]]){const x0=ax*G,x1=bx*G,zz=28.5*G,L=Math.abs(x1-x0);
-   const d=box(L+6,.7,4.2,bm);d.position.set((x0+x1)/2,BRIDGE_Y,zz);d.receiveShadow=true;scene.add(d);
-   for(const s of[-1,1]){const r=box(L+6,.6,.3,bm);r.position.set((x0+x1)/2,BRIDGE_Y+.6,zz+s*2);scene.add(r)}
-   for(let k=0;k<5;k++){const px=x0+(x1-x0)*(k+1)/6;const pr=box(1.4,6,3.6,bm);pr.position.set(px,BRIDGE_Y-3.3,zz);scene.add(pr)}}}
+   const d=box(L+6,.7,4.2,bm);d.position.set((x0+x1)/2,BRIDGE_Y,zz);d.receiveShadow=true;scene.add(d);colAdd("bridge",d);
+   for(const s of[-1,1]){const r=box(L+6,1,.3,bm);r.position.set((x0+x1)/2,BRIDGE_Y+.8,zz+s*2);scene.add(r);colAdd("brail"+s,r)}
+   for(let k=0;k<5;k++){const px=x0+(x1-x0)*(k+1)/6;const pr=box(1.4,6,3.6,bm);pr.position.set(px,BRIDGE_Y-3.3,zz);scene.add(pr);colAdd("bpier"+k,pr)}}}
 }
 /* fish swimming in the Tiber, visible through the water */
 const riverFish=[];
@@ -1185,7 +1187,7 @@ function spawn(kind){
  if(P.c)scene.remove(P.c.g);P.kind=kind;P.c=MAKERS[kind]();scene.add(P.c.g);
  P.x=SPAWN[0];P.z=SPAWN[1];P.y=heightAt(P.x,P.z);P.face=Math.PI;cam.yaw=0;cam.pitch=kind==="crow"?.42:.3;cam.dist=kind==="crow"?13:kind==="human"?8.5:9.5;
  P.flying=false;if(kind==="crow"){P.y+=6;P.flying=true}
- P.slots=[null,null,null,null,null,null,null,kind==="human"?"rod":null];P.sel=0;P.vy=0;P.jy=0;if(window.__invReady){toggleInv(false);stopFishing()}
+ P.slots=[null,null,null,null,null,null,null,kind==="human"?"rod":null];P.sel=0;P.vy=0;P.jy=0;P.air=false;P.fy=NaN;if(window.__invReady){toggleInv(false);stopFishing()}
  P.hpMax={wolf:12,deer:8,hare:4,boar:12,bear:20,fish:5}[kind]||10;
  if(kind==="fish"){P.x=FISH_SPAWN[0];P.z=FISH_SPAWN[1];P.y=-1.3;P.face=Math.PI;cam.pitch=.45;cam.dist=8}P.hp=P.hpMax;P.hand=null;P.handMesh=null;P.dead=false;P.cd=0;P.swing=0;
  cam.target.set(P.x,P.y+P.c.eye,P.z);refreshHand();
@@ -1275,7 +1277,9 @@ $("bagBtn").onclick=()=>toggleInv();$("invClose").onclick=()=>toggleInv(false);$
 /* ============ gathering, dropping, trading ============ */
 function nearTree(){let best=null,bd=3.4;const gx=Math.floor(P.x/20),gz=Math.floor(P.z/20);
  for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++){const L=TREEGRID[(gx+i)+","+(gz+j)];if(!L)continue;for(const t of L){if(t.down)continue;const d=Math.hypot(t.x-P.x,t.z-P.z);if(d<bd){bd=d;best=t}}}return best}
-function nearNode(){let best=null,bd=3.6;for(const n of NODES){if(n.down)continue;const d=Math.hypot(n.x-P.x,n.z-P.z);if(d<bd){bd=d;best=n}}return best}
+function nearNode(){let best=null,bd=1e9;for(const n of NODES){if(n.down)continue;const m=n.meshes[0].scale,d=Math.hypot(n.x-P.x,n.z-P.z)-Math.max(m.x,m.z)*.9;if(d<3.6&&d<bd){bd=d;best=n}}return best}
+/* tree trunks stop the walker */
+function treeAt(x,z){const gx=Math.floor(x/20),gz=Math.floor(z/20);for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++){const L=TREEGRID[(gx+i)+","+(gz+j)];if(!L)continue;for(const t of L){if(t.down)continue;const r=t.q[3]*.36+.3,dx=t.x-x,dz=t.z-z;if(dx*dx+dz*dz<r*r)return true}}return false}
 const _o=new THREE.Object3D();
 function setTree(t,vis){_o.position.set(t.q[0],t.q[1],t.q[2]);_o.rotation.set(0,t.q[4],0);_o.scale.setScalar(vis?t.q[3]:0.0001);_o.updateMatrix();
  t.tm.setMatrixAt(t.i,_o.matrix);t.lm.setMatrixAt(t.i,_o.matrix);t.tm.instanceMatrix.needsUpdate=true;t.lm.instanceMatrix.needsUpdate=true}
@@ -1420,17 +1424,29 @@ function updatePlayer(dt){
  const swimming=P.kind!=="crow"&&P.kind!=="fish"&&gh<-.5;if(swimming)sp*=.45;
  let nx=P.x+mx*sp*dt,nz=P.z+mz*sp*dt;nx=Math.max(CX-HALF,Math.min(CX+HALF,nx));nz=Math.max(CZ-HALF,Math.min(CZ+HALF,nz));
  if(P.kind==="fish"){if(heightAt(nx,nz)>-1.1){if(heightAt(nx,P.z)<=-1.1)nz=P.z;else if(heightAt(P.x,nz)<=-1.1)nx=P.x;else{nx=P.x;nz=P.z}}}
- else if(P.kind!=="crow"){const nh=groundAt(nx,nz),lim=Math.max(.05,sp*dt*1.7);if(nh-gh>lim&&!onBridge(nx,nz)){const ax=heightAt(nx,P.z),az=heightAt(P.x,nz);
+ const COL=window.__col,walker=P.kind!=="crow"&&P.kind!=="fish";if(walker&&!isFinite(P.fy))P.fy=P.y;
+ const foot=walker?(P.air?P.y:P.fy):P.y;
+ if(P.kind==="fish"){}
+ else if(P.kind!=="crow"&&!(COL&&foot>gh+.3)){const nh=groundAt(nx,nz),lim=Math.max(.05,sp*dt*1.7);if(nh-gh>lim&&!onBridge(nx,nz)){const ax=heightAt(nx,P.z),az=heightAt(P.x,nz);
    if(ax-gh<lim)nz=P.z;else if(az-gh<lim)nx=P.x;else{nx=P.x;nz=P.z}}}
- {const hit=(x,z)=>{const k=blockedAt(x,z,.4);return k&&!(P.kind==="crow"&&P.y>k.top)};
+ if(COL&&walker){const hit=(x,z)=>COL.blocked(x,z,foot)||treeAt(x,z);
+  if((nx!==P.x||nz!==P.z)&&hit(nx,nz)&&!hit(P.x,P.z)){if(!hit(nx,P.z))nz=P.z;else if(!hit(P.x,nz))nx=P.x;else{nx=P.x;nz=P.z}}}
+ else{const hit=(x,z)=>{const k=blockedAt(x,z,.4);return k&&!(P.kind==="crow"&&P.y>k.top)};
   if(hit(nx,nz)){if(!hit(nx,P.z))nz=P.z;else if(!hit(P.x,nz))nx=P.x;else{nx=P.x;nz=P.z}}}
  P.x=nx;P.z=nz;const g2=groundAt(P.x,P.z);
  if(P.kind==="crow"){const v=((keys.Space?1:0)+flyUp-(keys.KeyC||keys.ControlLeft?1:0)-flyDown)*11;P.y+=v*dt;
   const floor=Math.max(g2,-.05)+.02;if(P.y<=floor){P.y=floor;P.flying=v>0}else P.flying=true;P.y=Math.min(P.y,200);
   if(mag>.05&&P.y-floor<.6&&v>=0){P.y=Math.min(P.y+dt*6,floor+3)}}
  else if(P.kind==="fish"){const target=Math.max(g2+.3,-1.6)+(keys.Space?1.4:0);P.y+=(target-P.y)*Math.min(1,dt*6)}
+ else if(COL&&!swimming){/* solid world: stand on the highest surface within a step, fall with gravity off edges */
+  const sup=COL.support(P.x,P.z,P.air?P.y:P.fy,g2);
+  if(P.vy>0&&!P.air){P.air=true;P.y=Math.max(P.y,P.fy)}
+  if(!P.air&&sup<P.fy-.45){P.air=true;P.vy=0}
+  if(P.air){P.y+=P.vy*dt;P.vy-=22*dt;if(P.y<=sup){P.y=sup;P.vy=0;P.air=false;P.fy=sup}}
+  else{P.fy=sup;P.y+=(sup-P.y)*Math.min(1,dt*14)}
+  P.jy=P.air?Math.max(.02,P.y-sup):0}
  else{const target=swimming?-.8*(P.kind==="human"?1.3:.9):g2;
-  if(swimming){P.jy=0;P.vy=0}
+  if(swimming){P.jy=0;P.vy=0;P.air=false;P.fy=target}
   if(P.vy!==0||P.jy>0){P.jy+=P.vy*dt;P.vy-=22*dt;if(P.jy<=0){P.jy=0;P.vy=0}}
   if(P.jy>0)P.y=target+P.jy;else P.y+=(target-P.y)*Math.min(1,dt*14)}
  if(mag>.05)P.face=lerpAngle(P.face,Math.atan2(mx,mz),Math.min(1,dt*10));
@@ -1449,7 +1465,7 @@ let camD=9;
 function updateCamera(dt,target,eyeH){
  cam.target.lerp(tmpV.set(target.x,target.y+eyeH,target.z),Math.min(1,dt*10));
  const cp=Math.cos(cam.pitch);let D=cam.dist;
- for(let k=1;k<=12;k++){const dd=cam.dist*k/12,qx=cam.target.x+Math.sin(cam.yaw)*cp*dd,qz=cam.target.z+Math.cos(cam.yaw)*cp*dd,qy=cam.target.y+Math.sin(cam.pitch)*dd;const b=blockedAt(qx,qz,.6);if(b&&qy<b.top){D=Math.max(2.2,dd-cam.dist/12);break}}
+ for(let k=1;k<=12;k++){const dd=cam.dist*k/12,qx=cam.target.x+Math.sin(cam.yaw)*cp*dd,qz=cam.target.z+Math.cos(cam.yaw)*cp*dd,qy=cam.target.y+Math.sin(cam.pitch)*dd;const b=blockedAt(qx,qz,.6);if(b&&qy<b.top||window.__col&&window.__col.solidAt(qx,qz,qy)){D=Math.max(2.2,dd-cam.dist/12);break}}
  camD+=(D-camD)*Math.min(1,dt*(D<camD?20:4));
  let x=cam.target.x+Math.sin(cam.yaw)*cp*camD,z=cam.target.z+Math.cos(cam.yaw)*cp*camD,y=cam.target.y+Math.sin(cam.pitch)*camD;
  const fl=Math.max(heightAt(x,z),0)+.7;if(y<fl)y=fl;camera.position.set(x,y,z);camera.lookAt(cam.target);
@@ -1852,13 +1868,13 @@ function buildPlot(p){const g=new THREE.Group();const hw=p.w/2;const pts=[];
  for(let i=gx0;i<=gx1;i++)for(let j=gz0;j<=gz1;j++){const L=TREEGRID[i+","+j];if(!L)continue;for(const t of L)if(Math.abs(t.x-p.x)<hw+1&&Math.abs(t.z-p.z)<hw+1){t.down=1;t.plot=1;setTree(t,false)}}
  p.trees=[];for(let k=0;k<3;k++){const a=k*2.1+p.id,r=hw*.45;const tx=p.x+Math.cos(a)*r,tz=p.z+Math.sin(a)*r,ty=heightAt(tx,tz);
   const tg=new THREE.Group();const tr=new THREE.Mesh(TREES.oak.trunk,phong(0x6e5038));const lf=new THREE.Mesh(TREES.oak.leaf,phong(0x58a032));tg.add(tr,lf);tg.scale.setScalar(.55);tg.position.set(tx,ty,tz);
-  tr.castShadow=lf.castShadow=true;g.add(tg);p.trees.push({g:tg,x:tx,z:tz,hp:3,idx:k});if(p.cl[k])tg.visible=false}
+  tr.castShadow=lf.castShadow=true;g.add(tg);colAdd("ptree"+p.id+"_"+k,tr,{vis:tg});p.trees.push({g:tg,x:tx,z:tz,hp:3,idx:k});if(p.cl[k])tg.visible=false}
  const tag=textSprite(p.own?LT().mine:`${LT().forSale} · ${p.price}◎`,p.own?{bg:"rgba(47,120,207,.9)"}:{bg:"rgba(201,162,90,.92)",fg:"#1c1712"});tag.position.set(p.x,p.h+2.4,p.z);tag.scale.multiplyScalar(1.4);g.add(tag);
  if(p.objs.g)scene.remove(p.objs.g);p.objs={g,tag};scene.add(g);if(p.house)buildHouse(p);if(p.sign)buildPlotSign(p)}
 function buildHouse(p){if(p.objs.house)p.objs.g.remove(p.objs.house);const kind=houseKind(p);
  const det=window.__buildModel&&window.__buildModel(kind);
  if(det){const y=heightAt(p.x,p.z);const fp=BUILD_KINDS[kind].fp;let lo=y;for(const [a,b] of [[-1,-1],[1,-1],[1,1],[-1,1]])lo=Math.min(lo,heightAt(p.x+a*fp[0]/2,p.z+b*fp[1]/2));
-  det.position.set(p.x,lo-.15,p.z);p.objs.g.add(det);p.objs.house=det;
+  det.position.set(p.x,lo-.15,p.z);p.objs.g.add(det);p.objs.house=det;colAdd("plot"+p.id,det);
   if(p.block){BLOCKS.splice(BLOCKS.indexOf(p.block),1);p.block=null}
   p.block={b:{k:kind},x0:p.x-fp[0]/2,x1:p.x+fp[0]/2,z0:p.z-fp[1]/2,z1:p.z+fp[1]/2,top:99};BLOCKS.push(p.block);
   if(p.objs.tag)p.objs.tag.position.y=p.h+((window.__buildInfo||{})[kind]||{h:7}).h+1;return}
@@ -1870,7 +1886,7 @@ function buildHouse(p){if(p.objs.house)p.objs.g.remove(p.objs.house);const kind=
  const door=box(1.3,2.3,.15,wood);door.position.set(0,2.05,3.05);g.add(door);
  for(const sx of [-2.6,2.6]){const w=box(1,1,.15,phong(0x2a2018));w.position.set(sx,3,3.05);g.add(w)}
  for(const sx of [-3.6,3.6]){const c=new THREE.Mesh(new THREE.CylinderGeometry(.22,.26,3.6,8),phong(0xf1ead8));c.position.set(sx,2.7,3.4);g.add(c)}
- g.position.set(p.x,y-.4,p.z);p.objs.g.add(g);p.objs.house=g;if(!p.block){p.block={b:{k:"domus"},x0:p.x-4.5,x1:p.x+4.5,z0:p.z-3.5,z1:p.z+3.5,top:99};BLOCKS.push(p.block)}if(p.objs.tag)p.objs.tag.position.y=p.h+7.2}
+ g.position.set(p.x,y-.4,p.z);p.objs.g.add(g);p.objs.house=g;colAdd("plot"+p.id,g);if(!p.block){p.block={b:{k:"domus"},x0:p.x-4.5,x1:p.x+4.5,z0:p.z-3.5,z1:p.z+3.5,top:99};BLOCKS.push(p.block)}if(p.objs.tag)p.objs.tag.position.y=p.h+7.2}
 function buildPlotSign(p){if(p.objs.sign)p.objs.g.remove(p.objs.sign);const c=document.createElement("canvas");c.width=512;c.height=288;const x=c.getContext("2d");
  x.fillStyle="#f1e3c2";x.fillRect(0,0,512,288);x.strokeStyle="#8a5a32";x.lineWidth=14;x.strokeRect(7,7,498,274);x.strokeStyle="#c9a25a";x.lineWidth=4;x.strokeRect(24,24,464,240);
  x.fillStyle="#2a1f16";x.textAlign="center";x.textBaseline="middle";x.font='700 44px "Noto Sans KR",sans-serif';const t=p.sign.t.slice(0,20);x.fillText(t,256,126,440);
@@ -2027,7 +2043,7 @@ async function memberEnter(){const sb=AUTH.sb,t=AT();if(!sb||!AUTH.user)return;A
   const {error}=await sb.rpc("enter_server",{p_server:server.id,p_form:P.kind});if(error)throw error;
   const uid=AUTH.user.id;const [{data:ch},{data:rs}]=await Promise.all([sb.from("characters").select("form,pos").eq("user_id",uid).eq("server",server.id).maybeSingle(),sb.from("resources").select("resource,amount").eq("user_id",uid).eq("server",server.id)]);
   if(mode!=="play")return;RES_KEYS.forEach(k=>RES[k]=0);for(const r of rs||[])if(k_ok(r.resource))RES[r.resource]=Number(r.amount)||0;
-  const pos=ch&&ch.pos;if(pos&&isFinite(pos.x)&&isFinite(pos.z)&&P.kind!=="fish"&&(!ch.form||ch.form===P.kind)){P.x=pos.x;P.z=pos.z;P.y=heightAt(P.x,P.z)+(P.kind==="crow"?6:0)}
+  const pos=ch&&ch.pos;if(pos&&isFinite(pos.x)&&isFinite(pos.z)&&P.kind!=="fish"&&(!ch.form||ch.form===P.kind)){P.x=pos.x;P.z=pos.z;P.y=heightAt(P.x,P.z)+(P.kind==="crow"?6:0);P.fy=NaN;P.air=false}
   await loadMemberLand();AUTH.loaded=true;AUTH.playAdd=0;updateStats();renderInv();toast(t.loaded)}
  catch(e){console.warn("enter",e);toast(/banned/.test(e.message||"")?t.banned:t.saveFail)}}
 const k_ok=k=>RES_KEYS.includes(k);
@@ -2467,4 +2483,4 @@ window.__ui2={toggleBuild,renderStore,PLOTS,BLD:()=>BLD,ICON_OK:()=>ICON_OK};
 
 })();
 </script>
-<script src="gfx.js"></script><script src="nature.js"></script><script src="world.js"></script><script src="builds.js"></script><script src="harvest.js"></script><script src="audio.js"></script>
+<script src="collide.js"></script><script src="gfx.js"></script><script src="nature.js"></script><script src="world.js"></script><script src="builds.js"></script><script src="harvest.js"></script><script src="audio.js"></script>
