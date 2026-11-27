@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>카피톨리노 운영실</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<style>
+/* Layout: one operator console. Sticky top bar with tabs, then a single working column per tab. */
+:root{
+  --bg:#eef0f2; --panel:#ffffff; --sunk:#e3e6ea; --line:#d3d8de;
+  --fg:#1b2330; --muted:#5d6878; --accent:#6b2a55; --accent-soft:#f1e4ec; --bronze:#9a6b2f;
+  --ok:#1f7a4a; --ok-soft:#dff1e6; --warn:#a25d00; --warn-soft:#fbecd5; --bad:#b0302b; --bad-soft:#f8dedc;
+  --display:"Cinzel",Georgia,serif; --body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12161d; --panel:#1a2029; --sunk:#232b36; --line:#2e3845;
+  --fg:#e6e9ee; --muted:#9aa5b4; --accent:#d58bbb; --accent-soft:#3a2333; --bronze:#d3a464;
+  --ok:#5fcf8e; --ok-soft:#173526; --warn:#f0a948; --warn-soft:#3b2a12; --bad:#ff7d75; --bad-soft:#40201e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161d; --panel:#1a2029; --sunk:#232b36; --line:#2e3845;
+  --fg:#e6e9ee; --muted:#9aa5b4; --accent:#d58bbb; --accent-soft:#3a2333; --bronze:#d3a464;
+  --ok:#5fcf8e; --ok-soft:#173526; --warn:#f0a948; --warn-soft:#3b2a12; --bad:#ff7d75; --bad-soft:#40201e; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;line-height:1.55}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--panel)}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--panel);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding-block:12px}
+.brand{font-family:var(--display);font-weight:700;letter-spacing:.08em;font-size:17px;color:var(--accent)}
+.brand small{font-family:var(--body);font-weight:500;letter-spacing:0;color:var(--muted);font-size:12px;margin-left:8px}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav a{padding:6px 12px;border-radius:6px;color:var(--muted);text-decoration:none;font-weight:500;display:flex;gap:6px;align-items:center}
+nav a[aria-current="page"]{background:var(--accent-soft);color:var(--accent)}
+nav a:hover{color:var(--fg)}
+.count{font-family:var(--mono);font-size:11px;background:var(--bad);color:#fff;border-radius:9px;padding:0 6px}
+.spacer{flex:1}
+.mode{font-size:12px;padding:3px 10px;border-radius:12px;border:1px solid var(--line);color:var(--muted)}
+.mode.live{border-color:var(--ok);color:var(--ok)}
+main{padding-block:20px 48px;display:grid;gap:20px;grid-template-columns:minmax(0,1fr)}
+h2{font-family:var(--display);font-size:15px;letter-spacing:.06em;margin:0 0 12px;color:var(--fg);text-wrap:balance}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.stat .k{font-size:12px;color:var(--muted);letter-spacing:.02em}
+.stat .v{font-family:var(--mono);font-size:30px;font-weight:500;font-variant-numeric:tabular-nums;line-height:1.2}
+.stat .s{font-size:12px;color:var(--muted)}
+.srv{display:grid;gap:10px}
+.srvrow{display:grid;grid-template-columns:minmax(110px,1.2fr) 130px 1fr 80px;gap:12px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.srvrow:first-child{border-top:0}
+.meter{height:8px;background:var(--sunk);border-radius:4px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--accent)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:10px;white-space:nowrap}
+.p-open,.p-fixed,.p-done{background:var(--ok-soft);color:var(--ok)}
+.p-soon,.p-reviewing,.p-info{background:var(--sunk);color:var(--muted)}
+.p-maintenance,.p-event,.p-new{background:var(--warn-soft);color:var(--warn)}
+.p-closed,.p-wontfix,.p-urgent,.p-bug{background:var(--bad-soft);color:var(--bad)}
+.p-idea{background:var(--accent-soft);color:var(--accent)}
+.p-question,.p-other{background:var(--sunk);color:var(--fg)}
+svg text{fill:var(--muted);font-family:var(--mono);font-size:10px}
+.two{display:grid;gap:20px;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr)}
+@media (max-width:820px){.two{grid-template-columns:1fr}.srvrow{grid-template-columns:1fr 80px 60px}.srvrow .meter{display:none}}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.chip{border:1px solid var(--line);background:var(--panel);color:var(--muted);padding:4px 11px;border-radius:14px;cursor:pointer;font:inherit;font-size:12.5px}
+.chip[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.list{display:grid;gap:0;max-height:640px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+.item{display:grid;gap:4px;padding:12px 14px;border-top:1px solid var(--line);cursor:pointer;background:var(--panel);text-align:left;font:inherit;color:inherit;border-left:3px solid transparent}
+.item:first-child{border-top:0}
+.item[aria-selected="true"]{background:var(--accent-soft);border-left-color:var(--accent)}
+.item .top{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.item .msg{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.detail .meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;color:var(--muted);font-size:12.5px;margin-bottom:10px}
+.quote{background:var(--sunk);border-radius:8px;padding:12px 14px;white-space:pre-wrap;margin-bottom:14px}
+.ctx{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-bottom:14px;overflow-wrap:anywhere}
+label{display:grid;gap:4px;font-size:12.5px;color:var(--muted);font-weight:500}
+input,select,textarea{font:inherit;font-size:14px;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%}
+textarea{min-height:96px;resize:vertical}
+input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.form{display:grid;gap:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row>label{flex:1;min-width:140px}
+button.btn{font:inherit;font-weight:600;font-size:13px;padding:8px 14px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer}
+button.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+:root[data-theme="dark"] button.btn.primary{color:#1a1016}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) button.btn.primary{color:#1a1016}}
+button.btn.ok{border-color:var(--ok);color:var(--ok)}
+button.btn.bad{border-color:var(--bad);color:var(--bad)}
+button.btn:disabled{opacity:.5;cursor:default}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);font-size:12px;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+.tablewrap{overflow-x:auto}
+.empty{color:var(--muted);padding:24px;text-align:center}
+.note{font-size:12.5px;color:var(--muted)}
+.toast{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:500;z-index:20}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 0;border-top:1px solid var(--line)}
+.switch:first-of-type{border-top:0}
+.switch b{display:block;color:var(--fg);font-weight:600}
+.login{max-width:420px}
+tr.pick{cursor:pointer}
+tr.pick:hover td{background:var(--sunk)}
+tr.pick[aria-selected="true"] td{background:var(--accent-soft)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13px;margin-bottom:14px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0}
+.sub{font-size:12px;font-weight:600;color:var(--muted);margin:16px 0 6px;letter-spacing:.02em}
+.btn.google{display:inline-flex;gap:8px;align-items:center}
+.ann{display:grid;gap:6px;padding:12px 0;border-top:1px solid var(--line)}
+.ann:first-child{border-top:0}
+.ann .t{font-weight:600}
+@media (prefers-reduced-motion:no-preference){.meter i{transition:width .6s ease}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap bar">
+    <div class="brand">CAPITOLINO <small>운영실</small></div>
+    <nav id="nav">
+      <a href="#overview">현황</a>
+      <a href="#inbox">건의함 <span class="count" id="newCount" hidden>0</span></a>
+      <a href="#members">회원</a>
+      <a href="#visits">접속 기록</a>
+      <a href="#notice">공지</a>
+      <a href="#config">설정</a>
+    </nav>
+    <div class="spacer"></div>
+    <span class="mode" id="mode">시연 데이터</span>
+    <button class="btn" id="authBtn" type="button">구글로 로그인</button>
+  </div>
+</header>
+
+<div class="wrap"><main id="main"></main></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const SUPABASE_URL = "https://cjlzuojkuzsqgvvymxaq.supabase.co";
+const SUPABASE_KEY = "sb_publishable_ZRpU6JpWT93AfNG_L9aqZA_wsnY1Wph";
+
+const KIND = {bug:"버그", idea:"건의", question:"질문", other:"기타"};
+const FSTATUS = {new:"새 글", reviewing:"확인 중", fixed:"고침", wontfix:"반영 안 함", done:"답변 완료"};
+const SSTATUS = {open:"열림", soon:"준비 중", maintenance:"점검", closed:"닫힘"};
+const LEVEL = {info:"안내", event:"이벤트", maintenance:"점검", urgent:"긴급"};
+const FORMS = ["나그네","토끼","사슴","멧돼지","늑대","곰","물고기","까마귀"];
+const ZONES = ["포룸 로마눔","카피톨리노 언덕","티베르 섬","팔라티노 숲","아벤티노 채석장","북쪽 은광","유노 모네타 주조소"];
+
+const FORMKO = {human:"사람",crow:"까마귀",deer:"사슴",wolf:"늑대",hare:"토끼",boar:"멧돼지",bear:"곰",fish:"물고기"};
+/* Guests have no name, so show form plus a short stable number from the browser session, e.g. 늑대 347. */
+function tag(id){ let h=0; for(const c of String(id||"")) h=(h*31+c.charCodeAt(0))>>>0; return String(h%900+100); }
+function who(p){ return p.nickname ? p.nickname : (FORMKO[p.form]||p.form||"나그네")+" "+tag(p.session_id); }
+const formKo = f => FORMKO[f]||f||"";
+let sb = null, live = false, D = null, ui = {tab:"overview", sel:null, kind:"all", status:"open"};
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmtTime = t => { const d=new Date(t); return d.toLocaleString("ko-KR",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}); };
+const ago = t => { const m=Math.round((Date.now()-new Date(t))/60000); if(m<1) return "방금"; if(m<60) return m+"분 전"; const h=Math.round(m/60); return h<24? h+"시간 전" : Math.round(h/24)+"일 전"; };
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast.h); toast.h=setTimeout(()=>t.hidden=true,2400); }
+
+/* ───────── demo data (marked as examples) ───────── */
+function demoData(){
+  const now=Date.now(), min=60000;
+  const servers=[
+    {code:"kr",name:"대한민국",lang:"ko",status:"open",capacity:200,sort:1},
+    {code:"us",name:"United States",lang:"en",status:"soon",capacity:200,sort:2},
+    {code:"jp",name:"日本",lang:"ja",status:"soon",capacity:200,sort:3},
+    {code:"cn",name:"中国",lang:"zh",status:"soon",capacity:200,sort:4},
+    {code:"it",name:"Italia",lang:"it",status:"soon",capacity:200,sort:5}];
+  const names=["로마산책","denarius99","카이사르팬","늑대왕","티베르낚시꾼","석공김씨","은광러","포룸상인","아우렐리아","루키우스","카피톨리노봇","초보나그네","곰사냥꾼","마르쿠스"];
+  const presence=names.map((n,i)=>({session_id:"demo-"+i,server:"kr",nickname:n,form:FORMS[i%FORMS.length],zone:ZONES[i%ZONES.length],client_ver:"0.2",first_seen:new Date(now-(i*7+3)*min).toISOString(),last_seen:new Date(now-(i%3)*20000).toISOString()}));
+  const stats=[]; for(let k=24*6;k>=0;k--){ const t=now-k*10*min, h=new Date(t).getHours(); const base=h>=19&&h<=23?11:h>=9&&h<19?6:2; stats.push({ts:new Date(t).toISOString(),server:"kr",online:Math.max(0,Math.round(base+Math.sin(k/5)*2+(k%7)/3))}); }
+  stats[stats.length-1].online=presence.length;
+  const fb=(id,kind,status,msg,nick,mAgo,extra={})=>({id,server:"kr",session_id:"demo",nickname:nick,kind,message:msg,status,created_at:new Date(now-mAgo*min).toISOString(),context:{ver:"0.2",zone:ZONES[id%ZONES.length],ua:"Chrome / Windows"},reply:null,replied_at:null,fixed_version:null,...extra});
+  const feedback=[
+    fb(9,"bug","new","가방 창이 안 열려요. I 키를 눌러도 아무 반응이 없습니다.","초보나그네",4),
+    fb(8,"idea","new","아이템을 땅에 버리는 기능이 있으면 좋겠어요. 무기를 너무 많이 주웠어요.","곰사냥꾼",18),
+    fb(7,"bug","reviewing","티베르 섬 다리 끝에서 캐릭터가 물 속으로 빠져요.","티베르낚시꾼",55),
+    fb(6,"question","new","데나리우스는 어디서 벌 수 있나요?","로마산책",80),
+    fb(5,"idea","done","간판 카드에 가게 설명을 두 줄 더 넣을 수 있게 해주세요.","포룸상인",300,{reply:"좋은 의견 감사합니다. 다음 업데이트에 설명 칸을 늘리겠습니다.",replied_at:new Date(now-200*min).toISOString()}),
+    fb(4,"bug","fixed","모바일에서 Q E 회전 버튼이 안 보입니다.","아우렐리아",900,{reply:"0.2에서 고쳤습니다. 새로고침 해보세요.",replied_at:new Date(now-600*min).toISOString(),fixed_version:"0.2"}),
+    fb(3,"other","wontfix","로마 말고 서울도 만들어 주세요!","마르쿠스",1500,{reply:"지금은 로마에 집중하고 있어요. 나중에 다른 도시도 계획 중입니다.",replied_at:new Date(now-1400*min).toISOString()})];
+  const announcements=[
+    {id:2,server:"all",level:"event",title:"첫 주 개척자 이벤트",body:"이번 주 접속한 모든 시민에게 개척자 휘장을 드립니다.",starts_at:new Date(now-2*86400000).toISOString(),ends_at:new Date(now+5*86400000).toISOString(),active:true,created_at:new Date(now-2*86400000).toISOString()},
+    {id:1,server:"kr",level:"maintenance",title:"0.2 업데이트 점검 완료",body:"언덕과 자원 지대가 새로 열렸습니다.",starts_at:new Date(now-3*86400000).toISOString(),ends_at:new Date(now-2*86400000).toISOString(),active:false,created_at:new Date(now-3*86400000).toISOString()}];
+  const settings=[
+    {key:"maintenance_mode",value:false,note:"켜면 게임 화면에 점검 안내가 뜨고 입장이 막힘"},
+    {key:"motd",value:"카피톨리노에 오신 것을 환영합니다",note:"입장할 때 한 번 보이는 인사말"},
+    {key:"feedback_enabled",value:true,note:"게임 안 건의 버튼 표시 여부"},
+    {key:"presence_interval",value:30,note:"접속 신호 간격(초)"},
+    {key:"min_client_version",value:"0.2",note:"이보다 낮은 버전은 새로고침 안내"},
+    {key:"channel_capacity",value:50},{key:"queue_enabled",value:true},{key:"busy_threshold",value:.7},{key:"full_threshold",value:.95}];
+  const members=[
+    {id:"demo-m1",citizen_no:1,display_name:"소꼭지",email:"운영자 예시",created_at:new Date(now-2*86400000).toISOString(),last_login:new Date(now-5*min).toISOString(),banned:false,servers:["kr"],playtime_sec:5400,denarius:340,items:12,parcels:1},
+    {id:"demo-m2",citizen_no:2,display_name:"로마산책",email:"예시 회원",created_at:new Date(now-86400000).toISOString(),last_login:new Date(now-3*3600000).toISOString(),banned:false,servers:["kr","us"],playtime_sec:2100,denarius:95,items:4,parcels:0}];
+  const visits=presence.slice(0,6);
+  const peaks=[]; for(let d=0;d<7;d++){ const day=new Date(now-d*86400000).toISOString().slice(0,10); peaks.push({day,server:"kr",peak:10+((d*7)%9),minutes_online:600-d*40}); }
+  return {servers,presence,stats,feedback,announcements,settings,members,visits,peaks};
+}
+
+/* ───────── data layer ───────── */
+async function load(){
+  if(!live){ if(!D) D=demoData(); return; }
+  const since=new Date(Date.now()-24*3600000).toISOString(), onlineSince=new Date(Date.now()-90000).toISOString();
+  const [s,p,st,f,a,c]=await Promise.all([
+    sb.from("servers").select("*").order("sort"),
+    sb.from("presence").select("*").gt("last_seen",onlineSince).order("first_seen"),
+    sb.from("stats_minute").select("*").gt("ts",since).order("ts"),
+    sb.from("feedback").select("*").order("created_at",{ascending:false}).limit(300),
+    sb.from("announcements").select("*").order("created_at",{ascending:false}).limit(50),
+    sb.from("settings").select("*").order("key")]);
+  const err=[s,p,st,f,a,c].find(r=>r.error);
+  if(err){ toast("불러오기 실패: "+err.error.message); return; }
+  const [m,v,pk]=await Promise.all([
+    sb.rpc("admin_members"),
+    sb.from("presence").select("*").order("first_seen",{ascending:false}).limit(500),
+    sb.rpc("admin_daily_peaks",{p_days:30})]);
+  const err2=[m,v,pk].find(r=>r.error); if(err2) toast("회원 정보 불러오기 실패: "+err2.error.message);
+  D={servers:s.data,presence:p.data,stats:st.data,feedback:f.data,announcements:a.data,settings:c.data,members:m.data||[],visits:v.data||[],peaks:pk.data||[]};
+}
+async function save(table,match,patch){
+  if(!live){ const row=D[table].find(r=>Object.entries(match).every(([k,v])=>r[k]===v)); Object.assign(row,patch); return true; }
+  let q=sb.from(table).update(patch); for(const [k,v] of Object.entries(match)) q=q.eq(k,v);
+  const {error}=await q; if(error){ toast("저장 실패: "+error.message); return false; } return true;
+}
+async function insert(table,row){
+  if(!live){ row.id=Math.max(0,...D[table].map(r=>r.id))+1; row.created_at=new Date().toISOString(); D[table].unshift(row); return true; }
+  const {error}=await sb.from(table).insert(row); if(error){ toast("저장 실패: "+error.message); return false; } return true;
+}
+
+/* ───────── views ───────── */
+function setting(k,d){ const r=D.settings.find(s=>s.key===k); return r?r.value:d; }
+function load3(s){ const r=onlineBy(s.code)/Math.max(1,s.capacity), b=Number(setting("busy_threshold",.7)), f=Number(setting("full_threshold",.95)); return r>=f?["closed","포화"]:r>=b?["maintenance","혼잡"]:["open","원활"]; }
+function onlineBy(code){ return D.presence.filter(p=>p.server===code).length; }
+function peakToday(){ const t0=new Date(); t0.setHours(0,0,0,0); const byTs={}; D.stats.filter(s=>new Date(s.ts)>=t0).forEach(s=>byTs[s.ts]=(byTs[s.ts]||0)+s.online); return Math.max(D.presence.length,0,...Object.values(byTs)); }
+
+function chart(){
+  const byTs={}; D.stats.forEach(s=>byTs[s.ts]=(byTs[s.ts]||0)+s.online);
+  const tenMin={}; Object.entries(byTs).forEach(([ts,v])=>{ const k=Math.floor(new Date(ts)/600000)*600000; tenMin[k]=Math.max(tenMin[k]||0,v); });
+  const pts=Object.entries(tenMin).map(([k,v])=>[+k,v]).sort((a,b)=>a[0]-b[0]);
+  if(pts.length<2) return `<div class="empty">접속 기록이 쌓이면 지난 24시간 그래프가 여기에 그려집니다.</div>`;
+  const W=760,H=180,L=34,R=12,T=12,B=24, t1=Date.now(), t0=t1-24*3600000;
+  const max=Math.max(4,...pts.map(p=>p[1])), yMax=Math.ceil(max/4)*4;
+  const x=t=>L+(t-t0)/(t1-t0)*(W-L-R), y=v=>T+(1-v/yMax)*(H-T-B);
+  const line=pts.map((p,i)=>(i?"L":"M")+x(p[0]).toFixed(1)+" "+y(p[1]).toFixed(1)).join(" ");
+  const area=line+` L${x(pts.at(-1)[0]).toFixed(1)} ${y(0)} L${x(pts[0][0]).toFixed(1)} ${y(0)} Z`;
+  let grid=""; for(let i=0;i<=4;i++){ const v=yMax*i/4; grid+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L-6}" y="${y(v)+3}" text-anchor="end">${v}</text>`; }
+  for(let h=0;h<=24;h+=6){ const t=t0+h*3600000; const d=new Date(t); grid+=`<text x="${x(t)}" y="${H-6}" text-anchor="middle">${String(d.getHours()).padStart(2,"0")}:00</text>`; }
+  const last=pts.at(-1);
+  return `<div class="tablewrap"><svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="지난 24시간 동시 접속자">
+    ${grid}<path d="${area}" fill="var(--accent)" opacity=".12"/><path d="${line}" fill="none" stroke="var(--accent)" stroke-width="2"/>
+    <circle cx="${x(last[0])}" cy="${y(last[1])}" r="4" fill="var(--accent)"/></svg></div>`;
+}
+
+function vOverview(){
+  const total=D.presence.length, newFb=D.feedback.filter(f=>f.status==="new").length, openBugs=D.feedback.filter(f=>f.kind==="bug"&&!["fixed","wontfix","done"].includes(f.status)).length;
+  const activeAnn=D.announcements.filter(a=>a.active&&(!a.ends_at||new Date(a.ends_at)>new Date())).length;
+  const maint=(D.settings.find(s=>s.key==="maintenance_mode")||{}).value===true;
+  return `
+  <section class="grid">
+    <div class="panel stat"><div class="k">지금 동시 접속</div><div class="v">${total}</div><div class="s">최근 90초 안에 신호를 보낸 사람</div></div>
+    <div class="panel stat"><div class="k">오늘 최고 동접</div><div class="v">${peakToday()}</div><div class="s">자정부터 분 단위 기록 기준</div></div>
+    <div class="panel stat"><div class="k">새 건의</div><div class="v">${newFb}</div><div class="s">아직 읽지 않은 글</div></div>
+    <div class="panel stat"><div class="k">남은 버그</div><div class="v">${openBugs}</div><div class="s">고침이나 답변 처리 전</div></div>
+  </section>
+  ${maint?`<div class="panel" style="border-color:var(--warn)"><span class="pill p-maintenance">점검 모드 켜짐</span> 지금 플레이어는 게임에 들어올 수 없습니다. 설정에서 끌 수 있어요.</div>`:""}
+  <section class="panel"><h2>지난 24시간 동시 접속</h2>${chart()}</section>
+  <section class="two">
+    <div class="panel"><h2>서버별 상태</h2><div class="srv">
+      ${D.servers.map(s=>{ const n=onlineBy(s.code); return `<div class="srvrow">
+        <div><b>${esc(s.name)}</b> <span class="note">${esc(s.code.toUpperCase())}</span></div>
+        <div class="row" style="gap:4px"><span class="pill p-${s.status}">${SSTATUS[s.status]}</span>${s.status==="open"?`<span class="pill p-${load3(s)[0]}">${load3(s)[1]}</span>`:""}</div>
+        <div class="meter" title="${n} / ${s.capacity}"><i style="width:${Math.min(100,n/s.capacity*100)}%"></i></div>
+        <div class="num">${n}<span class="note"> / ${s.capacity}</span></div></div>`; }).join("")}
+    </div><p class="note">공지 ${activeAnn}건 게시 중</p></div>
+    <div class="panel"><h2>지금 접속 중인 시민</h2>
+      ${total?`<div class="tablewrap"><table><thead><tr><th>이름</th><th>모습</th><th>위치</th><th class="num">접속</th></tr></thead><tbody>
+      ${D.presence.slice().sort((a,b)=>new Date(a.first_seen)-new Date(b.first_seen)).map(p=>`<tr><td>${esc(who(p))}${p.nickname?` <span class="pill p-open">회원</span>`:""}</td><td>${esc(formKo(p.form))}</td><td>${esc(p.zone||"")}</td><td class="num">${ago(p.first_seen).replace(" 전","")}</td></tr>`).join("")}
+      </tbody></table></div>`:`<div class="empty">지금은 아무도 없습니다. 게임에 접속 신호가 연결되면 여기에 보입니다.</div>`}
+    </div>
+  </section>`;
+}
+
+function vInbox(){
+  const list=D.feedback.filter(f=>(ui.kind==="all"||f.kind===ui.kind)&&(ui.status==="all"||(ui.status==="open"?["new","reviewing"].includes(f.status):!["new","reviewing"].includes(f.status))));
+  if(!list.find(f=>f.id===ui.sel)) ui.sel=list[0]?.id ?? null;
+  const f=D.feedback.find(x=>x.id===ui.sel);
+  const chips=(name,opts)=>opts.map(([v,l])=>`<button class="chip" type="button" data-f="${name}" data-v="${v}" aria-pressed="${ui[name]===v}">${l}</button>`).join("");
+  return `<section class="two">
+    <div class="panel">
+      <h2>건의함</h2>
+      <div class="filters">${chips("status",[["open","처리 전"],["closed","처리 끝"],["all","전체"]])}</div>
+      <div class="filters">${chips("kind",[["all","모든 종류"],["bug","버그"],["idea","건의"],["question","질문"],["other","기타"]])}</div>
+      <div class="list" role="listbox" aria-label="받은 메시지">
+        ${list.length?list.map(x=>`<button class="item" type="button" role="option" data-id="${x.id}" aria-selected="${x.id===ui.sel}">
+          <span class="top"><span class="pill p-${x.kind}">${KIND[x.kind]}</span><span class="pill p-${x.status}">${FSTATUS[x.status]}</span>${esc(x.nickname||"익명")} · ${ago(x.created_at)}</span>
+          <span class="msg">${esc(x.message)}</span></button>`).join(""):`<div class="empty">이 조건에 맞는 메시지가 없습니다.</div>`}
+      </div>
+    </div>
+    <div class="panel detail">${f?`
+      <h2>${KIND[f.kind]} #${f.id}</h2>
+      <div class="meta"><span class="pill p-${f.status}">${FSTATUS[f.status]}</span>${esc(f.nickname||"익명")} · ${esc((f.server||"").toUpperCase())} 서버 · ${fmtTime(f.created_at)}</div>
+      <div class="quote">${esc(f.message)}</div>
+      ${f.context?`<div class="ctx">${esc(Object.entries(f.context).map(([k,v])=>k+" "+v).join("  ·  "))}</div>`:""}
+      <form class="form" id="replyForm">
+        <label for="reply">답장 (플레이어가 게임 안 내 건의에서 봅니다)<textarea id="reply" placeholder="고쳤다면 어느 버전에서 고쳤는지 같이 적어주세요">${esc(f.reply||"")}</textarea></label>
+        <div class="row">
+          <label for="fixver">고친 버전<input id="fixver" value="${esc(f.fixed_version||"")}" placeholder="예 0.3"></label>
+          <label for="fstatus">상태<select id="fstatus">${Object.entries(FSTATUS).map(([k,l])=>`<option value="${k}" ${k===f.status?"selected":""}>${l}</option>`).join("")}</select></label>
+        </div>
+        <div class="row">
+          <button class="btn primary" type="submit">답장 저장</button>
+          ${f.kind==="bug"?`<button class="btn ok" type="button" data-quick="fixed">고침으로 표시</button>`:""}
+          <button class="btn" type="button" data-quick="reviewing">확인 중으로</button>
+          <button class="btn bad" type="button" data-quick="wontfix">반영 안 함</button>
+        </div>
+        ${f.replied_at?`<p class="note">마지막 답장 ${fmtTime(f.replied_at)}</p>`:""}
+      </form>`:`<div class="empty">왼쪽에서 메시지를 고르면 여기서 읽고 답장할 수 있습니다.</div>`}
+    </div></section>`;
+}
+
+function vNotice(){
+  const now=new Date();
+  const state=a=>!a.active?["closed","내림"]:new Date(a.starts_at)>now?["soon","예약"]:a.ends_at&&new Date(a.ends_at)<now?["soon","끝남"]:["open","게시 중"];
+  const local=new Date(Date.now()+3*86400000-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16);
+  return `<section class="two">
+    <div class="panel"><h2>새 공지</h2>
+      <form class="form" id="annForm">
+        <label for="atitle">제목<input id="atitle" required maxlength="80" placeholder="예 주말 2배 사냥 이벤트"></label>
+        <label for="abody">내용<textarea id="abody" maxlength="600" placeholder="게임 화면 위쪽 띠에 보입니다"></textarea></label>
+        <div class="row">
+          <label for="alevel">종류<select id="alevel">${Object.entries(LEVEL).map(([k,l])=>`<option value="${k}">${l}</option>`).join("")}</select></label>
+          <label for="aserver">대상 서버<select id="aserver"><option value="all">모든 서버</option>${D.servers.map(s=>`<option value="${s.code}">${esc(s.name)}</option>`).join("")}</select></label>
+        </div>
+        <label for="aends">내릴 시각 (비우면 직접 내릴 때까지)<input id="aends" type="datetime-local" value="${local}"></label>
+        <div class="row"><button class="btn primary" type="submit">공지 올리기</button></div>
+      </form></div>
+    <div class="panel"><h2>공지 목록</h2>
+      ${D.announcements.length?D.announcements.map(a=>{ const [c,l]=state(a); return `<div class="ann">
+        <div class="row"><span class="pill p-${a.level}">${LEVEL[a.level]}</span><span class="pill p-${c}">${l}</span><span class="note">${a.server==="all"?"모든 서버":esc(a.server.toUpperCase())} · ${fmtTime(a.starts_at)}${a.ends_at?" 부터 "+fmtTime(a.ends_at)+" 까지":" 부터"}</span></div>
+        <div class="t">${esc(a.title)}</div>${a.body?`<div>${esc(a.body)}</div>`:""}
+        <div class="row"><button class="btn" type="button" data-ann="${a.id}" data-on="${!a.active}">${a.active?"내리기":"다시 올리기"}</button></div></div>`; }).join(""):`<div class="empty">아직 공지가 없습니다.</div>`}
+    </div></section>`;
+}
+
+function vConfig(){
+  const S=k=>(D.settings.find(s=>s.key===k)||{}).value;
+  return `<section class="two">
+    <div class="panel"><h2>서버 열고 닫기</h2>
+      ${D.servers.map(s=>`<div class="switch"><div><b>${esc(s.name)}</b><span class="note">${esc(s.lang)} · 정원 ${s.capacity}명 · 지금 ${onlineBy(s.code)}명</span></div>
+        <div class="row" style="flex-wrap:nowrap"><input type="number" min="1" max="1000000" data-cap="${s.code}" value="${s.capacity}" aria-label="${esc(s.name)} 정원" style="width:110px"><select data-srv="${s.code}" aria-label="${esc(s.name)} 상태" style="width:auto">${Object.entries(SSTATUS).map(([k,l])=>`<option value="${k}" ${k===s.status?"selected":""}>${l}</option>`).join("")}</select></div></div>`).join("")}
+      <p class="note">숫자는 서버 정원입니다. 정원의 ${Math.round(Number(setting("busy_threshold",.7))*100)}% 이상이면 혼잡, ${Math.round(Number(setting("full_threshold",.95))*100)}% 이상이면 포화로 표시되고, 대기열이 켜져 있으면 그때부터 새로 오는 사람은 대기열에서 기다립니다.</p>
+      <p class="note">열림으로 바꾸면 첫 화면 세계 지도에서 바로 선택할 수 있게 됩니다. 그 나라 말 번역이 준비된 서버만 여세요.</p>
+    </div>
+    <div class="panel"><h2>게임 설정</h2>
+      <div class="switch"><div><b>점검 모드</b><span class="note">켜면 모든 플레이어에게 점검 안내가 뜨고 입장이 막힙니다</span></div>
+        <select data-set="maintenance_mode" data-type="bool" style="width:auto"><option value="false" ${S("maintenance_mode")!==true?"selected":""}>꺼짐</option><option value="true" ${S("maintenance_mode")===true?"selected":""}>켜짐</option></select></div>
+      <div class="switch"><div><b>건의 버튼</b><span class="note">게임 화면의 건의 보내기 버튼</span></div>
+        <select data-set="feedback_enabled" data-type="bool" style="width:auto"><option value="true" ${S("feedback_enabled")!==false?"selected":""}>보임</option><option value="false" ${S("feedback_enabled")===false?"selected":""}>숨김</option></select></div>
+      <div class="switch"><div><b>입장 대기열</b><span class="note">서버가 포화일 때 새 입장을 대기열로 받기</span></div>
+        <select data-set="queue_enabled" data-type="bool" style="width:auto"><option value="true" ${S("queue_enabled")!==false?"selected":""}>켜짐</option><option value="false" ${S("queue_enabled")===false?"selected":""}>꺼짐</option></select></div>
+      <form class="form" id="setForm" style="margin-top:12px">
+        <label for="motd">입장 인사말<input id="motd" maxlength="120" value="${esc(S("motd")||"")}"></label>
+        <div class="row">
+          <label for="minver">최소 버전<input id="minver" value="${esc(S("min_client_version")||"")}"></label>
+          <label for="interval">접속 신호 간격(초)<input id="interval" type="number" min="10" max="300" value="${esc(S("presence_interval")||30)}"></label>
+        </div>
+        <div class="row">
+          <label for="chcap">채널 정원<input id="chcap" type="number" min="5" max="500" value="${esc(S("channel_capacity")||50)}"></label>
+          <label for="busy">혼잡 기준(%)<input id="busy" type="number" min="10" max="99" value="${Math.round(Number(S("busy_threshold")||.7)*100)}"></label>
+          <label for="full">포화 기준(%)<input id="full" type="number" min="10" max="100" value="${Math.round(Number(S("full_threshold")||.95)*100)}"></label>
+        </div>
+        <div class="row"><button class="btn primary" type="submit">설정 저장</button></div>
+      </form></div>
+  </section>
+  <section class="panel login" id="loginPanel" ${live?"hidden":""}>
+    <h2>운영자 로그인</h2>
+    <p class="note">지금은 시연 데이터입니다. 게임에 쓰는 운영자 구글 계정으로 로그인하면 실제 데이터로 바뀝니다.</p>
+    <div class="row" style="margin-bottom:12px"><button class="btn primary google" type="button" id="googleBtn">구글로 로그인</button></div>
+    <p class="note">이메일과 비밀번호로 만든 운영자 계정이 있다면 아래로 로그인할 수도 있습니다.</p>
+    <form class="form" id="loginForm">
+      <label for="lemail">이메일<input id="lemail" type="email" autocomplete="username" required></label>
+      <label for="lpw">비밀번호<input id="lpw" type="password" autocomplete="current-password" minlength="8" required></label>
+      <div class="row"><button class="btn primary" type="submit">로그인</button><button class="btn" type="button" id="signupBtn">계정 만들기</button></div>
+    </form>
+  </section>`;
+}
+
+
+/* ───────── members ───────── */
+const RES={denarius:"데나리우스",food:"식량",wood:"나무",stone:"돌",iron:"철",hide:"가죽",silver:"은",gold:"금"};
+const PLACE={bag:"가방",home:"집 창고",warehouse:"공공창고"};
+const dur=sec=>{ sec=Number(sec)||0; const h=Math.floor(sec/3600), m=Math.round(sec%3600/60); return h?h+"시간 "+m+"분":m+"분"; };
+const memo={};
+async function memberDetail(id){
+  if(memo[id]) return memo[id];
+  if(!live){ memo[id]={characters:[{server:"kr",form:"human",playtime_sec:5400,updated_at:new Date().toISOString(),pos:{x:12,z:40}}],resources:[{server:"kr",resource:"denarius",amount:340},{server:"kr",resource:"wood",amount:22}],inventory:[{server:"kr",place:"bag",item_code:"axe_bronze",qty:1,durability:80}],parcels:[{id:2,server:"kr",zone:"frontier",shape:{plot:2},price:62,bought_at:new Date().toISOString()}],signs:[]}; return memo[id]; }
+  const [c,r,i,pa,sg]=await Promise.all([
+    sb.from("characters").select("*").eq("user_id",id).order("server"),
+    sb.from("resources").select("*").eq("user_id",id).order("server"),
+    sb.from("inventory").select("*").eq("user_id",id).order("server").order("place").order("slot"),
+    sb.from("parcels").select("*").eq("owner_id",id).order("server"),
+    sb.from("signs").select("*").eq("owner_id",id).order("created_at",{ascending:false})]);
+  const e=[c,r,i,pa,sg].find(x=>x.error); if(e){ toast("회원 상세 불러오기 실패: "+e.error.message); return null; }
+  memo[id]={characters:c.data,resources:r.data,inventory:i.data,parcels:pa.data,signs:sg.data}; return memo[id];
+}
+function vMembers(){
+  const q=(ui.q||"").trim().toLowerCase();
+  const list=D.members.filter(m=>!q||[m.display_name,m.email,String(m.citizen_no)].some(v=>String(v||"").toLowerCase().includes(q)));
+  const m=D.members.find(x=>x.id===ui.msel);
+  const det=m&&memo[m.id];
+  if(m&&!det){ memberDetail(m.id).then(()=>{ if(ui.tab==="members") render(); }); }
+  const totalDen=D.members.reduce((a,x)=>a+Number(x.denarius||0),0);
+  const today=new Date(); today.setHours(0,0,0,0);
+  return `
+  <section class="grid">
+    <div class="panel stat"><div class="k">전체 회원</div><div class="v">${D.members.length}</div><div class="s">구글로 가입한 시민</div></div>
+    <div class="panel stat"><div class="k">오늘 들어온 회원</div><div class="v">${D.members.filter(x=>x.last_login&&new Date(x.last_login)>=today).length}</div><div class="s">자정 이후 로그인</div></div>
+    <div class="panel stat"><div class="k">풀린 데나리우스</div><div class="v">${totalDen.toLocaleString()}</div><div class="s">모든 회원 보유 합계</div></div>
+    <div class="panel stat"><div class="k">팔린 땅</div><div class="v">${D.members.reduce((a,x)=>a+Number(x.parcels||0),0)}</div><div class="s">회원이 가진 필지</div></div>
+  </section>
+  <section class="two">
+    <div class="panel"><h2>회원 목록</h2>
+      <div class="filters"><input id="mq" type="search" placeholder="이름, 이메일, 시민 번호로 찾기" value="${esc(ui.q||"")}" aria-label="회원 찾기"></div>
+      ${list.length?`<div class="tablewrap"><table><thead><tr><th class="num">번호</th><th>이름</th><th>서버</th><th class="num">데나리우스</th><th>최근 접속</th></tr></thead><tbody>
+      ${list.map(x=>`<tr class="pick" tabindex="0" data-mid="${esc(x.id)}" aria-selected="${x.id===ui.msel}"><td class="num">${x.citizen_no}</td><td>${esc(x.display_name||"이름 미정")}${x.banned?` <span class="pill p-closed">정지</span>`:""}</td><td>${esc((x.servers||[]).join(" ").toUpperCase())}</td><td class="num">${Number(x.denarius||0).toLocaleString()}</td><td>${x.last_login?ago(x.last_login):""}</td></tr>`).join("")}
+      </tbody></table></div>`:`<div class="empty">${D.members.length?"찾는 회원이 없습니다.":"아직 가입한 회원이 없습니다."}</div>`}
+    </div>
+    <div class="panel detail">${m?`
+      <h2>시민 ${m.citizen_no} ${esc(m.display_name||"")}</h2>
+      <dl class="kv">
+        <dt>이메일</dt><dd>${esc(m.email||"")}</dd>
+        <dt>가입</dt><dd>${fmtTime(m.created_at)}</dd>
+        <dt>최근 로그인</dt><dd>${m.last_login?fmtTime(m.last_login):"없음"}</dd>
+        <dt>플레이 시간</dt><dd>${dur(m.playtime_sec)}</dd>
+        <dt>상태</dt><dd>${m.banned?`<span class="pill p-closed">정지</span> ${esc(m.ban_reason||"")}`:`<span class="pill p-open">정상</span>`}</dd>
+      </dl>
+      ${!det?`<div class="empty">불러오는 중입니다</div>`:`
+      <div class="sub">서버별 캐릭터</div>
+      ${det.characters.length?`<div class="tablewrap"><table><thead><tr><th>서버</th><th>모습</th><th class="num">플레이</th><th>마지막 저장</th></tr></thead><tbody>${det.characters.map(c=>`<tr><td>${esc(c.server.toUpperCase())}</td><td>${esc(formKo(c.form))}</td><td class="num">${dur(c.playtime_sec)}</td><td>${fmtTime(c.updated_at)}</td></tr>`).join("")}</tbody></table></div>`:`<p class="note">아직 서버에 들어간 적이 없습니다.</p>`}
+      <div class="sub">자원</div>
+      ${det.resources.length?`<div class="tablewrap"><table><thead><tr><th>서버</th><th>자원</th><th class="num">수량</th></tr></thead><tbody>${det.resources.filter(r=>r.amount>0||r.resource==="denarius").map(r=>`<tr><td>${esc(r.server.toUpperCase())}</td><td>${RES[r.resource]||esc(r.resource)}</td><td class="num">${Number(r.amount).toLocaleString()}</td></tr>`).join("")}</tbody></table></div>`:`<p class="note">자원이 없습니다.</p>`}
+      <div class="sub">소지품</div>
+      ${det.inventory.length?`<div class="tablewrap"><table><thead><tr><th>서버</th><th>보관</th><th>아이템</th><th class="num">수량</th><th class="num">내구도</th></tr></thead><tbody>${det.inventory.map(i=>`<tr><td>${esc(i.server.toUpperCase())}</td><td>${PLACE[i.place]||esc(i.place)}</td><td>${esc(i.item_code)}</td><td class="num">${i.qty}</td><td class="num">${i.durability??""}</td></tr>`).join("")}</tbody></table></div>`:`<p class="note">서버에 저장된 소지품이 없습니다.</p>`}
+      <div class="sub">땅</div>
+      ${det.parcels.length?`<div class="tablewrap"><table><thead><tr><th>서버</th><th>필지</th><th class="num">가격</th><th>산 날</th></tr></thead><tbody>${det.parcels.map(p=>`<tr><td>${esc(p.server.toUpperCase())}</td><td>${p.zone==="frontier"?"개척지":esc(p.zone||"")} ${esc(p.shape?.plot??p.id)}번</td><td class="num">${p.price}</td><td>${p.bought_at?fmtTime(p.bought_at):""}</td></tr>`).join("")}</tbody></table></div>`:`<p class="note">가진 땅이 없습니다.</p>`}
+      <div class="sub">링크 간판</div>
+      ${det.signs.length?det.signs.map(g=>`<div class="ann"><div class="row"><span class="pill p-${g.status==="approved"?"open":g.status==="pending"?"new":"closed"}">${{approved:"승인",pending:"심사 대기",rejected:"거절"}[g.status]}</span><span class="note">${fmtTime(g.created_at)}</span></div><div class="t">${esc(g.title)}</div><div class="note" style="overflow-wrap:anywhere">${esc(g.url)}</div></div>`).join(""):`<p class="note">신청한 간판이 없습니다.</p>`}
+      <div class="row" style="margin-top:12px"><button class="btn" type="button" id="mreload">다시 불러오기</button></div>`}
+    `:`<div class="empty">왼쪽에서 회원을 고르면 서버별 자원, 소지품, 땅, 간판을 볼 수 있습니다.</div>`}</div>
+  </section>`;
+}
+
+/* ───────── visits ───────── */
+function vVisits(){
+  const v=D.visits||[], now=Date.now();
+  const onlineSince=now-90000;
+  const byDay={}; (D.peaks||[]).forEach(p=>{ const k=String(p.day).slice(0,10); (byDay[k]=byDay[k]||{day:k,total:0,minutes:0,srv:{}}); byDay[k].srv[p.server]=p.peak; byDay[k].total+=p.peak; byDay[k].minutes=Math.max(byDay[k].minutes,Number(p.minutes_online)||0); });
+  const days=Object.values(byDay).sort((a,b)=>a.day<b.day?1:-1);
+  const srvs=[...new Set((D.peaks||[]).map(p=>p.server))].sort();
+  return `
+  <section class="grid">
+    <div class="panel stat"><div class="k">최근 24시간 접속</div><div class="v">${v.length}</div><div class="s">브라우저 기준, 회원과 손님 모두</div></div>
+    <div class="panel stat"><div class="k">그중 이름 있는 접속</div><div class="v">${v.filter(x=>x.nickname).length}</div><div class="s">게임 닉네임을 정한 회원</div></div>
+    <div class="panel stat"><div class="k">30일 최고 동접</div><div class="v">${Math.max(0,...(D.peaks||[]).map(p=>p.peak))}</div><div class="s">서버 하나 기준 분 단위</div></div>
+  </section>
+  <section class="panel"><h2>최근 24시간 접속 기록</h2>
+    <p class="note">접속 기록은 하루가 지나면 자동으로 지워집니다. 로그인하지 않은 손님은 모습과 세 자리 번호로 보입니다(예 늑대 347). 번호는 브라우저마다 정해져서 같은 창이면 계속 같습니다. 누구인지까지는 알 수 없습니다.</p>
+    ${v.length?`<div class="tablewrap"><table><thead><tr><th>상태</th><th>서버</th><th>이름</th><th>모습</th><th>위치</th><th>버전</th><th>처음</th><th>마지막</th><th class="num">머문 시간</th></tr></thead><tbody>
+    ${v.map(x=>{ const on=new Date(x.last_seen)>onlineSince; return `<tr><td>${on?`<span class="pill p-open">접속 중</span>`:`<span class="pill p-soon">나감</span>`}</td><td>${esc((x.server||"").toUpperCase())}</td><td>${esc(who(x))}${x.nickname?` <span class="pill p-open">회원</span>`:` <span class="pill p-soon">손님</span>`}</td><td>${esc(formKo(x.form))}</td><td>${esc(x.zone||"")}</td><td>${esc(x.client_ver||"")}</td><td>${fmtTime(x.first_seen)}</td><td>${fmtTime(x.last_seen)}</td><td class="num">${dur((new Date(x.last_seen)-new Date(x.first_seen))/1000)}</td></tr>`; }).join("")}
+    </tbody></table></div>`:`<div class="empty">최근 24시간 동안 접속이 없습니다.</div>`}
+  </section>
+  <section class="panel"><h2>날짜별 최고 동시 접속 (최근 30일)</h2>
+    ${days.length?`<div class="tablewrap"><table><thead><tr><th>날짜</th>${srvs.map(s=>`<th class="num">${esc(s.toUpperCase())}</th>`).join("")}<th class="num">누군가 있던 시간</th></tr></thead><tbody>
+    ${days.map(d=>`<tr><td>${esc(d.day)}</td>${srvs.map(s=>`<td class="num">${d.srv[s]??0}</td>`).join("")}<td class="num">${dur(d.minutes*60)}</td></tr>`).join("")}
+    </tbody></table></div>`:`<div class="empty">아직 쌓인 기록이 없습니다.</div>`}
+  </section>`;
+}
+const VIEWS={overview:vOverview,members:vMembers,visits:vVisits,inbox:vInbox,notice:vNotice,config:vConfig};
+function render(){
+  const tab=VIEWS[location.hash.slice(1)]?location.hash.slice(1):"overview"; ui.tab=tab;
+  document.querySelectorAll("#nav a").forEach(a=>a.getAttribute("href")==="#"+tab?a.setAttribute("aria-current","page"):a.removeAttribute("aria-current"));
+  const n=D.feedback.filter(f=>f.status==="new").length; const c=$("#newCount"); c.textContent=n; c.hidden=!n;
+  $("#mode").textContent=live?"실시간":"시연 데이터"; $("#mode").className="mode"+(live?" live":"");
+  $("#authBtn").textContent=live?"로그아웃":"구글로 로그인";
+  const keep=document.activeElement?.id;
+  $("#main").innerHTML=VIEWS[tab]();
+  if(keep&&document.getElementById(keep)&&["reply","fixver","mq"].includes(keep)){ const el=document.getElementById(keep); el.focus(); if(keep==="mq") el.setSelectionRange(el.value.length,el.value.length); }
+}
+
+/* ───────── events ───────── */
+document.addEventListener("click",async e=>{
+  const tr=e.target.closest("tr[data-mid]"); if(tr){ ui.msel=tr.dataset.mid; render(); return; }
+  const t=e.target.closest("button"); if(!t) return;
+  if(t.id==="mreload"){ delete memo[ui.msel]; await refresh(); return; }
+  if(t.id==="googleBtn"){ googleLogin(); return; }
+  if(t.dataset.f){ ui[t.dataset.f]=t.dataset.v; render(); return; }
+  if(t.classList.contains("item")){ ui.sel=+t.dataset.id; render(); return; }
+  if(t.dataset.quick){ const f=D.feedback.find(x=>x.id===ui.sel); const patch={status:t.dataset.quick}; if(t.dataset.quick==="fixed"&&!$("#fixver").value) patch.fixed_version=null;
+    if(await save("feedback",{id:f.id},patch)){ toast(FSTATUS[patch.status]+"으로 바꿨습니다"); await refresh(); } return; }
+  if(t.dataset.ann){ if(await save("announcements",{id:+t.dataset.ann},{active:t.dataset.on==="true"})){ toast(t.dataset.on==="true"?"공지를 다시 올렸습니다":"공지를 내렸습니다"); await refresh(); } return; }
+  if(t.id==="authBtn"){ if(live){ await sb.auth.signOut(); live=false; D=null; await refresh(); toast("로그아웃했습니다"); } else { if(sb) googleLogin(); else { location.hash="#config"; } } return; }
+  if(t.id==="signupBtn"){ const email=$("#lemail").value, password=$("#lpw").value; if(!email||password.length<8){ toast("이메일과 8자 이상 비밀번호를 넣어주세요"); return; }
+    const {error}=await sb.auth.signUp({email,password}); toast(error?"계정 만들기 실패: "+error.message:"인증 메일을 보냈습니다. 메일함을 확인하세요"); return; }
+});
+document.addEventListener("change",async e=>{
+  const t=e.target;
+  if(t.dataset.srv){ if(await save("servers",{code:t.dataset.srv},{status:t.value})){ toast("서버 상태를 "+SSTATUS[t.value]+"으로 바꿨습니다"); await refresh(); } }
+  if(t.dataset.cap){ const n=Math.max(1,Number(t.value)||1); if(await save("servers",{code:t.dataset.cap},{capacity:n})){ toast("정원을 "+n.toLocaleString()+"명으로 바꿨습니다"); await refresh(); } }
+  if(t.dataset.set){ const v=t.dataset.type==="bool"?t.value==="true":t.value; if(await save("settings",{key:t.dataset.set},{value:v,updated_at:new Date().toISOString()})){ toast("설정을 저장했습니다"); await refresh(); } }
+});
+document.addEventListener("submit",async e=>{
+  e.preventDefault(); const id=e.target.id;
+  if(id==="replyForm"){ const f=D.feedback.find(x=>x.id===ui.sel); const reply=$("#reply").value.trim();
+    const patch={reply:reply||null,fixed_version:$("#fixver").value.trim()||null,status:$("#fstatus").value};
+    if(reply&&f.reply!==reply){ patch.replied_at=new Date().toISOString(); if(patch.status==="new") patch.status="done"; }
+    if(await save("feedback",{id:f.id},patch)){ toast("답장을 저장했습니다. 플레이어 게임 화면에 표시됩니다"); await refresh(); } }
+  if(id==="annForm"){ const ends=$("#aends").value;
+    const row={title:$("#atitle").value.trim(),body:$("#abody").value.trim()||null,level:$("#alevel").value,server:$("#aserver").value,ends_at:ends?new Date(ends).toISOString():null,active:true,starts_at:new Date().toISOString()};
+    if(await insert("announcements",row)){ toast("공지를 올렸습니다"); await refresh(); } }
+  if(id==="setForm"){ const items=[["motd",$("#motd").value],["min_client_version",$("#minver").value],["presence_interval",Number($("#interval").value)||30],["channel_capacity",Number($("#chcap").value)||50],["busy_threshold",(Number($("#busy").value)||70)/100],["full_threshold",(Number($("#full").value)||95)/100]];
+    let ok=true; for(const [k,v] of items) ok=(await save("settings",{key:k},{value:v,updated_at:new Date().toISOString()}))&&ok; if(ok){ toast("설정을 저장했습니다"); await refresh(); } }
+  if(id==="loginForm"){ if(!sb){ toast("실시간 연결을 쓸 수 없는 환경입니다"); return; }
+    const {error}=await sb.auth.signInWithPassword({email:$("#lemail").value,password:$("#lpw").value});
+    if(error){ toast("로그인 실패: "+error.message); return; } await goLive(); }
+});
+document.addEventListener("keydown",e=>{ const tr=e.target.closest?.("tr[data-mid]"); if(tr&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); ui.msel=tr.dataset.mid; render(); } });
+document.addEventListener("input",e=>{ if(e.target.id==="mq"){ ui.q=e.target.value; render(); } });
+window.addEventListener("hashchange",render);
+async function googleLogin(){
+  if(!sb){ toast("실시간 연결을 쓸 수 없는 환경입니다"); return; }
+  const {error}=await sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:location.origin+location.pathname}});
+  if(error) toast("구글 로그인 실패: "+error.message);
+}
+
+async function goLive(){
+  const {data}=await sb.rpc("is_admin");
+  if(data!==true){ toast("로그인은 됐지만 운영자 명단에 없는 계정입니다"); await sb.auth.signOut(); return; }
+  live=true; D=null; await refresh(); toast("실시간 데이터로 바꿨습니다"); location.hash="#overview";
+}
+async function refresh(){ try{ await load(); }catch(err){ toast("불러오기 실패"); } if(D) render(); }
+
+(async function start(){
+  try{ if(window.supabase) sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY); }catch(e){ sb=null; }
+  await refresh();
+  if(sb){ try{ const {data}=await sb.auth.getSession(); if(data.session) await goLive(); }catch(e){} }
+  setInterval(()=>{ if(live) refresh(); else if(D){ /* demo: gentle drift so the board feels alive */
+    if(Math.random()<.5&&D.presence.length>8) D.presence.pop(); else if(D.presence.length<18) D.presence.push({session_id:"demo-"+Date.now(),server:"kr",nickname:"새시민"+(Date.now()%1000),form:FORMS[Date.now()%8],zone:ZONES[Date.now()%7],first_seen:new Date().toISOString(),last_seen:new Date().toISOString()});
+    D.stats.push({ts:new Date().toISOString(),server:"kr",online:D.presence.length}); if(ui.tab==="overview") render(); } },15000);
+})();
+</script>
+</body>
+</html>
