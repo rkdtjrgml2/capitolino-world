@@ -2287,19 +2287,21 @@ function drawLog(){const el=$("u2log");if(!LOG.length||mode!=="play"){el.innerHT
  el.innerHTML=`<div class="h">${UT().log}</div>`+LOG.map(l=>`<span class="${now-l.at>20000?"old":""}">${l.m.replace(/</g,"&lt;")}</span>`).join("")}
 
 /* ---- first loop quest list ---- */
-const QKEY=()=>"cap3d.quest."+server.id;
-let QS={};try{QS=JSON.parse(localStorage.getItem(QKEY())||"{}")}catch(e){}
+/* progress belongs to the signed in account (guests share one guest slot), not to the browser */
+const QKEY=()=>"cap3d.quest."+server.id+"."+(AUTH.user?AUTH.user.id:"guest");
+let QS={},qKeyCur="";
+function qSync(){const k=QKEY();if(k===qKeyCur)return;qKeyCur=k;QS={};try{QS=JSON.parse(localStorage.getItem(k)||"{}")}catch(e){}qSig=""}
 let qMin=false;
 function questState(){const own=PLOTS.some(p=>p.own);return [QS.w||RES.wood>=10,QS.s||false,QS.l||own,QS.h||PLOTS.some(p=>p.own&&p.house),QS.g||PLOTS.some(p=>p.own&&p.sign)]}
 let qSig="";
-function drawQuest(){const el=$("u2quest");if(mode!=="play"||P.kind!=="human"){el.hidden=true;qSig="";return}el.hidden=false;
+function drawQuest(){const el=$("u2quest");if(mode!=="play"||P.kind!=="human"){el.hidden=true;qSig="";return}el.hidden=false;qSync();
  const st=questState();const sig=st.join()+qMin+lang;if(sig===qSig)return;qSig=sig;const keys=["w","s","l","h","g"];let ch=false;st.forEach((v,i)=>{if(v&&!QS[keys[i]]){QS[keys[i]]=1;ch=true}});if(ch)try{localStorage.setItem(QKEY(),JSON.stringify(QS))}catch(e){}
  const t=UT();const all=st.every(Boolean);el.classList.toggle("min",qMin);
  el.innerHTML=`<b data-qt>${t.quest}<span>${qMin?"+":"−"}</span></b>`+(all?`<label class="ok"><i class="ok"></i>${t.qDone}</label>`:t.q.map((q,i)=>`<label class="${st[i]?"ok":""}"><i class="${st[i]?"ok":""}"></i>${q}</label>`).join(""));
  el.querySelector("[data-qt]").onclick=()=>{qMin=!qMin;qSig="";drawQuest()};el.style.pointerEvents="auto"}
 /* selling at the market counts as the second step */
 {const _rt=renderTrade;renderTrade=function(){const before=RES.denarius;const r=_rt.apply(this,arguments);
- const el=$("trade");el.querySelectorAll("[data-s1],[data-sa]").forEach(b=>{const f=b.onclick;b.onclick=function(){const d0=RES.denarius;f&&f.apply(this,arguments);if(RES.denarius>d0&&!QS.s){QS.s=1;try{localStorage.setItem(QKEY(),JSON.stringify(QS))}catch(e){}drawQuest()}}});return r}}
+ const el=$("trade");el.querySelectorAll("[data-s1],[data-sa]").forEach(b=>{const f=b.onclick;b.onclick=function(){const d0=RES.denarius;f&&f.apply(this,arguments);qSync();if(RES.denarius>d0&&!QS.s){QS.s=1;try{localStorage.setItem(QKEY(),JSON.stringify(QS))}catch(e){}drawQuest()}}});return r}}
 
 /* ---- storage beside the bag ---- */
 const HORREA=CIVIC.find(c=>c.k==="horrea");
