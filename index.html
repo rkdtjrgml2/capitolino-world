@@ -66,6 +66,11 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--gold-hi);outline-of
 #enterBtn{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;border-radius:6px;background:var(--gold);color:var(--ink);
   font-weight:700;font-size:16px;letter-spacing:.06em}
 #enterBtn:hover{background:var(--gold-hi)}
+#citBtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-top:10px;padding:14px;border:0;border-radius:6px;background:var(--gold);color:var(--ink);font:inherit;font-weight:700;font-size:17px;cursor:pointer}
+#citBtn:hover{background:var(--gold-hi)}#citBtn[hidden]{display:none}
+.vis{margin-top:16px;padding:14px 12px 12px;border:1px solid rgba(201,162,90,.28);border-radius:8px;background:rgba(0,0,0,.18)}
+.vis .visNote{display:block;margin:-2px 0 10px;color:var(--stone);font-size:12px;line-height:1.45}
+.vis #enterBtn{margin-top:12px;width:100%;box-sizing:border-box}.vis .step{display:flex;margin:0 0 6px}
 #enterBtn{margin-top:14px}#enterBtn.guest{background:transparent;color:var(--travertine);border:1px solid rgba(201,162,90,.55);padding:12px;font-size:15px}#enterBtn.guest:hover{background:rgba(231,201,135,.12)}
 .sheet{max-height:calc(100dvh - 36px);overflow-y:auto;gap:12px}
 .step{font-size:11px;letter-spacing:.08em;color:var(--stone);display:flex;align-items:center;gap:8px}
@@ -255,7 +260,15 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--gold-hi);outline-of
       <button id="lang-ko" data-lang="ko">한국어</button>
       <button id="lang-en" data-lang="en">English</button>
     </div>
-    <div class="step"><i>2</i><span data-t="whoPick"></span></div>
+    <div class="acct">
+      <div class="step"><i>2</i><span data-t="acctPick"></span></div>
+      <button class="gbtn" id="googleBtn"><svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.7c4.3-4 6.9-9.9 6.9-17.1z"/><path fill="#FBBC05" d="M10.5 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C.9 16.6 0 20.2 0 24s.9 7.4 2.6 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.5 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg><span data-t="google"></span></button>
+      <button id="citBtn" hidden><span id="citLbl"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      <small id="acctNote" data-t="acctNote"></small>
+    </div>
+    <div class="vis">
+    <div class="step"><i>3</i><span data-t="whoPick"></span></div>
+    <small class="visNote" data-t="visNote"></small>
     <div class="who" role="group">
       <button id="who-human" data-who="human">
         <svg viewBox="0 0 48 48" fill="currentColor"><circle cx="24" cy="9" r="5.5"/><path d="M17 17h14l3 15h-5l-1 13h-8l-1-13h-5z"/></svg>
@@ -282,13 +295,9 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--gold-hi);outline-of
         <svg viewBox="0 0 48 48" fill="currentColor"><path d="M4 24c6-8 16-11 26-8l12-7-3 15 3 15-12-7c-10 3-20 0-26-8z"/><circle cx="12" cy="22" r="1.8" fill="#16130f"/></svg>
         <span data-t="fish"></span><span class="cap" data-t="fishCap"></span></button>
     </div>
-    <div class="acct">
-      <div class="step"><i>3</i><span data-t="acctPick"></span></div>
-      <button class="gbtn" id="googleBtn"><svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.7c4.3-4 6.9-9.9 6.9-17.1z"/><path fill="#FBBC05" d="M10.5 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C.9 16.6 0 20.2 0 24s.9 7.4 2.6 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.5 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg><span data-t="google"></span></button>
-      <small id="acctNote" data-t="acctNote"></small>
-    </div>
     <button id="enterBtn"><span id="enterLbl" data-t="enter"></span>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    </div>
     <div class="note" data-t="note"></div>
   </div>
 </div>
@@ -461,7 +470,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--gold-hi);outline-of
 /* ============ text ============ */
 const T={
  ko:{sub:"혼자 걷는 로마",tag:"돈이라는 말이 태어난 언덕, 카피톨리노에서 시작합니다",
-  human:"사람",crow:"까마귀",deer:"사슴",wolf:"늑대",humanCap:"걷기, 사냥",crowCap:"날기",deerCap:"달리기",serverPick:"국가 서버",whoPick:"나그네 고르기",acctPick:"회원",google:"Google로 로그인 · 회원가입",acctNote:"회원이 되면 데나리우스, 땅, 간판이 저장됩니다. 로그인은 준비 중이고, 지금은 나그네로 둘러볼 수 있습니다",acctSoon:"로그인은 곧 열립니다. 지금은 나그네로 들어가 주세요",soon:"준비 중",srvOpenNote:"한국어 서버입니다. 미국, 일본 서버도 열려 있습니다",srvSoonNote:"서버는 준비 중입니다",wolfCap:"사냥",hare:"토끼",hareCap:"재빠름",boar:"멧돼지",boarCap:"돌진",bear:"곰",bearCap:"강함",fish:"물고기",fishCap:"강에서만",hintKeyFish:"WASD 헤엄 · Q E 시점 회전 · Shift 빠르게 · 강 안에서만 움직입니다",
+  human:"사람",crow:"까마귀",deer:"사슴",wolf:"늑대",humanCap:"걷기, 사냥",crowCap:"날기",deerCap:"달리기",serverPick:"국가 서버",whoPick:"나그네로 둘러보기",visNote:"동물이나 사람을 골라 가볍게 돌아다닙니다. 계정에는 저장되지 않습니다",acctPick:"시민으로 입장",google:"Google로 로그인 · 회원가입",acctNote:"회원이 되면 데나리우스, 땅, 간판이 저장됩니다. 로그인은 준비 중이고, 지금은 나그네로 둘러볼 수 있습니다",acctSoon:"로그인은 곧 열립니다. 지금은 나그네로 들어가 주세요",soon:"준비 중",srvOpenNote:"한국어 서버입니다. 미국, 일본 서버도 열려 있습니다",srvSoonNote:"서버는 준비 중입니다",wolfCap:"사냥",hare:"토끼",hareCap:"재빠름",boar:"멧돼지",boarCap:"돌진",bear:"곰",bearCap:"강함",fish:"물고기",fishCap:"강에서만",hintKeyFish:"WASD 헤엄 · Q E 시점 회전 · Shift 빠르게 · 강 안에서만 움직입니다",
   enter:"입장",note:"시제품 0.2 · 지형은 실제 로마의 언덕과 테베레 강 배치를 줄여 손으로 놓은 추정치입니다",
   hintKey:"WASD 이동 · Space 점프 · 클릭 공격 · F 줍기, 채집 · G 버리기 · 1~8 단축 칸 · I 소지품 · M 지도 · H 도움말",hintKeyCrow:"WASD 날기 · Q E 시점 회전 · Space 위로 · C 아래로",hintKeyBeast:"WASD 이동 · Space 점프 · 클릭이나 F 공격 · Q E 시점 회전 · H 도움말",
   hintTouch:"왼쪽 아래를 끌어 이동 · 오른쪽을 끌어 시점 회전",hintTouchCrow:"왼쪽 아래를 끌어 날기 · 화살표로 높이",
@@ -475,7 +484,7 @@ const T={
   zones:{mint:"유노 모네타 조폐소",market:"광장 시장",wood:"숲 · 나무",game:"사냥터",fish:"물고기 터",stone:"채석장",iron:"철광",silver:"은광",gold:"금광"},grade:["하급","중급","상급"],danger:"위험",mapTip:"지도를 누르면 넓게 봅니다",
   inv:"소지품",slots:{hand:"손",body:"몸",feet:"발",back:"등"},empty:"빈 칸",bag:"가방",denarius:"데나리우스",bagFull:"가방이 가득 찼습니다",tooFar:"가까이 가서 주우세요",equip:"바꿔 들기",invTip:"가방의 도구를 누르면 손에 듭니다",soonSlot:"방어구는 곧 열립니다",hotbar:"단축 칸",res:{denarius:"데나리우스",food:"식량",wood:"나무",stone:"돌",iron:"철",silver:"은",gold:"금",hide:"가죽"},drop:"버리기",dropped:"버렸습니다",needPick:"곡괭이가 필요합니다",depleted:"다 캤습니다. 잠시 뒤 다시 생깁니다",trade:"광장 상인",sell:"팔기",sellAll:"모두",buy:"사기",noMoney:"데나리우스가 모자랍니다",noItem:"팔 것이 없습니다",bagFull2:"단축 칸이 가득 찼습니다",talk:"상인과 거래",tradeNote:"데나리우스는 광장 상인에게서만 나옵니다. 자원을 팔고 도구를 사세요",cast:"찌를 던졌습니다. 느낌표가 뜨면 클릭",bite:"지금!",miss:"놓쳤습니다",needWater:"물가에서 던지세요",needRod:"낚싯대를 들고 물가에서 F",keys:"<b>조작</b> WASD 이동 · Shift 달리기 · Space 점프 · 왼쪽 클릭 공격 · F 줍기, 채집, 거래 · G 버리기 · 1~8 단축 칸 · I 또는 Tab 소지품 · M 지도 · H 도움말 · Esc 닫기 · Q E 또는 오른쪽 끌기 시점 회전"},
  en:{sub:"Walk Rome Alone",tag:"Start on the Capitoline, the hill where the word money was born",
-  human:"Human",crow:"Crow",deer:"Deer",wolf:"Wolf",humanCap:"walk, hunt",crowCap:"fly",deerCap:"run",serverPick:"Country server",whoPick:"Choose your visitor",acctPick:"Members",google:"Sign in with Google",acctNote:"Members keep their denarii, land and signs. Sign in is coming soon",acctSoon:"Sign in opens soon. Enter as a visitor for now",soon:"coming soon",srvOpenNote:"English server. Korea and Japan are open too",srvSoonNote:"server is coming soon",wolfCap:"hunt",hare:"Hare",hareCap:"quick",boar:"Boar",boarCap:"charge",bear:"Bear",bearCap:"strong",fish:"Fish",fishCap:"river only",hintKeyFish:"WASD swim · Q E turn view · Shift faster · stays in the river",
+  human:"Human",crow:"Crow",deer:"Deer",wolf:"Wolf",humanCap:"walk, hunt",crowCap:"fly",deerCap:"run",serverPick:"Country server",whoPick:"Look around as a visitor",visNote:"Pick an animal or a person and wander freely. Nothing is saved to an account",acctPick:"Enter as a citizen",google:"Sign in with Google",acctNote:"Members keep their denarii, land and signs. Sign in is coming soon",acctSoon:"Sign in opens soon. Enter as a visitor for now",soon:"coming soon",srvOpenNote:"English server. Korea and Japan are open too",srvSoonNote:"server is coming soon",wolfCap:"hunt",hare:"Hare",hareCap:"quick",boar:"Boar",boarCap:"charge",bear:"Bear",bearCap:"strong",fish:"Fish",fishCap:"river only",hintKeyFish:"WASD swim · Q E turn view · Shift faster · stays in the river",
   enter:"Enter",note:"Prototype 0.2 · Terrain is a hand placed estimate of Rome's real hills and the Tiber",
   hintKey:"WASD move · Space jump · Click attack · F pick up, gather · G drop · 1 to 8 hotbar · I inventory · M map · H help",hintKeyCrow:"WASD fly · Q E turn view · Space up · C down",hintKeyBeast:"WASD move · Space jump · Click or F attack · Q E turn · H help",
   hintTouch:"Drag bottom left to move · drag right side to turn the view",hintTouchCrow:"Drag bottom left to fly · arrows for height",
@@ -489,7 +498,7 @@ const T={
   zones:{mint:"Mint of Juno Moneta",market:"Market square",wood:"Forest · wood",game:"Hunting ground",fish:"Fishing spot",stone:"Quarry",iron:"Iron mine",silver:"Silver mine",gold:"Gold mine"},grade:["poor","fair","rich"],danger:"danger",mapTip:"Tap the map to zoom out",
   inv:"Inventory",slots:{hand:"Hand",body:"Body",feet:"Feet",back:"Back"},empty:"empty",bag:"Bag",denarius:"denarii",bagFull:"Your bag is full",tooFar:"Walk closer to pick it up",equip:"Equip",invTip:"Tap a tool in the bag to hold it",soonSlot:"armor coming soon",hotbar:"Hotbar",res:{denarius:"denarii",food:"food",wood:"wood",stone:"stone",iron:"iron",silver:"silver",gold:"gold",hide:"hide"},drop:"Drop",dropped:"Dropped",needPick:"You need a pickaxe",depleted:"Mined out. It comes back in a while",trade:"Market trader",sell:"Sell",sellAll:"All",buy:"Buy",noMoney:"Not enough denarii",noItem:"Nothing to sell",bagFull2:"Hotbar is full",talk:"Trade",tradeNote:"Denarii only come from the market traders. Sell resources, buy tools",cast:"Line cast. Click when the ! appears",bite:"Now!",miss:"It got away",needWater:"Cast from the water edge",needRod:"Hold a fishing rod by water and press F",keys:"<b>Controls</b> WASD move · Shift run · Space jump · Left click attack · F pick up, gather, trade · G drop · 1 to 8 hotbar · I or Tab inventory · M map · H help · Esc close · Q E or drag to turn"},
  ja:{sub:"ひとりで歩くローマ",tag:"お金という言葉が生まれた丘、カピトリーノから始まります",
-  human:"人",crow:"カラス",deer:"シカ",wolf:"オオカミ",humanCap:"歩く、狩る",crowCap:"飛ぶ",deerCap:"走る",serverPick:"国別サーバー",whoPick:"旅人を選ぶ",acctPick:"会員",google:"Googleでログイン・新規登録",acctNote:"会員になるとデナリウス、土地、看板が保存されます。ログインは準備中です。今は旅人として見て回れます",acctSoon:"ログインはまもなく開きます。今は旅人として入ってください",soon:"準備中",srvOpenNote:"日本語サーバーです。韓国、アメリカも開いています",srvSoonNote:"サーバーは準備中です",wolfCap:"狩る",hare:"ウサギ",hareCap:"すばやい",boar:"イノシシ",boarCap:"突進",bear:"クマ",bearCap:"強い",fish:"魚",fishCap:"川の中だけ",hintKeyFish:"WASD 泳ぐ · Q E 視点回転 · Shift 速く · 川の中だけ動けます",
+  human:"人",crow:"カラス",deer:"シカ",wolf:"オオカミ",humanCap:"歩く、狩る",crowCap:"飛ぶ",deerCap:"走る",serverPick:"国別サーバー",whoPick:"旅人として見て回る",visNote:"動物か人を選んで気軽に歩き回れます。アカウントには保存されません",acctPick:"市民として入る",google:"Googleでログイン・新規登録",acctNote:"会員になるとデナリウス、土地、看板が保存されます。ログインは準備中です。今は旅人として見て回れます",acctSoon:"ログインはまもなく開きます。今は旅人として入ってください",soon:"準備中",srvOpenNote:"日本語サーバーです。韓国、アメリカも開いています",srvSoonNote:"サーバーは準備中です",wolfCap:"狩る",hare:"ウサギ",hareCap:"すばやい",boar:"イノシシ",boarCap:"突進",bear:"クマ",bearCap:"強い",fish:"魚",fishCap:"川の中だけ",hintKeyFish:"WASD 泳ぐ · Q E 視点回転 · Shift 速く · 川の中だけ動けます",
   enter:"入場",note:"試作 0.2 · 地形は実際のローマの丘とテヴェレ川の配置を縮めて手で置いた推定です",
   hintKey:"WASD 移動 · Space ジャンプ · クリック 攻撃 · F 拾う・採集 · G 捨てる · 1〜8 ホットバー · I 持ち物 · M 地図 · H ヘルプ",hintKeyCrow:"WASD 飛ぶ · Q E 視点回転 · Space 上へ · C 下へ",hintKeyBeast:"WASD 移動 · Space ジャンプ · クリックか F 攻撃 · Q E 視点回転 · H ヘルプ",
   hintTouch:"左下をドラッグで移動 · 右側をドラッグで視点回転",hintTouchCrow:"左下をドラッグで飛ぶ · 矢印で高さ",
@@ -1927,17 +1936,17 @@ const AUTH_T={
  ko:{no:"시민 No.",out:"로그아웃",namePh:"이름 (2자에서 16자)",nameSave:"이름 정하기",nameTaken:"이미 쓰는 이름입니다",nameBad:"이름은 2자에서 16자입니다",nameSet:"이름을 정했습니다",
   noName:"이름을 정하면 다른 시민에게 보입니다",loading:"계정에서 불러오는 중",loaded:"계정에서 불러왔습니다",fail:"로그인하지 못했습니다",notHere:"로그인은 world.capitolino.org 에서 됩니다",
   banned:"이용이 제한된 계정입니다",saveFail:"저장하지 못했습니다. 잠시 뒤 다시 시도합니다",taken:"주인 있는 땅",takenSub:"다른 시민이 산 땅입니다",
-  pending:"간판은 운영자 검토 뒤 모두에게 보입니다",already:"방금 다른 시민이 샀습니다",memberSave:"내 계정에 저장됩니다",enterAs:"{n}{ro} 입장",enterMember:"시민으로 입장",enterGuest:"손님으로 둘러보기",signedNote:"데나리우스, 자원, 땅, 간판이 이 계정에 저장됩니다"},
+  pending:"간판은 운영자 검토 뒤 모두에게 보입니다",already:"방금 다른 시민이 샀습니다",memberSave:"내 계정에 저장됩니다",enterAs:"{n}{ro} 입장",enterMember:"시민으로 입장",enterGuest:"{k}{ro} 둘러보기",signedNote:"데나리우스, 자원, 땅, 간판이 이 계정에 저장됩니다"},
  en:{no:"Citizen No.",out:"Sign out",namePh:"Name (2 to 16 letters)",nameSave:"Set name",nameTaken:"That name is taken",nameBad:"Names are 2 to 16 letters",nameSet:"Name saved",
   noName:"Pick a name other citizens will see",loading:"Loading your account",loaded:"Loaded from your account",fail:"Could not sign in",notHere:"Sign in works on world.capitolino.org",
   banned:"This account is restricted",saveFail:"Could not save. Trying again soon",taken:"Owned land",takenSub:"Another citizen owns this plot",
-  pending:"Your sign shows to everyone after an operator review",already:"Another citizen just bought it",memberSave:"Saved to your account",enterAs:"Enter as {n}",enterMember:"Enter as a citizen",enterGuest:"Look around as a guest",signedNote:"Denarii, resources, land and signs are saved to this account"},
+  pending:"Your sign shows to everyone after an operator review",already:"Another citizen just bought it",memberSave:"Saved to your account",enterAs:"Enter as {n}",enterMember:"Enter as a citizen",enterGuest:"Look around as a {k}",signedNote:"Denarii, resources, land and signs are saved to this account"},
  ja:{no:"市民 No.",out:"ログアウト",namePh:"名前（2〜16文字）",nameSave:"名前を決める",nameTaken:"その名前は使われています",nameBad:"名前は2〜16文字です",nameSet:"名前を決めました",
   noName:"名前を決めると他の市民に表示されます",loading:"アカウントから読み込み中",loaded:"アカウントから読み込みました",fail:"ログインできませんでした",notHere:"ログインは world.capitolino.org で行えます",
   banned:"利用が制限されたアカウントです",saveFail:"保存できませんでした。少し後で再試行します",taken:"持ち主のいる土地",takenSub:"他の市民が買った土地です",
-  pending:"看板は運営の確認後にみんなに表示されます",already:"他の市民が先に買いました",memberSave:"アカウントに保存されます",enterAs:"{n}として入る",enterMember:"市民として入る",enterGuest:"ゲストで見て回る",signedNote:"デナリウス、資源、土地、看板がこのアカウントに保存されます"}};
+  pending:"看板は運営の確認後にみんなに表示されます",already:"他の市民が先に買いました",memberSave:"アカウントに保存されます",enterAs:"{n}として入る",enterMember:"市民として入る",enterGuest:"{k}で見て回る",signedNote:"デナリウス、資源、土地、看板がこのアカウントに保存されます"}};
 const AT=()=>AUTH_T[lang]||AUTH_T.en;
-for(const L of ["ko","en","ja"])if(T[L])T[L].acctNote={ko:"회원이 되면 데나리우스, 자원, 땅, 간판이 계정에 저장됩니다. 손님으로 둘러보기만 해도 됩니다",en:"Members keep their denarii, resources, land and signs. You can also just look around as a guest",ja:"会員になるとデナリウス、資源、土地、看板がアカウントに保存されます。ゲストで見て回るだけでもかまいません"}[L];
+for(const L of ["ko","en","ja"])if(T[L])T[L].acctNote={ko:"회원이 되면 데나리우스, 자원, 땅, 간판이 계정에 저장됩니다",en:"Members keep their denarii, resources, land and signs",ja:"会員になるとデナリウス、資源、土地、看板がアカウントに保存されます。"}[L];
 $("acctNote").textContent=T[lang].acctNote;
 const AUTH={sb:null,user:null,prof:null,ready:false,parcels:{},loaded:false,playAdd:0,saving:false};
 window.__auth=AUTH;
@@ -1950,9 +1959,14 @@ try{if(window.supabase&&window.supabase.createClient)AUTH.sb=window.supabase.cre
  const me=document.createElement("div");me.className="me";me.id="acctMe";me.hidden=true;me.innerHTML=`<img id="acctPic" alt=""><div class="nm"><b id="acctName"></b><small id="acctNo"></small></div><button id="acctOut"></button>`;
  const nr=document.createElement("div");nr.className="nmrow";nr.id="acctNameRow";nr.hidden=true;nr.innerHTML=`<input id="acctNameIn" maxlength="16"><button id="acctNameBtn"></button>`;
  $("googleBtn").after(me,nr)}
-function enterLabel(){const t=AT(),on=!!AUTH.user,p=AUTH.prof||{},meta=on?AUTH.user.user_metadata||{}:{};const n=on&&(p.display_name||"");$("enterLbl").textContent=!on?t.enterGuest:n?t.enterAs.replace("{n}",n).replace("{ro}",(()=>{const c=n.charCodeAt(n.length-1)-44032;if(c<0||c>11171)return"로";const j=c%28;return j===0||j===8?"로":"으로"})()):t.enterMember;$("enterBtn").classList.toggle("guest",!on)}
+function josaRo(n){const c=n.charCodeAt(n.length-1)-44032;if(c<0||c>11171)return"로";const j=c%28;return j===0||j===8?"로":"으로"}
+function enterLabel(){const t=AT(),on=!!AUTH.user,p=AUTH.prof||{};const n=on&&(p.display_name||"");
+ const kn=(T[lang]&&T[lang][who])||who;$("enterLbl").textContent=t.enterGuest.replace("{k}",lang==="en"?kn.toLowerCase():kn).replace("{ro}",josaRo(kn));$("enterBtn").classList.add("guest");
+ $("citBtn").hidden=!on;if(on)$("citLbl").textContent=n?t.enterAs.replace("{n}",n).replace("{ro}",josaRo(n)):t.enterMember}
 {const _al=applyLang;applyLang=function(){_al.apply(this,arguments);try{enterLabel()}catch(e){}}}
 AUTH.render=()=>renderAcct();
+{const _aw=applyWho;applyWho=function(){_aw.apply(this,arguments);try{enterLabel()}catch(e){}}}
+$("citBtn").onclick=()=>{who="human";applyWho();AUTH.asCit=true;$("enterBtn").onclick()};
 function renderAcct(){const t=AT(),on=!!AUTH.user;$("googleBtn").hidden=on;$("acctMe").hidden=!on;enterLabel();
  if(!on){$("acctNameRow").hidden=true;$("acctNote").textContent=T[lang].acctNote;return}
  const p=AUTH.prof||{},meta=AUTH.user.user_metadata||{};$("acctPic").src=p.avatar_url||meta.avatar_url||"";$("acctPic").style.visibility=(p.avatar_url||meta.avatar_url)?"visible":"hidden";
@@ -2026,7 +2040,7 @@ setInterval(()=>{if(mode==="play"&&AUTH.loaded&&!document.hidden)AUTH.playAdd+=5
 setInterval(()=>{if(mode==="play")saveNow()},30000);
 document.addEventListener("visibilitychange",()=>{if(document.hidden)saveNow()});
 window.addEventListener("pagehide",()=>{saveNow()});
-{const _go=$("enterBtn").onclick;$("enterBtn").onclick=e=>{_go&&_go(e);if(AUTH.user)memberEnter();else if(AUTH.wasMember){AUTH.wasMember=false;RES_KEYS.forEach(k=>RES[k]=0);updateStats();guestLand()}}}
+{const _go=$("enterBtn").onclick;$("enterBtn").onclick=e=>{const cit=!!(AUTH.user&&AUTH.asCit);AUTH.asCit=false;_go&&_go(e);if(cit)memberEnter();else if(AUTH.wasMember||AUTH.user){AUTH.wasMember=false;RES_KEYS.forEach(k=>RES[k]=0);updateStats();guestLand()}}}
 {const _gh=goHome;goHome=function(){if(AUTH.user&&AUTH.loaded){saveNow();AUTH.wasMember=true}AUTH.loaded=false;return _gh.apply(this,arguments)}}
 $("homeBtn")&&($("homeBtn").onclick=()=>goHome());
 renderAcct();
